@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="DotNetCoreDecorators" Version="1.0.20" />
+      <PackageReference Include="MyDependencies" Version="1.0.1" />
+      <PackageReference Include="MyServiceBus.Abstractions" Version="1.0.1" />
+    </ItemGroup>
+
+</Project>

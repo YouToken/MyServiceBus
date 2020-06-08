@@ -1,0 +1,72 @@
+
+@{
+    ViewBag.Title = "title";
+    Layout = null;
+}
+<html>
+<head>
+@await Html.PartialAsync("PartialScripts")
+</head>
+<body>
+<table class="table table-striped">
+    <tr>
+        <th>
+            Topic
+        </th>
+        <th>
+            Size
+        </th>
+        <th>
+            Topic connections
+        </th>
+        <th>
+            Queue
+        </th>
+    </tr>
+    <tbody id="mydata">
+    
+    </tbody>
+</table>
+
+<h3>Connections: <span id="tcpCount"></span></h3>
+<table class="table table-striped">
+    <tr>
+        <th>
+            Name
+        </th>
+        <th>
+            Ver
+        </th>
+        <th>
+            Ip
+        </th>
+        <th>
+            Id
+        </th>
+        <th>
+            DateTime
+        </th>
+        <th>
+            Topics
+        </th>
+        
+        <th>
+            Queues
+        </th>
+        <th>
+            Data Per sec
+        </th>
+    </tr>
+    <tbody id="connectionData">
+    
+    </tbody>
+</table>
+
+<h3>Messages to Persist Amount:</h3>
+<div id="queueToPersist">
+    
+</div>
+</body>
+</html>
+
+
