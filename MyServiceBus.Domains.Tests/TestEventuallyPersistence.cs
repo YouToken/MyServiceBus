@@ -1,6 +1,6 @@
 using System;
 using DotNetCoreDecorators;
-using MyServiceBus.Tests.Utils;
+using MyServiceBus.Domains.Tests.Utils;
 using NUnit.Framework;
 
 namespace MyServiceBus.Domains.Tests

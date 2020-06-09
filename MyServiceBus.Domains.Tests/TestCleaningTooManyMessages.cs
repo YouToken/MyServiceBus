@@ -1,5 +1,3 @@
-using System;
-using MyServiceBus.Tests.Utils;
 using NUnit.Framework;
 
 namespace MyServiceBus.Domains.Tests
