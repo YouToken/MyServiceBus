@@ -1,0 +1,28 @@
+name: Release nuget
+
+on:
+  push:
+    tags: "Client-*"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Build
+      run: dotnet build --configuration Release
+    - name: Test
+      run: dotnet test --configuration Release      
+      
+    - name: Create the package - Client
+      run: dotnet pack --configuration Release MyServiceBus.TcpClient/MyServiceBus.TcpClient.csproj /p:Version=${GITHUB_REF#refs/tags/Client-}
+
+    - name: Publish the package to GPR - Client
+      run: dotnet nuget push MyServiceBus.TcpClient/bin/Release/*.nupkg -s "https://api.nuget.org/v3/index.json" -k ${{ secrets.NUGET_TOCKEN }}
+  
