@@ -30,7 +30,7 @@ namespace MyServiceBus.Server
                         {
                             
                             options.Listen(IPAddress.Any,  6123,
-                                o => o.Protocols = HttpProtocols.Http1);
+                                o => o.Protocols = HttpProtocols.Http1AndHttp2);
                             
                             options.Listen(IPAddress.Any,  6124,
                                 o => o.Protocols = HttpProtocols.Http2);

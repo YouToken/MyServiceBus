@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using MyDependencies;
@@ -16,6 +18,48 @@ namespace MyServiceBus.Server
 {
     public static class ServiceLocatorApi
     {
+        static ServiceLocatorApi()
+        {
+            StartedAt = DateTime.UtcNow;
+
+            var name = Assembly.GetEntryAssembly()?.GetName();
+
+            string appName = name?.Name ?? string.Empty;
+
+            var nameSegments = appName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+            if (nameSegments.Length > 2)
+            {
+                appName = string.Join('.', nameSegments.Skip(1));
+            }
+
+            AppName = appName;
+            AppVersion = name?.Version?.ToString();
+
+            AspNetEnvironment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            Host = Environment.GetEnvironmentVariable("HOSTNAME");
+
+            Console.WriteLine($"AppName: {AppName}");
+            Console.WriteLine($"AppVersion: {AppVersion}");
+            Console.WriteLine($"AspNetEnvironment: {AspNetEnvironment}");
+            Console.WriteLine($"Host: {Host}");
+            Console.WriteLine($"StartedAt: {StartedAt}");
+            Console.WriteLine($"Port (http1 and http2): 6123");
+            Console.WriteLine($"Port (http2): 6124");
+            Console.WriteLine();
+        }
+
+        public static string AppName { get; private set; }
+        public static string AppVersion { get; private set; }
+
+        public static DateTime StartedAt { get; private set; }
+
+        public static string AspNetEnvironment { get; private set; }
+
+        public static string Host { get; private set; }
+
+
+
         public static SessionsList SessionsList { get; private set; }
         public static TopicsManagement TopicsManagement { get; private set; }
         public static TopicsList TopicsList { get; private set; }
