@@ -32,9 +32,24 @@ namespace MyServiceBus.Server
 
         public static SettingsModel ReadSettings()
         {
+            var homeFolder = Environment.GetEnvironmentVariable("HOME");
+            if (!string.IsNullOrEmpty(homeFolder) && File.Exists(Path.Combine(homeFolder, ".myservicebus")))
+            {
+                var file = Path.Combine(homeFolder, ".myservicebus");
+                var fileData = File.ReadAllBytes(file);
+                return MyYamlSettingsParser.MyYamlSettingsParser.ParseSettings<SettingsModel>(fileData);
+            }
+            homeFolder = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH");
+            if (!string.IsNullOrEmpty(homeFolder) && File.Exists(Path.Combine(homeFolder, ".myservicebus")))
+            {
+                var file = Path.Combine(homeFolder, ".myservicebus");
+                var fileData = File.ReadAllBytes(file);
+                return MyYamlSettingsParser.MyYamlSettingsParser.ParseSettings<SettingsModel>(fileData);
+            }
+
             var configBuilder = new ConfigurationBuilder();
 
-            var homeFolder = Environment.GetEnvironmentVariable("HOME");
+            homeFolder = Environment.GetEnvironmentVariable("HOME");
             if (!string.IsNullOrEmpty(homeFolder) && File.Exists(Path.Combine(homeFolder, ".myservicebus.json")))
             {
                 FileStream fileStream = new FileStream(Path.Combine(homeFolder, ".myservicebus.json"), FileMode.Open);
