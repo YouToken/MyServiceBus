@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MyServiceBus.Abstractions\MyServiceBus.Abstractions.csproj" />
       <ProjectReference Include="..\MyServiceBus.TcpClient\MyServiceBus.TcpClient.csproj" />
     </ItemGroup>
 
