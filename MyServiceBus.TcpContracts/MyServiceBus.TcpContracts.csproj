@@ -7,8 +7,7 @@
 
     <ItemGroup>
       <PackageReference Include="DotNetCoreDecorators" Version="1.0.20" />
-      <PackageReference Include="MyTcpSockets" Version="1.2.15" />
-      <PackageReference Include="MyTcpSockets.Extensions" Version="1.0.6" />
+      <PackageReference Include="MyTcpSockets" Version="1.2.16" />
     </ItemGroup>
 
     <ItemGroup>
