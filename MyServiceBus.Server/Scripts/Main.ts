@@ -151,17 +151,15 @@ class Main{
                 }
 
             itm += '<tr>' +
-                '<td>' + el.name + '</td>' +
+                '<td>' + el.name + '<div>Pub:'+el.publishPacketsPerSecond+'</div>' +
+                '<div>Sub:'+el.publishPacketsPerSecond+'</div>' +
+                '<div>Total:'+el.packetsPerSecondInternal+'</div></td>' +
                 '<td>' + el.protocolVersion + '</td>' +
                 '<td>' + el.ip + '</td>' +
                 '<td>' + el.id + '</td>' +
                 '<td>' + el.dateTime + '</td>' +
                 '<td>'+topics+'</td>' +
                 '<td>'+queues+'</td>'+
-                '<td><div>Pub:'+el.publishPacketsPerSecond+'</div>' +
-                '<div>Sub:'+el.publishPacketsPerSecond+'</div>' +
-                '<div>Total:'+el.packetsPerSecondInternal+'</div>' +
-                '</td>' +
                 '</tr>';
 
         }
