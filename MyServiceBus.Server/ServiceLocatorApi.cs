@@ -55,31 +55,18 @@ namespace MyServiceBus.Server
         public static DateTime StartedAt { get; private set; }
 
         public static string AspNetEnvironment { get; private set; }
-
         public static string Host { get; private set; }
-
-
-
         public static SessionsList SessionsList { get; private set; }
         public static TopicsManagement TopicsManagement { get; private set; }
         public static TopicsList TopicsList { get; private set; }
-        
         public static GlobalVariables MyGlobalVariables { get; private set; }
-        
         public static MyServiceBusPublisher MyServiceBusPublisher { get; private set; }
-
         public static MyServiceBusSubscriber Subscriber { get; private set; }
 
-
         private static MyServiceBusBackgroundExecutor _myServiceBusBackgroundExecutor;
-        
-        
         public static MyServiceBusDeliveryHandler MyServiceBusDeliveryHandler { get; private set; }
-        
         public static MyServerTcpSocket<IServiceBusTcpContract> TcpServer { get; internal set; }
-        
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
-        
         public static MessageContentCacheByTopic CacheByTopic { get; private set; }
         
         public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new MessagesPerSecondByTopic();
