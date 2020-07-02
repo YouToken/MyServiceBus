@@ -68,7 +68,18 @@ namespace MyServiceBus.Server
             ServiceLocatorApi.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
                 .RegisterSerializer(()=> new MyServiceBusTcpSerializer())
                 .SetService(()=>new MyServiceBusTcpContext())
-                .AddLog(Console.WriteLine); 
+                .AddLog((ctx, data) =>
+                {
+                    if (ctx == null)
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow}: "+data);    
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow}: ClientId: {ctx.Id}. "+data);
+                    }
+                    
+                }); 
             
             ServiceLocatorApi.TcpServer.Start();
             

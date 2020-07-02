@@ -1,6 +1,6 @@
 using System.IO;
 using System.Linq;
-using MyServiceBus.TcpContracts;
+using System.Threading;
 using MyTcpSockets.Extensions;
 using NUnit.Framework;
 
@@ -43,10 +43,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
 
+            var ct = new CancellationTokenSource();
 
             var result
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(typeof(PingContract) == result.GetType());
@@ -69,9 +70,12 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
             
+            
+            var ct = new CancellationTokenSource();
+            
             var result
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(inContract.GetType() == result.GetType());   
@@ -95,9 +99,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
             
+            var ct = new CancellationTokenSource();
+            
             var result
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
@@ -127,8 +133,10 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
 
+            var ct = new CancellationTokenSource();
+            
             var res 
-                = serializer.DeserializeAsync(dataReader).AsTestResult();
+                = serializer.DeserializeAsync(dataReader, ct.Token).AsTestResult();
            
            
            var result = (PublishContract) res;
@@ -167,9 +175,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
             
+            var ct = new CancellationTokenSource();
+            
             var result
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
@@ -198,9 +208,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
 
+            var ct = new CancellationTokenSource();
+            
             var result 
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
@@ -228,9 +240,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
 
+            var ct = new CancellationTokenSource();
+            
             var result 
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
@@ -273,8 +287,10 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());
 
+            var ct = new CancellationTokenSource();
+            
             var res = serializer
-                .DeserializeAsync(dataReader)
+                .DeserializeAsync(dataReader, ct.Token)
                 .AsTestResult();
             
             var result = (NewMessageContract) res;
@@ -313,8 +329,10 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());            
 
+            var ct = new CancellationTokenSource();
+            
             var res
-                = serializer.DeserializeAsync(dataReader)
+                = serializer.DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
              var result = (NewMessageConfirmationContract) res;
@@ -344,9 +362,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());              
 
+            var ct = new CancellationTokenSource();
+            
             var res
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             var result = (CreateTopicIfNotExistsContract) res;
@@ -374,10 +394,12 @@ namespace MyServiceBus.TcpContracts.Tests
             
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());             
-
+            
+            var ct = new CancellationTokenSource();
+            
             var res
                 = serializer
-                    .DeserializeAsync(dataReader)
+                    .DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             var result = (MessagesConfirmationContract) res;
@@ -411,8 +433,10 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());            
 
+            var ct = new CancellationTokenSource();
+            
             var res
-                = deserializer.DeserializeAsync(dataReader)
+                = deserializer.DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             var result = (PacketVersionsContract) res;
@@ -446,8 +470,10 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader();
             dataReader.NewPackage(memStream.ToArray());            
 
+            var ct = new CancellationTokenSource();
+            
             var res
-                = serializer.DeserializeAsync(dataReader)
+                = serializer.DeserializeAsync(dataReader, ct.Token)
                     .AsTestResult();
 
             var result = (RejectConnectionContract) res;

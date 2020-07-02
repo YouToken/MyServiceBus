@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using MyTcpSockets.Extensions;
@@ -20,12 +21,12 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(value);
         }
         
-        public static async ValueTask<long> ReadLongAsync(this TcpDataReader dataReader, long protocolVersion)
+        public static async ValueTask<long> ReadLongAsync(this TcpDataReader dataReader, long protocolVersion, CancellationToken ct)
         {
             if (protocolVersion < 2)
-                return await dataReader.ReadIntAsync();
+                return await dataReader.ReadIntAsync(ct);
 
-            return await dataReader.ReadLongAsync();
+            return await dataReader.ReadLongAsync(ct);
         }
         
         
@@ -39,17 +40,17 @@ namespace MyServiceBus.TcpContracts
                 item.Serialize(stream, protocolVersion, packetVersion);
         }
         
-        public static async Task<IReadOnlyList<T>> ReadArrayOfItemsAsync<T>(this TcpDataReader reader,  int protocolVersion, int packetVersion) 
+        public static async Task<IReadOnlyList<T>> ReadArrayOfItemsAsync<T>(this TcpDataReader reader,  int protocolVersion, int packetVersion, CancellationToken ct) 
             where T:IServiceBusTcpContract, new()
         {
-            var len = await reader.ReadIntAsync();
+            var len = await reader.ReadIntAsync(ct);
 
             var result = new List<T>();
 
             for (var i = 0; i < len; i++)
             {
                 var itm = new T();
-                await itm.DeserializeAsync(reader, protocolVersion, packetVersion);
+                await itm.DeserializeAsync(reader, protocolVersion, packetVersion, ct);
                 result.Add(itm);
             }
 
@@ -66,15 +67,15 @@ namespace MyServiceBus.TcpContracts
             }
         }
 
-        public static async ValueTask<IReadOnlyList<byte[]>> ReadListOfByteArrayAsync(this TcpDataReader reader)
+        public static async ValueTask<IReadOnlyList<byte[]>> ReadListOfByteArrayAsync(this TcpDataReader reader, CancellationToken ct)
         {
 
-            var dataLen = await reader.ReadIntAsync();
+            var dataLen = await reader.ReadIntAsync(ct);
 
             var result = new List<byte[]>();
             for (var i = 0; i < dataLen; i++)
             {
-                var data = await reader.ReadByteArrayAsync();
+                var data = await reader.ReadByteArrayAsync(ct);
                 result.Add(data.ToArray());
             }
 

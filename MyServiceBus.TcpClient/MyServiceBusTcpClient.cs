@@ -29,7 +29,7 @@ namespace MyServiceBus.TcpClient
                     _packetExceptionHandler, ()=>_checkAndCreateTopics));
         }
 
-        public MyServiceBusTcpClient PlugSocketLogs(Action<object> callback)
+        public MyServiceBusTcpClient PlugSocketLogs(Action<ITcpContext, object> callback)
         {
             _clientTcpSocket.AddLog(callback);
             return this;

@@ -6,7 +6,7 @@
 
     <ItemGroup>
       <PackageReference Include="MyDependencies" Version="1.0.1" />
-      <PackageReference Include="protobuf-net" Version="3.0.2" />
+      <PackageReference Include="protobuf-net" Version="3.0.13" />
       <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
     </ItemGroup>
 

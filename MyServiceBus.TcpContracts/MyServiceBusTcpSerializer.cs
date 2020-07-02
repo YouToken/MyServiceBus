@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using MyTcpSockets;
 using MyTcpSockets.Extensions;
 
@@ -27,16 +29,16 @@ namespace MyServiceBus.TcpContracts
                 _packetVersions.Add(key, value);  
         }
         
-        public async IAsyncEnumerable<IServiceBusTcpContract> DeserializeAsync(TcpDataReader reader)
+        public async IAsyncEnumerable<IServiceBusTcpContract> DeserializeAsync(TcpDataReader reader, [EnumeratorCancellation] CancellationToken ct)
         {
             
-            var command = await reader.ReadByteAsync();
+            var command = await reader.ReadByteAsync(ct);
 
             var instance = DataContractsMapper.ResolveDataContact(command);
 
             var packetVersion = GetPacketVersion(command);
             
-            await instance.DeserializeAsync(reader, _protocolVersion, packetVersion);
+            await instance.DeserializeAsync(reader, _protocolVersion, packetVersion, ct);
 
             if (instance is GreetingContract greetingContract)
             {
