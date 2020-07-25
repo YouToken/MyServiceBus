@@ -32,7 +32,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 Console.WriteLine($"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
 
                 cache.UploadPage(messages);
-
+                
                 var result = cache.TryGetMessage(messageId);
 
                 if (result != null)

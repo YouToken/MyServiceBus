@@ -33,7 +33,7 @@ namespace MyServiceBus.Server
         {
 
             services.AddCodeFirstGrpc();
-            var settings = SettingsReader.ReadSettings();
+            var settings = MySettingsReader.SettingsReader.GetSettings<SettingsModel>(".myservicebus");
             
             services.AddApplicationInsightsTelemetry(Configuration);
 
