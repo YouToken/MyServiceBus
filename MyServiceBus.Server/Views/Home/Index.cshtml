@@ -1,3 +1,4 @@
+@using MyServiceBus.Server
 
 @{
     ViewBag.Title = "title";
@@ -6,7 +7,7 @@
 <html>
 <head>
   @await Html.PartialAsync("PartialScripts")
-  <title>@(Url.GetType().Assembly.GetName().Version) MyServiceBus</title>
+  <title>@(typeof(ServiceLocatorApi).Assembly.GetName().Version) MyServiceBus</title>
 </head>
 <body>
 <table class="table table-striped">
