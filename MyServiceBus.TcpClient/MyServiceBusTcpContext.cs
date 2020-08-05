@@ -190,11 +190,34 @@ namespace MyServiceBus.TcpClient
         
         private const int ProtocolVersion = 2; 
         
+        
+        private static Lazy<string> GetReaderVersion = new Lazy<string>(() =>
+        {
+            try
+            {
+                return typeof(MyServiceBusTcpContext).Assembly.GetName().Version.ToString();
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        });
+        
+        
+        
         private void SendGreetings(string name)
         {
+
+            var readerVersion = GetReaderVersion.Value;
+
+            readerVersion = readerVersion == null
+                ? string.Empty
+                : ";ReaderVersion:"+readerVersion;
+
+            
             var contract = new GreetingContract
             {
-                Name = name,
+                Name = name +readerVersion,
                 ProtocolVersion = ProtocolVersion
             };
 
