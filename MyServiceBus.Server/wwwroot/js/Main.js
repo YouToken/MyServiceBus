@@ -37,7 +37,7 @@ var Main = /** @class */ (function () {
             var pubId = _a[_i];
             var con = this.findConnection(c, pubId);
             if (con)
-                itm += '<div>' + con.name + "/" + con.ip + '</div>';
+                itm += '<div>' + this.renderName(con.name) + con.ip + '</div>';
         }
         return itm;
     };
@@ -92,6 +92,15 @@ var Main = /** @class */ (function () {
         }
         return itm;
     };
+    Main.renderName = function (name) {
+        var lines = name.split(';');
+        var result = "";
+        for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
+            var i = lines_1[_i];
+            result += "<div>" + i + "</div>";
+        }
+        return result;
+    };
     Main.renderConnections = function (r) {
         var itm = '';
         for (var _i = 0, r_2 = r; _i < r_2.length; _i++) {
@@ -109,7 +118,7 @@ var Main = /** @class */ (function () {
                     queues += '<span class="badge badge-secondary">' + queue + '</span>';
                 }
             itm += '<tr>' +
-                '<td>' + el.name + '<div>Pub:' + el.publishPacketsPerSecond + '</div>' +
+                '<td>' + this.renderName(el.name) + '<div>Pub:' + el.publishPacketsPerSecond + '</div>' +
                 '<div>Sub:' + el.publishPacketsPerSecond + '</div>' +
                 '<div>Total:' + el.packetsPerSecondInternal + '</div></td>' +
                 '<td>' + el.protocolVersion + '</td>' +

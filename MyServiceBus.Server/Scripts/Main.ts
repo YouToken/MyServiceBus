@@ -59,7 +59,7 @@ class Main{
             let con = this.findConnection(c, pubId);
             
             if (con)
-                itm += '<div>'+con.name+"/"+con.ip+'</div>';
+                itm += '<div>'+this.renderName(con.name) + con.ip+'</div>';
         }
         
         return itm;
@@ -130,6 +130,19 @@ class Main{
 
         return itm;
     }
+    
+    
+    private static renderName(name:string):string{
+        let lines = name.split(';');
+        let result = "";
+        
+        for (let i of lines){
+            result += "<div>"+i+"</div>";
+        }
+        
+        return result;
+        
+    }
 
 
     private static renderConnections(r:IConnection[]):string {
@@ -151,7 +164,7 @@ class Main{
                 }
 
             itm += '<tr>' +
-                '<td>' + el.name + '<div>Pub:'+el.publishPacketsPerSecond+'</div>' +
+                '<td>' + this.renderName(el.name) + '<div>Pub:'+el.publishPacketsPerSecond+'</div>' +
                 '<div>Sub:'+el.publishPacketsPerSecond+'</div>' +
                 '<div>Total:'+el.packetsPerSecondInternal+'</div></td>' +
                 '<td>' + el.protocolVersion + '</td>' +
