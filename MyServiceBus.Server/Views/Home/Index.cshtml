@@ -5,7 +5,8 @@
 }
 <html>
 <head>
-@await Html.PartialAsync("PartialScripts")
+  @await Html.PartialAsync("PartialScripts")
+  <title>@(Url.GetType().Assembly.GetName().Version) MyServiceBus</title>
 </head>
 <body>
 <table class="table table-striped">
