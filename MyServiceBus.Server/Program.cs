@@ -42,7 +42,7 @@ namespace MyServiceBus.Server
                         .ConfigureLogging((context, logging) =>
                         {
                             // clear all previously registered providers
-                            logging.ClearProviders();
+                           // logging.ClearProviders();
 
                             // now register everything you *really* want
                             // …

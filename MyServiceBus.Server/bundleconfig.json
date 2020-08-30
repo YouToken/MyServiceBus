@@ -1,0 +1,17 @@
+﻿[
+  {
+    "outputFileName": "wwwroot/js/sb.min.js",
+    "inputFiles": [
+      "wwwroot/js/Utils.js",
+      "wwwroot/js/HtmlConnectionsRenderer.js",
+      "wwwroot/js/HtmlQueueToPersistRenderer.js",
+      "wwwroot/js/HtmlTopicRenderer.js",
+      "wwwroot/js/Main.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true
+    },
+    "sourceMap": false
+  }
+]

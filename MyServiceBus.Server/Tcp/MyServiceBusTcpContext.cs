@@ -64,7 +64,7 @@ namespace MyServiceBus.Server.Tcp
             SendPacket(resp);
         }
 
-        private MySession Session { get; set; }
+        public MySession Session { get; private set; }
 
 
         private static readonly Dictionary<int, int> AcceptedProtocolVersions = new Dictionary<int, int>()

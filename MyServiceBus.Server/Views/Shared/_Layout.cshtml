@@ -1,0 +1,16 @@
+@using MyServiceBus.Server
+
+@{
+    ViewBag.Title = "title";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <partial name="PartialScripts"></partial>
+    <title>@(typeof(ServiceLocatorApi).Assembly.GetName().Version) MyServiceBus</title>
+</head>
+<body>
+@RenderBody()
+</body>
+</html>

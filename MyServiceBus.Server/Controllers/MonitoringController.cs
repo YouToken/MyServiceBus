@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using MyServiceBus.Server.Models;
 using MyServiceBus.Domains.MessagesContent;
+using MyServiceBus.Server.Tcp;
+using MyTcpSockets;
 
 namespace MyServiceBus.Server.Controllers
 {
@@ -14,14 +16,28 @@ namespace MyServiceBus.Server.Controllers
         {
             var topics = ServiceLocatorApi.TopicsList.Get();
 
-            var sessions = ServiceLocatorApi.SessionsList.GetSessions();
-            
+            var sessions = ServiceLocatorApi
+                .TcpServer
+                .GetConnections();
+
+            var knownConnections =
+                sessions
+                    .Cast<MyServiceBusTcpContext>()
+                    .Where(itm => itm.Session != null)
+                    .ToList();
+
+            var unknownConnections = sessions
+                .Cast<MyServiceBusTcpContext>()
+                .Where(itm => itm.Session == null)
+                .Select(UnknownConnectionModel.Create)
+                .ToList();
             
             return new MonitoringModel
             {
-                Topics = topics.Select(itm => TopicMonitoringModel.Create(itm, sessions)),
-                Connections = sessions.Select(ConnectionModel.Create),
-                TcpConnections = ServiceLocatorApi.TcpServer.Count,
+                Topics = topics.Select(itm => TopicMonitoringModel.Create(itm, knownConnections)),
+                Connections = knownConnections.Select(ConnectionModel.Create),
+                UnknownConnections = unknownConnections,
+                TcpConnections = sessions.Count,
                 QueueToPersist = ServiceLocatorApi.MessagesToPersistQueue.GetMessagesToPersistCount().Select(itm => new QueueToPersist
                 {
                     TopicId = itm.topic,

@@ -1,8 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
-using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Server.Tcp;
 
 namespace MyServiceBus.Server.Models
 {
@@ -53,7 +54,7 @@ namespace MyServiceBus.Server.Models
         
         public IEnumerable<int> MessagesPerSecond { get; set; }
 
-        public static TopicMonitoringModel Create(MyTopic topic, IReadOnlyList<MySession> sessions)
+        public static TopicMonitoringModel Create(MyTopic topic, IReadOnlyList<MyServiceBusTcpContext> connections)
         {
             return new TopicMonitoringModel
             {
@@ -63,45 +64,76 @@ namespace MyServiceBus.Server.Models
                 RequestsPerSec = topic.RequestsPerSecond,
                 Consumers = topic.GetConsumers(),
                 MessageId = topic.MessageId,
-                Publishers = sessions.Where(itm => itm.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
+                Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
                 CachedPages = ServiceLocatorApi.CacheByTopic.GetPagesByTopic(topic.TopicId),
                 MessagesPerSecond = ServiceLocatorApi.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)
             };
         }
     }
 
-    public class ConnectionModel
+    public class UnknownConnectionModel
     {
-        public string Name { get; set; }
         public long Id { get; set; }
         public string Ip { get; set; }
-        public string DateTime { get; set; }
+        
+        public string ConnectedTimeStamp { get; set; }
+        public long SentBytes { get; set; }
+        public long ReceivedBytes { get; set; }
+        public string SentTimeStamp { get; set; }
+        public string ReceiveTimeStamp { get; set; }
+
+        internal void Init(MyServiceBusTcpContext context)
+        {
+            var now = DateTime.UtcNow;
+            Id = context.Id;
+            Ip = context.TcpClient.Client.RemoteEndPoint.ToString();
+            ConnectedTimeStamp = (now - context.SocketStatistic.LastSendTime).ToString("g");
+            SentBytes = context.SocketStatistic.Sent;
+            ReceivedBytes = context.SocketStatistic.Received;
+            SentTimeStamp = (now - context.SocketStatistic.LastSendTime).ToString("g");
+            ReceiveTimeStamp = (now - context.SocketStatistic.LastReceiveTime).ToString("g");
+        }
+
+        public static UnknownConnectionModel Create(MyServiceBusTcpContext ctx)
+        {
+            var result = new UnknownConnectionModel();
+            result.Init(ctx);
+
+            return result;
+        }
+
+
+    }
+
+    public class ConnectionModel : UnknownConnectionModel
+    {
+        public string Name { get; set; }
+
         public int ProtocolVersion { get; set; }
         
         public int PublishPacketsPerSecond { get; set; }
         public int SubscribePacketsPerSecond { get; set; }
-        
         public int PacketsPerSecondInternal { get; set; }
-        
         public IEnumerable<string> Topics { get; set; }
         
         public IEnumerable<string> Queues { get; set; }
 
-        public static ConnectionModel Create(MySession ctx)
+        public new static ConnectionModel Create(MyServiceBusTcpContext context)
         {
-            return new ConnectionModel
+            var result = new ConnectionModel
             {
-                Id = ctx.Id,
-                Ip = ctx.Ip,
-                Name = ctx.Name,
-                DateTime = ctx.LastAccess.ToString("s"),
-                Topics = ctx.GetTopicsToPublish(),
-                Queues = ctx.GetQueueSubscribers().Select(itm => itm.Topic.TopicId+">>>"+itm.QueueId),
-                PublishPacketsPerSecond = ctx.PublishPacketsPerSecond,
-                SubscribePacketsPerSecond = ctx.SubscribePacketsInternal,
-                PacketsPerSecondInternal = ctx.PacketsPerSecond,
-                ProtocolVersion = ctx.ProtocolVersion
+                Name = context.ContextName,
+                Topics = context.Session.GetTopicsToPublish(),
+                Queues = context.Session.GetQueueSubscribers().Select(itm => itm.Topic.TopicId+">>>"+itm.QueueId),
+                PublishPacketsPerSecond = context.Session.PublishPacketsPerSecond,
+                SubscribePacketsPerSecond = context.Session.SubscribePacketsInternal,
+                PacketsPerSecondInternal = context.Session.PacketsPerSecond,
+                ProtocolVersion = context.Session.ProtocolVersion,
             };
+            
+            result.Init(context);
+
+            return result;
         }
     }
 
@@ -118,6 +150,7 @@ namespace MyServiceBus.Server.Models
         public IEnumerable<TopicMonitoringModel> Topics { get; set; }
         
         public IEnumerable<ConnectionModel> Connections { get; set; }
+        public IEnumerable<UnknownConnectionModel> UnknownConnections { get; set; }
         
         public IEnumerable<QueueToPersist> QueueToPersist { get; set; }
         

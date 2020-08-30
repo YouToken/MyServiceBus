@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
+        <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
         <PackageReference Include="DotNetCoreDecorators" Version="1.0.20" />
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.14.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.7" />
@@ -30,11 +32,14 @@
 
     <ItemGroup>
       <TypeScriptCompile Include="Scripts\Contracts.d.ts" />
+      <TypeScriptCompile Include="Scripts\HtmlConnectionsRenderer.ts" />
+      <TypeScriptCompile Include="Scripts\HtmlQueueToPersistRenderer.ts" />
+      <TypeScriptCompile Include="Scripts\HtmlTopicRenderer.ts" />
       <TypeScriptCompile Include="Scripts\Main.ts" />
+      <TypeScriptCompile Include="Scripts\Utils.ts" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Views" />
       <Folder Include="wwwroot\css" />
       <Folder Include="wwwroot\js" />
       <Folder Include="wwwroot\lib" />
