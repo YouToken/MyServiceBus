@@ -23,13 +23,13 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             if (el.topics)
                 for (var _a = 0, _b = el.topics; _a < _b.length; _a++) {
                     var topic = _b[_a];
-                    topics += '<span class="badge badge-secondary">' + topic + "</span>";
+                    topics += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + topic + "</span></div>";
                 }
             var queues = "";
             if (el.queues)
                 for (var _c = 0, _d = el.queues; _c < _d.length; _c++) {
                     var queue = _d[_c];
-                    queues += '<span class="badge badge-secondary">' + queue + "</span>";
+                    queues += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + queue + "</span><div>";
                 }
             itm +=
                 "<tr>" +
