@@ -9,7 +9,7 @@ namespace MyServiceBus.Server.Models
         public static string FormatTimeStamp(this TimeSpan ts)
         {
             if (ts.TotalSeconds < 1)
-                return ts.Milliseconds + "ms";
+                return ts.TotalMilliseconds.ToString("000000000") + "ms";
             
             if (ts.TotalMinutes < 1)
                 return ts.Seconds.ToString("00")+"s";
