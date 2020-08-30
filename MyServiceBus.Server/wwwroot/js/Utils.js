@@ -28,7 +28,7 @@ var Utils = /** @class */ (function () {
     };
     Utils.renderBytes = function (b) {
         if (b < 1024)
-            return b.toString() + "b";
+            return b.toString();
         if (b < this.mb)
             return (b / 1024).toFixed(3) + "Kb";
         if (b < this.gb)

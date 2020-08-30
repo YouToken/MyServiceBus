@@ -78,6 +78,7 @@ namespace MyServiceBus.Server.Models
         
         public string ConnectedTimeStamp { get; set; }
         public long SentBytes { get; set; }
+        public string LastSendDuration { get; set; }
         public long ReceivedBytes { get; set; }
         public string SentTimeStamp { get; set; }
         public string ReceiveTimeStamp { get; set; }
@@ -89,9 +90,11 @@ namespace MyServiceBus.Server.Models
             Ip = context.TcpClient.Client.RemoteEndPoint.ToString();
             ConnectedTimeStamp = (now - context.SocketStatistic.LastSendTime).ToString("g");
             SentBytes = context.SocketStatistic.Sent;
+            SentBytes = context.SocketStatistic.Sent;
             ReceivedBytes = context.SocketStatistic.Received;
             SentTimeStamp = (now - context.SocketStatistic.LastSendTime).ToString("g");
             ReceiveTimeStamp = (now - context.SocketStatistic.LastReceiveTime).ToString("g");
+            LastSendDuration = context.SocketStatistic.LastSendToSocketDuration.ToString("g");
         }
 
         public static UnknownConnectionModel Create(MyServiceBusTcpContext ctx)

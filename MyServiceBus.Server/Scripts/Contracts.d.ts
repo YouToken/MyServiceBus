@@ -39,6 +39,7 @@ interface IUnknownConnection {
   receivedBytes: number;
   sentTimeStamp: string;
   receiveTimeStamp: string;
+  lastSendDuration : string;
 }
 
 interface IConnection extends IUnknownConnection {

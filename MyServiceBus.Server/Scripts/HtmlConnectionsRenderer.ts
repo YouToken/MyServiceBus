@@ -61,6 +61,9 @@ class HtmlConnectionsRenderer {
         "<div> Sent bytes:" +
         Utils.renderBytes(el.sentBytes) +
         "</div>" +
+        "<div> Last send duration:" +
+          el.lastSendDuration +
+        "</div>" +          
         "<div> Ver:" +
         el.protocolVersion +
         "</div>" +

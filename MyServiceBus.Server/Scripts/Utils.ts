@@ -31,7 +31,7 @@ class Utils {
   private static gb = 1024 * 1024 * 1024;
 
   public static renderBytes(b: number): string {
-    if (b < 1024) return b.toString() + "b";
+    if (b < 1024) return b.toString();
 
     if (b < this.mb) return (b / 1024).toFixed(3) + "Kb";
 
