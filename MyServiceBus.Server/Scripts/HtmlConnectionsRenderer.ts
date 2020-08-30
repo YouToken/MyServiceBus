@@ -24,14 +24,14 @@ class HtmlConnectionsRenderer {
 
       if (el.topics)
         for (let topic of el.topics) {
-          topics += '<span class="badge badge-secondary">' + topic + "</span>";
+          topics += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + topic + "</span></div>";
         }
 
       let queues = "";
 
       if (el.queues)
         for (let queue of el.queues) {
-          queues += '<span class="badge badge-secondary">' + queue + "</span>";
+          queues += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + queue + "</span><div>";
         }
 
       itm +=
