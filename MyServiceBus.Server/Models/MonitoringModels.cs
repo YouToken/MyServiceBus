@@ -88,7 +88,7 @@ namespace MyServiceBus.Server.Models
             var now = DateTime.UtcNow;
             Id = context.Id;
             Ip = context.TcpClient.Client.RemoteEndPoint.ToString();
-            ConnectedTimeStamp = (now - context.SocketStatistic.LastSendTime).ToString("g");
+            ConnectedTimeStamp = (now - context.SocketStatistic.ConnectionTime).ToString("g");
             SentBytes = context.SocketStatistic.Sent;
             SentBytes = context.SocketStatistic.Sent;
             ReceivedBytes = context.SocketStatistic.Received;

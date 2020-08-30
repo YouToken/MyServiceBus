@@ -3,10 +3,10 @@ class HtmlConnectionsRenderer {
     return (
       '<table class="table table-striped">' +
       "<tr>" +
+      "<th>Id</th>" +
       "<th>Name<div>Data Per sec</div></th>" +
       "<th>Info</th>" +
       "<th>Ip</th>" +
-      "<th>Id</th>" +
       "<th>Topics</th>" +
       "<th>Queues</th>" +
       "</tr>" +
@@ -37,6 +37,9 @@ class HtmlConnectionsRenderer {
 
       itm +=
         "<tr>" +
+          "<td>" +
+          el.id +
+          "</td>" +
         "<td>" +
         Utils.renderName(el.name) +
         "<div>Pub:" +
@@ -71,9 +74,7 @@ class HtmlConnectionsRenderer {
         "<td>" +
         el.ip +
         "</td>" +
-        "<td>" +
-        el.id +
-        "</td>" +
+
         "<td>" +
         topics +
         "</td>" +
