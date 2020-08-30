@@ -14,7 +14,7 @@ namespace MyServiceBus.Domains.Tests
         {
             var blobInMem = new PageBlobInMem();
 
-            var storageProcessor = new BlobMessagesStorageProcessor(blobInMem, new MessagesPageId(0));
+            var storageProcessor = new BlobMessagesStorageProcessor("test", blobInMem, new MessagesPageId(0));
 
             for (var i = 0; i < 50000; i++)
             {
@@ -25,7 +25,7 @@ namespace MyServiceBus.Domains.Tests
 
             Console.WriteLine(blobInMem.GetBlobSizeAsync().Result);
 
-            var resultStorageProcessor = new BlobMessagesStorageProcessor(blobInMem, new MessagesPageId(0));
+            var resultStorageProcessor = new BlobMessagesStorageProcessor("test", blobInMem, new MessagesPageId(0));
 
             var pageMessages = resultStorageProcessor.GetPageMessagesAsync().Result;
 

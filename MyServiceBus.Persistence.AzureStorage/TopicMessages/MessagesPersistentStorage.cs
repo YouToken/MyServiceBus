@@ -57,7 +57,7 @@ namespace MyServiceBus.Persistence.AzureStorage.TopicMessages
                 }
 
                 var pageProcessor = _getMessagesBlob(topicId, pageId);
-                var newItem = new BlobMessagesStorageProcessor(pageProcessor, pageId);
+                var newItem = new BlobMessagesStorageProcessor(topicId, pageProcessor, pageId);
                 _currentProcessors.Add(topicId, newItem);
                 return newItem;
                 
@@ -91,7 +91,7 @@ namespace MyServiceBus.Persistence.AzureStorage.TopicMessages
 
             var pageBlob = _getMessagesBlob(topicId, pageId);
             
-            messageProcessor = new BlobMessagesStorageProcessor(pageBlob, pageId);
+            messageProcessor = new BlobMessagesStorageProcessor(topicId, pageBlob, pageId);
 
             return messageProcessor.GetPageMessagesAsync();
         }

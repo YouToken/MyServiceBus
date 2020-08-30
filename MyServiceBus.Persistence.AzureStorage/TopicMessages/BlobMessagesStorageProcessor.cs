@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -8,36 +9,50 @@ namespace MyServiceBus.Persistence.AzureStorage.TopicMessages
 {
     public class BlobMessagesStorageProcessor
     {
+        private readonly string _topicId;
         private readonly IPageBlob _pageBlob;
         public MessagesPageId PageId { get; }
 
-        public BlobMessagesStorageProcessor(IPageBlob pageBlob, MessagesPageId pageId)
+        public BlobMessagesStorageProcessor(string topicId, IPageBlob pageBlob, MessagesPageId pageId)
         {
+            _topicId = topicId;
             _pageBlob = pageBlob;
             PageId = pageId;
         }
         
         public long DataLength { get; private set; }
 
-        private async IAsyncEnumerable<IMessageContent> LoadDataFromBlobAsync()
+        private async Task LoadDataFromBlobAsync(Action<IMessageContent> newItemCallback)
         {
             var parser = new PageBlobParser(_pageBlob);
 
+            long prevMessageId = -1;
+
             await foreach (var content in parser.ReadMemoryContentMemoryChunksAsync())
             {
-                content.Position = 0;
-                var item = ProtoBuf.Serializer.Deserialize<MessageContentBlobContract>(content);
-                yield return item;
+                try
+                {
+                    content.Position = 0;
+                    var item = ProtoBuf.Serializer.Deserialize<MessageContentBlobContract>(content);
+                    prevMessageId = item.MessageId;
+                    newItemCallback(item);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Can not read the message from the blob {_topicId}. Prev successful message was: "+prevMessageId);
+                    Console.WriteLine(e);
+                }
             }
         }
 
         private async Task<MessagesPageInMemory> LoadPageMessagesAsync()
         {
             var result = new MessagesPageInMemory(PageId);
-            await foreach (var itm in LoadDataFromBlobAsync())
+
+            await LoadDataFromBlobAsync(itm =>
             {
                 result.Add(itm);
-            }
+            });
 
             _messagesPageInMemory = result;
             return result;

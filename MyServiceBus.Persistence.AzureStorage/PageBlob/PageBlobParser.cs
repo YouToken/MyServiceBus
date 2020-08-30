@@ -43,8 +43,7 @@ namespace MyServiceBus.Persistence.AzureStorage.PageBlob
 
                         readingInt = false;
                     }
-
-                    if (!readingInt)
+                    else
                     {
                         if (stream.RemainsToRead < len)
                             break;
