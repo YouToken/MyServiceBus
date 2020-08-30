@@ -61,7 +61,7 @@ namespace MyServiceBus.Server.Tcp
                 RequestId = contract.RequestId
             };
 
-            SendPacket(resp);
+            await SendPacketAsync(resp);
         }
 
         public MySession Session { get; private set; }
@@ -159,8 +159,7 @@ namespace MyServiceBus.Server.Tcp
                 switch (data)
                 {
                     case PingContract _:
-                        SendPacket(PongContract.Instance);
-                        return new ValueTask();
+                        return SendPacketAsync(PongContract.Instance);
 
                     case SubscribeContract subscribeContract:
                         ExecuteSubscribe(subscribeContract);
@@ -236,7 +235,7 @@ namespace MyServiceBus.Server.Tcp
 
 
             Session.SubscribePacketsInternal++;
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
 
         private string _subscriberId;

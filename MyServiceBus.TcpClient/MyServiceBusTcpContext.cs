@@ -120,7 +120,7 @@ namespace MyServiceBus.TcpClient
                 DeleteOnDisconnect = deleteOnDisconnect
             };
             
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
 
         
@@ -172,7 +172,7 @@ namespace MyServiceBus.TcpClient
                 ConfirmationId = messages.ConfirmationId
             };
             
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
         
         private void SendMessageReject(NewMessageContract messages)
@@ -184,7 +184,7 @@ namespace MyServiceBus.TcpClient
                 ConfirmationId = messages.ConfirmationId
             };
             
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
         
         
@@ -221,7 +221,7 @@ namespace MyServiceBus.TcpClient
                 ProtocolVersion = ProtocolVersion
             };
 
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
 
 
@@ -229,7 +229,7 @@ namespace MyServiceBus.TcpClient
         {
             var packetVersions = new PacketVersionsContract();
             packetVersions.SetPacketVersion(CommandType.NewMessage, 1);
-            SendPacket(packetVersions);
+            SendPacketAsync(packetVersions);
         }
 
         private void SetCreateTopicIfNotExistsOnConnect(string topicId, int maxCachedSize)
@@ -240,7 +240,7 @@ namespace MyServiceBus.TcpClient
                 MaxMessagesInCache = maxCachedSize
             };
 
-            SendPacket(contract);
+            SendPacketAsync(contract);
         }
 
 
@@ -343,7 +343,7 @@ namespace MyServiceBus.TcpClient
                 ImmediatePersist = 0
             };
                 
-            SendPacket(contract);
+            SendPacketAsync(contract);
 
             state.SetOnRequest(requestId);
             
@@ -380,7 +380,7 @@ namespace MyServiceBus.TcpClient
 
             try
             {
-                SendPacket(contract);
+                await SendPacketAsync(contract);
                 await task.Task.Task;
             }
             catch (Exception)
