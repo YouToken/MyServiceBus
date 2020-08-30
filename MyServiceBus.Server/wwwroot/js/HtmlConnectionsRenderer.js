@@ -23,13 +23,13 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             if (el.topics)
                 for (var _a = 0, _b = el.topics; _a < _b.length; _a++) {
                     var topic = _b[_a];
-                    topics += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + topic + "</span></div>";
+                    topics += '<div><span class="badge badge-secondary">' + topic + "</span></div>";
                 }
             var queues = "";
             if (el.queues)
                 for (var _c = 0, _d = el.queues; _c < _d.length; _c++) {
                     var queue = _d[_c];
-                    queues += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + queue + "</span><div>";
+                    queues += '<div><span class="badge badge-secondary">' + queue + "</span><div>";
                 }
             itm +=
                 "<tr>" +
@@ -41,13 +41,13 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                     "<div><b>Ip:</b>" +
                     el.ip +
                     "</div>" +
-                    "<div>Pub:" +
+                    "<div><b>Pub:</b>" +
                     el.publishPacketsPerSecond +
                     "</div>" +
-                    "<div>Sub:" +
+                    "<div><b>Sub:</b>" +
                     el.publishPacketsPerSecond +
                     "</div>" +
-                    "<div>Total:" +
+                    "<div><b>Total:</b>" +
                     el.packetsPerSecondInternal +
                     "</div></td>" +
                     '<td style="font-size:10px">' +

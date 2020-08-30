@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
@@ -34,24 +35,37 @@ namespace MyServiceBus.Domains.MessagesContent
         }
 
 
-        private async Task LoadActivePagesAsync(MyTopic topic, IEnumerable<long> pages)
+        private async Task LoadActivePagesAsync(MyTopic topic, IReadOnlyList<long> pages)
         {
 
-            var contentByTopic = _messageContentCacheByTopic.TryGetTopic(topic.TopicId) 
-                                 ?? _messageContentCacheByTopic.Create(topic.TopicId);
+
+                var contentByTopic = _messageContentCacheByTopic.TryGetTopic(topic.TopicId) 
+                                     ?? _messageContentCacheByTopic.Create(topic.TopicId);
 
 
-            foreach (var pageId in pages)
-            {
-                if (contentByTopic.HasCacheLoaded(pageId))
-                    continue;
-                
+                foreach (var pageId in pages)
+                {
+                    try
+                    {
+                        if (contentByTopic.HasCacheLoaded(pageId))
+                            continue;
 
-                var messages = await _messagesPersistentStorage.GetMessagesPageAsync(topic.TopicId, new MessagesPageId(pageId));
-                contentByTopic.  UploadPage(messages);
-                
-                Console.WriteLine($"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
-            }
+
+                        var messages =
+                            await _messagesPersistentStorage.GetMessagesPageAsync(topic.TopicId,
+                                new MessagesPageId(pageId));
+                        contentByTopic.UploadPage(messages);
+
+                        Console.WriteLine(
+                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Can not restore the page {pageId} for the topic [{topic.TopicId}]");
+                        Console.WriteLine(e);
+                    }
+                }
+
         }
 
         public async ValueTask GarbageCollectAsync(MyTopic topic)
@@ -60,7 +74,7 @@ namespace MyServiceBus.Domains.MessagesContent
             
             var activePages = topic.GetActiveMessagePages();
 
-            await LoadActivePagesAsync(topic, activePages.Keys);
+            await LoadActivePagesAsync(topic, activePages.Keys.ToList());
             
             _messageContentCacheByTopic.GarbageCollect(topic.TopicId, activePages);
             

@@ -24,14 +24,14 @@ class HtmlConnectionsRenderer {
 
       if (el.topics)
         for (let topic of el.topics) {
-          topics += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + topic + "</span></div>";
+          topics += '<div><span class="badge badge-secondary">' + topic + "</span></div>";
         }
 
       let queues = "";
 
       if (el.queues)
         for (let queue of el.queues) {
-          queues += '<div style="margin-top: 2px"><span class="badge badge-secondary">' + queue + "</span><div>";
+          queues += '<div><span class="badge badge-secondary">' + queue + "</span><div>";
         }
 
       itm +=
@@ -44,13 +44,13 @@ class HtmlConnectionsRenderer {
           "<div><b>Ip:</b>" +
           el.ip +
           "</div>" +
-        "<div>Pub:" +
+        "<div><b>Pub:</b>" +
         el.publishPacketsPerSecond +
         "</div>" +
-        "<div>Sub:" +
+        "<div><b>Sub:</b>" +
         el.publishPacketsPerSecond +
         "</div>" +
-        "<div>Total:" +
+        "<div><b>Total:</b>" +
         el.packetsPerSecondInternal +
         "</div></td>" +
         '<td style="font-size:10px">' +
