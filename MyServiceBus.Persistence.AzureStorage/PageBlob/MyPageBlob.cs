@@ -93,7 +93,7 @@ namespace MyServiceBus.Persistence.AzureStorage.PageBlob
             if (neededAmount>blobSize)
             {
                 await ResizeBlobAsync(neededAmount);
-                Console.WriteLine("Ressizing blob "+_fileName+" to new size: "+neededAmount);
+                Console.WriteLine($"Ressizing blob {_containerName}/{_fileName} to new size: "+neededAmount);
             }
 
             var mt5 = MD5.Create();
