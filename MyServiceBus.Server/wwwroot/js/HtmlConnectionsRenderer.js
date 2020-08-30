@@ -4,10 +4,9 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
     HtmlConnectionsRenderer.renderConnectionsTable = function (r) {
         return ('<table class="table table-striped">' +
             "<tr>" +
+            "<th>Id</th>" +
             "<th>Name<div>Data Per sec</div></th>" +
             "<th>Info</th>" +
-            "<th>Ip</th>" +
-            "<th>Id</th>" +
             "<th>Topics</th>" +
             "<th>Queues</th>" +
             "</tr>" +
@@ -35,7 +34,13 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             itm +=
                 "<tr>" +
                     "<td>" +
+                    el.id +
+                    "</td>" +
+                    "<td>" +
                     Utils.renderName(el.name) +
+                    "<div><b>Ip:</b>" +
+                    el.ip +
+                    "</div>" +
                     "<div>Pub:" +
                     el.publishPacketsPerSecond +
                     "</div>" +
@@ -45,31 +50,25 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                     "<div>Total:" +
                     el.packetsPerSecondInternal +
                     "</div></td>" +
-                    "<td>" +
-                    "<div> Connected:" +
+                    '<td style="font-size:10px">' +
+                    "<div><b>Connected:</b>" +
                     el.connectedTimeStamp +
                     "</div>" +
-                    "<div> Last Recv Time:" +
+                    "<div><b>Last Recv Time:</b>" +
                     el.receiveTimeStamp +
                     "</div>" +
-                    "<div> Read bytes:" +
+                    "<div><b>Read bytes:</b>" +
                     Utils.renderBytes(el.receivedBytes) +
                     "</div>" +
-                    "<div> Sent bytes:" +
+                    "<div><b>Sent bytes:</b>" +
                     Utils.renderBytes(el.sentBytes) +
                     "</div>" +
-                    "<div> Last send duration:" +
+                    "<div><b>Last send duration:</b>" +
                     el.lastSendDuration +
                     "</div>" +
-                    "<div> Ver:" +
+                    "<div><b>Ver:</b>" +
                     el.protocolVersion +
                     "</div>" +
-                    "</td>" +
-                    "<td>" +
-                    el.ip +
-                    "</td>" +
-                    "<td>" +
-                    el.id +
                     "</td>" +
                     "<td>" +
                     topics +
