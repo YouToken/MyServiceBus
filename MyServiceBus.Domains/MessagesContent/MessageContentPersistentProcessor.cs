@@ -50,6 +50,7 @@ namespace MyServiceBus.Domains.MessagesContent
                         if (contentByTopic.HasCacheLoaded(pageId))
                             continue;
 
+                        var now = DateTime.UtcNow;
 
                         var messages =
                             await _messagesPersistentStorage.GetMessagesPageAsync(topic.TopicId,
@@ -57,7 +58,7 @@ namespace MyServiceBus.Domains.MessagesContent
                         contentByTopic.UploadPage(messages);
 
                         Console.WriteLine(
-                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
+                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow-now:g}");
                     }
                     catch (Exception e)
                     {
