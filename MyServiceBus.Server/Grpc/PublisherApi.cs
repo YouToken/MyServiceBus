@@ -16,12 +16,12 @@ namespace MyServiceBus.Server.Grpc
         {
             var now = DateTime.UtcNow;
 
-            var session = ServiceLocatorApi.SessionsList.GetSession(request.SessionId, now);
+            var session = ServiceLocator.SessionsList.GetSession(request.SessionId, now);
 
             if (session == null)
                 return ErrorGrpcResponses.SessionExpired;
 
-            var response = await ServiceLocatorApi
+            var response = await ServiceLocator
                 .MyServiceBusPublisher
                 .PublishAsync(session, request.TopicId, request.Messages, now, request.PersistImmediately);
 

@@ -27,7 +27,7 @@ namespace MyServiceBus.Domains.Tests
             session.PublishMessage(topicName, message, DateTime.UtcNow);
 
             
-            Assert.AreEqual(0, topic.GetMessagesCount());
+            Assert.AreEqual(0, topic.MessagesCount);
             
         }
         

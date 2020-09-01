@@ -11,14 +11,15 @@ using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Server.Services;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
 namespace MyServiceBus.Server
 {
-    public static class ServiceLocatorApi
+    public static class ServiceLocator
     {
-        static ServiceLocatorApi()
+        static ServiceLocator()
         {
             StartedAt = DateTime.UtcNow;
 
@@ -70,6 +71,8 @@ namespace MyServiceBus.Server
         public static MessageContentCacheByTopic CacheByTopic { get; private set; }
         
         public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new MessagesPerSecondByTopic();
+
+        public static PrometheusMetrics PrometheusMetrics { get; private set; }
         
         private static async Task RestoreTopicsAsync(IServiceResolver serviceResolver)
         {
@@ -102,6 +105,8 @@ namespace MyServiceBus.Server
             _myServiceBusBackgroundExecutor = serviceResolver.GetService<MyServiceBusBackgroundExecutor>();
 
             CacheByTopic = serviceResolver.GetService<MessageContentCacheByTopic>();
+
+            PrometheusMetrics = serviceResolver.GetService<PrometheusMetrics>();
 
             RestoreTopicsAsync(serviceResolver).Wait();
         }

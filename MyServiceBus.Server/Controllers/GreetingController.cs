@@ -9,7 +9,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpPost("Greeting")]
         public long Index([FromForm][Required]string name)
         {
-            var session = ServiceLocatorApi.SessionsList.NewSession(name, 
+            var session = ServiceLocator.SessionsList.NewSession(name, 
                 HttpContext.Connection.RemoteIpAddress.ToString(), 
                 DateTime.UtcNow, Startup.SessionTimeout, 0);
             
@@ -19,7 +19,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpPost("Greeting/Ping")]
         public IActionResult Index([FromForm][Required]long sessionId)
         {
-            var session = ServiceLocatorApi.SessionsList.GetSession(sessionId, DateTime.UtcNow);
+            var session = ServiceLocator.SessionsList.GetSession(sessionId, DateTime.UtcNow);
             
             if (session == null)
                 return Forbid();

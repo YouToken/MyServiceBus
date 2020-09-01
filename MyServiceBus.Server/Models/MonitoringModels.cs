@@ -59,14 +59,14 @@ namespace MyServiceBus.Server.Models
             return new TopicMonitoringModel
             {
                 Id = topic.TopicId,
-                Size = topic.GetMessagesCount(),
+                Size = topic.MessagesCount,
                 MsgPerSec = topic.MessagesPerSecond,
                 RequestsPerSec = topic.RequestsPerSecond,
                 Consumers = topic.GetConsumers(),
                 MessageId = topic.MessageId,
                 Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
-                CachedPages = ServiceLocatorApi.CacheByTopic.GetPagesByTopic(topic.TopicId),
-                MessagesPerSecond = ServiceLocatorApi.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)
+                CachedPages = ServiceLocator.CacheByTopic.GetPagesByTopic(topic.TopicId),
+                MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)
             };
         }
     }

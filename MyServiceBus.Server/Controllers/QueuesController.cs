@@ -10,7 +10,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpDelete("/Queues/")]
         public IActionResult Delete([FromQuery][Required]string topicId, [FromQuery][Required]string queueId)
         {
-            var topic = ServiceLocatorApi.TopicsList.Get(topicId);
+            var topic = ServiceLocator.TopicsList.Get(topicId);
             
             if(topic == null)
                 throw new Exception($"Topic {topicId} is not found");

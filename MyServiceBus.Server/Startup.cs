@@ -14,6 +14,7 @@ using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Persistence.AzureStorage;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
+using Prometheus;
 using ProtoBuf.Grpc.Server;
 
 namespace MyServiceBus.Server
@@ -39,6 +40,8 @@ namespace MyServiceBus.Server
 
             services.AddMvc(o => { o.EnableEndpointRouting = false; })
                 .AddNewtonsoftJson();
+            
+            
 
             services.AddSignalR()
                 .AddMessagePackProtocol(options =>
@@ -62,10 +65,13 @@ namespace MyServiceBus.Server
 
             ioc.BindTopicsPersistentStorage(cloudStorage);
             ioc.BindMessagesPersistentStorage(messagesConnectionString);
+            ioc.BindServerServices();
+            
             ioc.Register<IMessagesToPersistQueue>(new MessagesToPersistQueue());
             
-            ServiceLocatorApi.Init(ioc);
-            ServiceLocatorApi.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
+            
+            ServiceLocator.Init(ioc);
+            ServiceLocator.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
                 .RegisterSerializer(()=> new MyServiceBusTcpSerializer())
                 .SetService(()=>new MyServiceBusTcpContext())
                 .AddLog((ctx, data) =>
@@ -81,7 +87,7 @@ namespace MyServiceBus.Server
                     
                 }); 
             
-            ServiceLocatorApi.TcpServer.Start();
+            ServiceLocator.TcpServer.Start();
             
             
         }
@@ -90,11 +96,9 @@ namespace MyServiceBus.Server
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime applicationLifetime)
         {
 
-            applicationLifetime.ApplicationStopping.Register(()=>
+            applicationLifetime.ApplicationStopping.Register(() =>
             {
-                
-                ServiceLocatorApi.Stop();
-                
+                ServiceLocator.Stop();
                 Console.WriteLine("Everything is stopped properly");
             });
 
@@ -105,7 +109,7 @@ namespace MyServiceBus.Server
 
 
             app.UseRouting();
-            
+
             app.UseEndpoints(
 
                 endpoints =>
@@ -113,12 +117,13 @@ namespace MyServiceBus.Server
                     endpoints.MapControllers();
                     endpoints.MapGrpcService<PublisherApi>();
                     endpoints.MapGrpcService<ManagementGrpcService>();
+                    endpoints.MapMetrics();
                 });
 
-            ServiceLocatorApi.Start();
-            
+            ServiceLocator.Start();
+
         }
-        
-  
+
+
     }
 }

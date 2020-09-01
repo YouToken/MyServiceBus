@@ -26,8 +26,6 @@ namespace MyServiceBus.Domains.Execution
             if (messageId<0)
                 return;
 
-
-
             while (messageId >= 0)
             {
                 var myMessage =

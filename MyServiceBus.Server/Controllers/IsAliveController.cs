@@ -8,11 +8,11 @@ namespace MyServiceBus.Server.Controllers
     {
         private static readonly Lazy<object> Version = new Lazy<object>(() => new
         {
-            Name = ServiceLocatorApi.AppName,
-            Version = ServiceLocatorApi.AppVersion,
-            StartedAt = ServiceLocatorApi.StartedAt,
-            Host = ServiceLocatorApi.Host,
-            Environment = ServiceLocatorApi.AspNetEnvironment
+            Name = ServiceLocator.AppName,
+            Version = ServiceLocator.AppVersion,
+            StartedAt = ServiceLocator.StartedAt,
+            Host = ServiceLocator.Host,
+            Environment = ServiceLocator.AspNetEnvironment
         });
 
         private static IActionResult _isAliveResult;

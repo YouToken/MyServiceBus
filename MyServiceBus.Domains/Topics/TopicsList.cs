@@ -7,11 +7,18 @@ namespace MyServiceBus.Domains.Topics
 {
     public class TopicsList
     {
-       
+        private readonly IMetricCollector _metricCollector;
+
         private Dictionary<string, MyTopic> _topics = new Dictionary<string, MyTopic>();
         private IReadOnlyList<MyTopic> _topicsAsList = new List<MyTopic>();
         
         private readonly object _lockObject = new object();
+
+
+        public TopicsList(IMetricCollector metricCollector)
+        {
+            _metricCollector = metricCollector;
+        }
 
         public IReadOnlyList<MyTopic> Get()
         {
@@ -36,7 +43,7 @@ namespace MyServiceBus.Domains.Topics
                 if (_topics.ContainsKey(topicId))
                     return _topics[topicId];
 
-                var newTopic = new MyTopic(topicId, startMessageId);
+                var newTopic = new MyTopic(topicId, startMessageId, _metricCollector);
                 var newTopics = new Dictionary<string, MyTopic>(_topics) {{topicId, newTopic}};
                 _topics = newTopics;
                 _topicsAsList = _topics.Values.ToList();

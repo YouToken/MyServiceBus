@@ -30,6 +30,8 @@ namespace MyServiceBus.Domains.Tests.Utils
             ioc.Register(testSettings);
             ioc.Register<IMyServiceBusSettings>(testSettings);
             
+            ioc.Register<IMetricCollector, MetricsCollectorMock>();
+            
             return ioc;
         }
 

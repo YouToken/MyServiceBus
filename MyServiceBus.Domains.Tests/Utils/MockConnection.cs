@@ -98,7 +98,7 @@ namespace MyServiceBus.Domains.Tests.Utils
 
         public void ConfirmDelivery(TopicQueue queue, long confirmationId)
         {
-            Subscriber.ConfirmDeliveryAsync(queue, confirmationId, true);
+            Subscriber.ConfirmDeliveryAsync(queue.Topic, queue.QueueId, confirmationId, true);
         }
     }
 }

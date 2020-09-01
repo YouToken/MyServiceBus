@@ -24,14 +24,9 @@ namespace MyServiceBus.Domains.Execution
             return topicQueue;
         }
 
-        public ValueTask ConfirmDeliveryAsync(TopicQueue topicQueue, long confirmationId, bool ok)
+        public ValueTask ConfirmDeliveryAsync(MyTopic topic, string queueName, long confirmationId, bool ok)
         {
-
-            if (ok)
-                topicQueue.ConfirmDelivery(confirmationId);
-            else
-                topicQueue.ConfirmNotDelivery(confirmationId);
-            
+            var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, ok);
             return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
         }
         

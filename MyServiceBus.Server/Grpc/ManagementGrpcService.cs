@@ -11,7 +11,7 @@ namespace MyServiceBus.Server.Grpc
     {
         public async ValueTask<CreateTopicGrpcResponse> CreateTopicAsync(CreateTopicGrpcRequest request)
         {
-            var session = ServiceLocatorApi.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
+            var session = ServiceLocator.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
 
             if (session == null)
                 return new CreateTopicGrpcResponse
@@ -23,7 +23,7 @@ namespace MyServiceBus.Server.Grpc
             
             Console.WriteLine($"Creating topic {request.TopicId} for connection: "+session.Name);
             
-            await ServiceLocatorApi.TopicsManagement.AddIfNotExistsAsync(request.TopicId);
+            await ServiceLocator.TopicsManagement.AddIfNotExistsAsync(request.TopicId);
 
             session.PublishToTopic(request.TopicId);
             
@@ -37,7 +37,7 @@ namespace MyServiceBus.Server.Grpc
         public ValueTask<CreateQueueGrpcResponse> CreateQueueAsync(CreateQueueGrpcRequest request)
         {
 
-            var session = ServiceLocatorApi.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
+            var session = ServiceLocator.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
 
             if (session == null)
             {
@@ -49,7 +49,7 @@ namespace MyServiceBus.Server.Grpc
                 return new ValueTask<CreateQueueGrpcResponse>(resultNoSession);
             }
 
-            var topic = ServiceLocatorApi.TopicsList.Get(request.TopicId);
+            var topic = ServiceLocator.TopicsList.Get(request.TopicId);
 
             topic.CreateQueueIfNotExists(request.QueueId, request.DeleteOnNoConnections);
 
@@ -66,7 +66,7 @@ namespace MyServiceBus.Server.Grpc
         public ValueTask<GreetingGrpcResponse> GreetingAsync(GreetingGrpcRequest request)
         {
 
-            var session = ServiceLocatorApi.SessionsList.NewSession(request.Name, "127.0.0.1", DateTime.UtcNow, Startup.SessionTimeout, 0);
+            var session = ServiceLocator.SessionsList.NewSession(request.Name, "127.0.0.1", DateTime.UtcNow, Startup.SessionTimeout, 0);
 
             var result = new GreetingGrpcResponse
             {
@@ -79,7 +79,7 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<PingGrpcResponse> PingAsync(PingGrpcRequest request)
         {
-            var session = ServiceLocatorApi.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
+            var session = ServiceLocator.SessionsList.GetSession(request.SessionId, DateTime.UtcNow);
 
             if (session != null)
                 return new ValueTask<PingGrpcResponse>(new PingGrpcResponse
@@ -99,7 +99,7 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<LogoutGrpcResponse> LogoutAsync(LogoutGrpcRequest request)
         {
-            ServiceLocatorApi.SessionsList.RemoveIfExists(request.SessionId);
+            ServiceLocator.SessionsList.RemoveIfExists(request.SessionId);
             
             return new ValueTask<LogoutGrpcResponse>(new LogoutGrpcResponse
             {

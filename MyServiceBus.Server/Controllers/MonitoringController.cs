@@ -14,9 +14,9 @@ namespace MyServiceBus.Server.Controllers
         [HttpGet("/Monitoring")]
         public MonitoringModel Index()
         {
-            var topics = ServiceLocatorApi.TopicsList.Get();
+            var topics = ServiceLocator.TopicsList.Get();
 
-            var sessions = ServiceLocatorApi
+            var sessions = ServiceLocator
                 .TcpServer
                 .GetConnections();
 
@@ -38,7 +38,7 @@ namespace MyServiceBus.Server.Controllers
                 Connections = knownConnections.Select(ConnectionModel.Create),
                 UnknownConnections = unknownConnections,
                 TcpConnections = sessions.Count,
-                QueueToPersist = ServiceLocatorApi.MessagesToPersistQueue.GetMessagesToPersistCount().Select(itm => new QueueToPersist
+                QueueToPersist = ServiceLocator.MessagesToPersistQueue.GetMessagesToPersistCount().Select(itm => new QueueToPersist
                 {
                     TopicId = itm.topic,
                     Count = itm.count
@@ -49,7 +49,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpGet("/ActivePages")]
         public Dictionary<string, IEnumerable<long>> GetActivePages()
         {
-            var topics = ServiceLocatorApi.TopicsList.Get();
+            var topics = ServiceLocator.TopicsList.Get();
 
             var result = new Dictionary<string, IEnumerable<long>>();
             foreach (var myTopic in topics)

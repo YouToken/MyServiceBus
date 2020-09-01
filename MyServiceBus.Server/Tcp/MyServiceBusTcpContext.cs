@@ -18,7 +18,7 @@ namespace MyServiceBus.Server.Tcp
         private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
         {
 
-            var topic = ServiceLocatorApi.TopicsList.TryFindTopic(topicId);
+            var topic = ServiceLocator.TopicsList.TryFindTopic(topicId);
 
             if (topic == null)
             {
@@ -26,9 +26,7 @@ namespace MyServiceBus.Server.Tcp
                 return DisconnectAsync();
             }
 
-            var queue = topic.GetQueue(queueId);
-
-            return ServiceLocatorApi.Subscriber.ConfirmDeliveryAsync(queue, confirmationId, ok);
+            return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
         }
 
         private async ValueTask PublishAsync(PublishContract contract)
@@ -45,7 +43,7 @@ namespace MyServiceBus.Server.Tcp
 
             var now = DateTime.UtcNow;
 
-            var response = await ServiceLocatorApi
+            var response = await ServiceLocator
                 .MyServiceBusPublisher
                 .PublishAsync(Session, contract.TopicId, contract.Data, now, contract.ImmediatePersist == 1);
 
@@ -97,7 +95,7 @@ namespace MyServiceBus.Server.Tcp
                 return DisconnectAsync();
             }
 
-            Session = ServiceLocatorApi.SessionsList.NewSession(greetingContract.Name,
+            Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
                 TcpClient.Client.RemoteEndPoint.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion);
 
             SetContextName(greetingContract.Name);
@@ -116,7 +114,7 @@ namespace MyServiceBus.Server.Tcp
                 return;
             }
 
-            var topic = ServiceLocatorApi.TopicsList.Get(contract.TopicId);
+            var topic = ServiceLocator.TopicsList.Get(contract.TopicId);
 
             if (topic == null)
             {
@@ -128,7 +126,7 @@ namespace MyServiceBus.Server.Tcp
             var queue = topic.CreateQueueIfNotExists(contract.QueueId, contract.DeleteOnDisconnect);
             Session?.SubscribeToQueue(queue);
 
-            ServiceLocatorApi.Subscriber.SubscribeToQueueAsync(queue, this);
+            ServiceLocator.Subscriber.SubscribeToQueueAsync(queue, this);
 
         }
 
@@ -144,7 +142,7 @@ namespace MyServiceBus.Server.Tcp
             Session?.Disconnect();
 
             Console.WriteLine("Disconnected: " + ContextName);
-            return ServiceLocatorApi.Subscriber.DisconnectSubscriberAsync(this);
+            return ServiceLocator.Subscriber.DisconnectSubscriberAsync(this);
 
         }
 
@@ -208,7 +206,7 @@ namespace MyServiceBus.Server.Tcp
             Session?.PublishToTopic(createTopicIfNotExistsContract.TopicId);
 
 
-            ServiceLocatorApi.TopicsManagement.AddIfNotExistsAsync(createTopicIfNotExistsContract.TopicId);
+            ServiceLocator.TopicsManagement.AddIfNotExistsAsync(createTopicIfNotExistsContract.TopicId);
             return Task.CompletedTask;
         }
 

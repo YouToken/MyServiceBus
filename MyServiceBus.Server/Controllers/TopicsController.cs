@@ -13,7 +13,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpGet("Topics")]
         public IEnumerable<TopicInfoModel> GetAll()
         {
-            var topics = ServiceLocatorApi.TopicsList.Get();
+            var topics = ServiceLocator.TopicsList.Get();
 
             return topics.Select(TopicInfoModel.Create);
         }
@@ -21,19 +21,19 @@ namespace MyServiceBus.Server.Controllers
         [HttpPost("Topics/Create")]
         public async Task<IActionResult> Create([FromForm][Required]string topicId, [FromForm][Required]int maxCachedMessages)
         {
-            await ServiceLocatorApi.TopicsManagement.AddIfNotExistsAsync(topicId);
+            await ServiceLocator.TopicsManagement.AddIfNotExistsAsync(topicId);
             return Json(GetAll());
         }
 
         [HttpPost("Topics/NewMessage")]
         public async Task<IActionResult> NewMessage([FromForm][Required]long sessionId, [FromForm]string topicId, [FromForm][Required]string messageBase64, [FromForm][Required]bool persistImmediately)
         {
-            var session = ServiceLocatorApi.SessionsList.GetSession(sessionId, DateTime.UtcNow);
+            var session = ServiceLocator.SessionsList.GetSession(sessionId, DateTime.UtcNow);
             if (session == null)
                 return Forbid();
             
             var bytes = Convert.FromBase64String(messageBase64); 
-            var result = await ServiceLocatorApi.MyServiceBusPublisher.PublishAsync(session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
+            var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
             return Json(new {result});
         }
     }
