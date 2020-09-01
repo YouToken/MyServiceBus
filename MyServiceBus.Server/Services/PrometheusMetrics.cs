@@ -12,11 +12,15 @@ namespace MyServiceBus.Server.Services
         {
             lock (TopicQueueSizeMetrics)
             {
-                if (TopicQueueSizeMetrics.ContainsKey(topicId)) 
+                if (TopicQueueSizeMetrics.ContainsKey(topicId))
                     return TopicQueueSizeMetrics[topicId];
-                
+
                 var topicSizeGauge = Metrics.CreateGauge("topic_" + topicId + "_queue_size",
-                    "Topic " + topicId + " size of the queue");
+                    "Topic " + topicId + " size of the queue",
+                    new GaugeConfiguration
+                    {
+                        LabelNames = new[] {"topicId"}
+                    });
                 TopicQueueSizeMetrics.Add(topicId, topicSizeGauge);
                 return topicSizeGauge;
             }
