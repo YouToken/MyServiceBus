@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.Topics;
 
@@ -17,17 +18,13 @@ namespace MyServiceBus.Domains.Persistence
 
         public async Task PersistTopicsAndQueuesInBackgroundAsync(IReadOnlyList<MyTopic> topics)
         {
-            
-            var queuesData = new Dictionary<string, IReadOnlyList<IQueueSnapshot>>();
-
-            foreach (var topic in topics)
-            {
-                var snapshot = topic.GetQueuesSnapshot();
-                queuesData.Add(topic.TopicId, snapshot);
-            }
-
-            await _topicPersistenceStorage.SaveAsync(topics, queuesData);
+            var toSave
+                = topics
+                    .Select(itm => itm.GetQueuesSnapshot())
+                    .ToList();
+            await _topicPersistenceStorage.SaveAsync(toSave);
         }
+        
     }
     
 }

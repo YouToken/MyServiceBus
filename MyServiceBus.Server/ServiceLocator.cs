@@ -81,7 +81,7 @@ namespace MyServiceBus.Server
 
             var data = await storage.GetSnapshotAsync();
 
-            TopicsList.Restore(data.topicsData);
+            TopicsList.Restore(data);
 
         }
 

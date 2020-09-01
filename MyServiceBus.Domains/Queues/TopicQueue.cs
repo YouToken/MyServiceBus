@@ -55,6 +55,25 @@ namespace MyServiceBus.Domains.Queues
             }
         }
         
+        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges, object lockObject)
+        {
+            _lockObject = lockObject;
+            Topic = topic;
+            QueueId = queueId;
+            DeleteOnDisconnect = deleteOnDisconnect;
+
+            long messageId = 0; 
+            
+            foreach (var range in ranges)
+            {
+                messageId = range.ToId;
+                _queue = new QueueWithIntervals(range.FromId, range.ToId);    
+            }
+            
+            _leasedQueue = new QueueWithIntervals(messageId);
+            QueueSubscribersList = new QueueSubscribersList(this, lockObject);
+        }
+        
         public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, long messageId, object lockObject)
         {
             _lockObject = lockObject;

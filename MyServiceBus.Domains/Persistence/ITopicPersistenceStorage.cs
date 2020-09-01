@@ -8,14 +8,23 @@ namespace MyServiceBus.Domains.Persistence
         string TopicId { get; }
         long MessageId { get; }
         int MaxMessagesInCache { get; }
+        IReadOnlyList<IQueueSnapshot> QueueSnapshots { get; }
+    }
+
+    public struct TopicPersistence : ITopicPersistence
+    {
+        public string TopicId { get; set; }
+        public long MessageId { get; set; }
+        public int MaxMessagesInCache { get; set; }
+        public IReadOnlyList<IQueueSnapshot> QueueSnapshots { get; set; }
+
     }
 
     public interface ITopicPersistenceStorage
     {
-        Task SaveAsync(IEnumerable<ITopicPersistence> topicsData, Dictionary<string, IReadOnlyList<IQueueSnapshot>> queueIndices);
+        Task SaveAsync(IEnumerable<ITopicPersistence> snapshot);
 
-        Task<(IEnumerable<ITopicPersistence> topicsData, Dictionary<string, IReadOnlyList<IQueueSnapshot>> snapshot)>
-            GetSnapshotAsync();
+        Task<IReadOnlyList<ITopicPersistence>> GetSnapshotAsync();
 
     }
 }

@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MyServiceBus.Abstractions\MyServiceBus.Abstractions.csproj" />
       <ProjectReference Include="..\MyServiceBus.Domains\MyServiceBus.Domains.csproj" />
     </ItemGroup>
 

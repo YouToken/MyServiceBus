@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetCoreDecorators;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Queues;
 
@@ -77,6 +78,23 @@ namespace MyServiceBus.Domains.Topics
         }
 
 
+        private void AddQueuePostProcessing()
+        {
+            QueueCount = _topicQueues.Count;
+            _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
+        }
+        
+        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges,
+            object lockObject)
+        {
+
+            var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges, lockObject);
+            _topicQueues.Add(queueName, queue);
+
+            AddQueuePostProcessing();
+        }
+
+
         public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId,
             object lockObject)
         {
@@ -87,8 +105,7 @@ namespace MyServiceBus.Domains.Topics
             var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, messageId, lockObject);
             _topicQueues.Add(queueName, queue);
 
-            QueueCount = _topicQueues.Count;
-            _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
+            AddQueuePostProcessing();
 
             return queue;
         }

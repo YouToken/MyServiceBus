@@ -8,7 +8,7 @@ using MyServiceBus.Domains.Queues;
 namespace MyServiceBus.Domains.Topics
 {
 
-    public class MyTopic : ITopicPersistence
+    public class MyTopic
     {
         private readonly IMetricCollector _metricCollector;
 
@@ -146,11 +146,17 @@ namespace MyServiceBus.Domains.Topics
         }
 
 
-        public IReadOnlyList<IQueueSnapshot> GetQueuesSnapshot()
+        public ITopicPersistence GetQueuesSnapshot()
         {
             lock (_lockObject)
             {
-                return _topicQueues.GetQueuesSnapshot();
+                return new TopicPersistence
+                {
+                    TopicId = TopicId,
+                    MessageId = MessageId,
+                    MaxMessagesInCache = MaxMessagesInCache,
+                    QueueSnapshots = _topicQueues.GetQueuesSnapshot()
+                };
             }
         }
 
@@ -167,6 +173,22 @@ namespace MyServiceBus.Domains.Topics
             lock (_lockObject)
             {
                 return _topicQueues.GetQueue(queueId);
+            }
+        }
+
+        public void Init(IReadOnlyList<IQueueSnapshot> queueSnapshots)
+        {
+            lock (_lockObject)
+            {
+                foreach (var queueSnapshot in queueSnapshots)
+                {
+                    Console.WriteLine($"Restoring Queue: {TopicId}.{queueSnapshot.QueueId} with Ranges:");
+                    foreach (var indexRange in queueSnapshot.Ranges)
+                    {
+                        Console.WriteLine(indexRange.FromId+"-"+indexRange.ToId);
+                    }
+                    _topicQueues.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges, _lockObject);
+                }
             }
         }
     }

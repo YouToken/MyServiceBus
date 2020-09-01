@@ -94,8 +94,8 @@ namespace MyServiceBus.Domains.Tests.Utils
         public static IQueueSnapshot GetMessageSnapshotsFromPersistentStorage(this MyIoc ioc, string topicId, string queueName)
         {
             var persistentStorage = ioc.GetService<ITopicPersistenceStorage>();
-            var snapshot = persistentStorage.GetSnapshotAsync().Result;
-            return snapshot.snapshot[topicId].First(itm => itm.QueueId == queueName);
+            var snapshot = persistentStorage.GetSnapshotAsync().Result.ToDictionary(itm => itm.TopicId);
+            return snapshot[topicId].QueueSnapshots.First(itm => itm.QueueId == queueName);
         }
 
 

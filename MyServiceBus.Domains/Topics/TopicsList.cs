@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,7 +81,9 @@ namespace MyServiceBus.Domains.Topics
             {
                 foreach (var topicPersistence in topics)
                 {
-                    AddNewTopic(topicPersistence.TopicId,  topicPersistence.MessageId);
+                    var topic = AddNewTopic(topicPersistence.TopicId,  topicPersistence.MessageId);
+                    Console.WriteLine("Restoring topic: "+topicPersistence.TopicId);
+                    topic.Init(topicPersistence.QueueSnapshots);
                 }
             }
         }

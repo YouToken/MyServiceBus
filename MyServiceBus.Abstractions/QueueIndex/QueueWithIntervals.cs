@@ -6,6 +6,11 @@ namespace MyServiceBus.Abstractions.QueueIndex
 {
     public class QueueWithIntervals
     {
+        public QueueWithIntervals(long from, long to)
+        {
+            _messages.Add(new QueueIndexRange(from, to));
+        }
+        
         public QueueWithIntervals(long messageId)
         {
             _messages.Add(new QueueIndexRange(messageId));

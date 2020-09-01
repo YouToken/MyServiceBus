@@ -61,17 +61,19 @@ namespace MyServiceBus.Persistence.AzureStorage
         [DataMember(Order = 3)]
         public int MaxMessagesInCache { get; set; }
 
-        [DataMember(Order = 4)]
-        public IEnumerable<QueueSnapshotBlobContract> Snapshots { get; set; }
+        IReadOnlyList<IQueueSnapshot> ITopicPersistence.QueueSnapshots => Snapshots;
 
-        public static TopicAndQueuesBlobContract Create(ITopicPersistence topicPersistence, IEnumerable<IQueueSnapshot> snapshots)
+        [DataMember(Order = 4)]
+        public QueueSnapshotBlobContract[] Snapshots { get; set; }
+
+        public static TopicAndQueuesBlobContract Create(ITopicPersistence topicPersistence)
         {
             return new TopicAndQueuesBlobContract
             {
                 TopicId = topicPersistence.TopicId,
                 MessageId = topicPersistence.MessageId,
                 MaxMessagesInCache = topicPersistence.MaxMessagesInCache,
-                Snapshots = snapshots.Select(QueueSnapshotBlobContract.Create).ToList()
+                Snapshots = topicPersistence.QueueSnapshots.Select(QueueSnapshotBlobContract.Create).ToArray()
             };
         }
         
