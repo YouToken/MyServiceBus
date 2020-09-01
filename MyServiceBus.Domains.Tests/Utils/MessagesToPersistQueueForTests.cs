@@ -8,7 +8,7 @@ namespace MyServiceBus.Domains.Tests.Utils
     public class MessagesToPersistQueueForTests : IMessagesToPersistQueue
     {
         
-        private readonly MessagesToPersistQueue _messagesToPersistQueue = new MessagesToPersistQueue();
+        private readonly MessagesToPersistQueue _messagesToPersistQueue = new MessagesToPersistQueue(new MetricsCollectorMock());
         
         
         public readonly Dictionary<string, List<MessageContent>> MessagesToPersist 

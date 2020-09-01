@@ -67,7 +67,7 @@ namespace MyServiceBus.Server
             ioc.BindMessagesPersistentStorage(messagesConnectionString);
             ioc.BindServerServices();
             
-            ioc.Register<IMessagesToPersistQueue>(new MessagesToPersistQueue());
+            ioc.Register<IMessagesToPersistQueue, MessagesToPersistQueue>();
             
             
             ServiceLocator.Init(ioc);
