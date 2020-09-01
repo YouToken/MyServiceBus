@@ -6,5 +6,10 @@ namespace MyServiceBus.Domains.Tests.Utils
         {
             
         }
+
+        public void ToPersistSize(string topicId, long queueSize)
+        {
+            
+        }
     }
 }

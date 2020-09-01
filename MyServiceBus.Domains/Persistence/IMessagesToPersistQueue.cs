@@ -18,9 +18,16 @@ namespace MyServiceBus.Domains.Persistence
     
     public class MessagesToPersistQueue : IMessagesToPersistQueue
     {
-        
+        private readonly IMetricCollector _metricCollector;
+
         private readonly Dictionary<string, List<MessageContent>> _messagesToPersist 
             = new Dictionary<string, List<MessageContent>>();
+
+
+        public MessagesToPersistQueue(IMetricCollector metricCollector)
+        {
+            _metricCollector = metricCollector;
+        }
 
         public IReadOnlyList<(string topic, int count)> GetMessagesToPersistCount()
         {
@@ -37,7 +44,14 @@ namespace MyServiceBus.Domains.Persistence
                     _messagesToPersist.Add(topicId, new List<MessageContent>());
 
                 _messagesToPersist[topicId].AddRange(messages);
+                
+                PutMessagesToPersistMetric(topicId);
             }
+        }
+
+        private void PutMessagesToPersistMetric(string topicId)
+        {
+            _metricCollector.ToPersistSize(topicId,_messagesToPersist[topicId].Count);
         }
 
         public IReadOnlyList<MessageContent> GetMessagesToPersist(string topicId)
@@ -54,7 +68,8 @@ namespace MyServiceBus.Domains.Persistence
                     return Array.Empty<MessageContent>();
                 
                 _messagesToPersist[topicId] = new List<MessageContent>();
-
+                PutMessagesToPersistMetric(topicId);
+                
                 return queue;
             }
 
