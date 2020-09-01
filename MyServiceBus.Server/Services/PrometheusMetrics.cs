@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using MyServiceBus.Domains;
+using MyTcpSockets.DataSender;
 using Prometheus;
 
 namespace MyServiceBus.Server.Services
@@ -7,15 +9,17 @@ namespace MyServiceBus.Server.Services
     public class PrometheusMetrics : IMetricCollector
     {
         public readonly Dictionary<string,Gauge> TopicQueueSizeMetrics = new Dictionary<string, Gauge>();
-
+        
+        
         private Gauge GetQueueSizeMetric(string topicId)
         {
             lock (TopicQueueSizeMetrics)
             {
+                
                 if (TopicQueueSizeMetrics.ContainsKey(topicId))
                     return TopicQueueSizeMetrics[topicId];
 
-                var topicSizeGauge = Metrics.CreateGauge("topic_" + topicId + "_queue_size",
+                var topicSizeGauge = Metrics.CreateGauge(topicId.Replace('-', '_') + "_qsize",
                     "Topic " + topicId + " size of the queue",
                     new GaugeConfiguration
                     {
@@ -28,8 +32,15 @@ namespace MyServiceBus.Server.Services
 
         public void TopicQueueSize(string topicId, long queueSize)
         {
-            var topicQueueSizeGauge = GetQueueSizeMetric(topicId);
-            topicQueueSizeGauge.Set(queueSize);
+            try
+            {
+                var topicQueueSizeGauge = GetQueueSizeMetric(topicId);
+                topicQueueSizeGauge.Set(queueSize);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }
