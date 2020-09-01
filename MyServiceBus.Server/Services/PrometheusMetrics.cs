@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using MyServiceBus.Domains;
-using MyTcpSockets.DataSender;
 using Prometheus;
 
 namespace MyServiceBus.Server.Services

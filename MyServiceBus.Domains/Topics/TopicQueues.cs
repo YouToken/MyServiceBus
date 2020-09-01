@@ -53,7 +53,7 @@ namespace MyServiceBus.Domains.Topics
             if (QueueCount == 0)
                 return 0;
             
-            return _maxMessageId-MinMessageId;
+            return _maxMessageId-MinMessageId+1;
         }
 
 
@@ -92,6 +92,8 @@ namespace MyServiceBus.Domains.Topics
             _topicQueues.Add(queueName, queue);
 
             AddQueuePostProcessing();
+
+            CalcMinMessageId();
         }
 
 
