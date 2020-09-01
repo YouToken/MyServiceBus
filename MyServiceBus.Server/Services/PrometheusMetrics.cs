@@ -9,14 +9,13 @@ namespace MyServiceBus.Server.Services
     {
         public readonly Dictionary<string,Gauge> TopicQueueSizeMetrics = new Dictionary<string, Gauge>();
         
-        
         private Gauge GetQueueSizeMetric(string topicId, string suffix)
         {
             lock (TopicQueueSizeMetrics)
             {
-                
-                if (TopicQueueSizeMetrics.ContainsKey(topicId))
-                    return TopicQueueSizeMetrics[topicId];
+                var key = topicId + suffix;
+                if (TopicQueueSizeMetrics.ContainsKey(key))
+                    return TopicQueueSizeMetrics[key];
 
                 var topicSizeGauge = Metrics.CreateGauge(topicId.Replace('-', '_') + suffix,
                     "Topic " + topicId + " size of the queue",
@@ -24,7 +23,7 @@ namespace MyServiceBus.Server.Services
                     {
                         LabelNames = new[] {"topicId"}
                     });
-                TopicQueueSizeMetrics.Add(topicId, topicSizeGauge);
+                TopicQueueSizeMetrics.Add(key, topicSizeGauge);
                 return topicSizeGauge;
             }
         }
