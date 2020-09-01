@@ -110,13 +110,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         public long GetMessagesCount()
         {
-            long result = 0;
-            foreach (var indexRange in _messages)
-            {
-                result += indexRange.Count();
-            }
-
-            return result;
+            return _messages.Sum(indexRange => indexRange.Count());
         }
 
         public override string ToString()
@@ -161,5 +155,8 @@ namespace MyServiceBus.Abstractions.QueueIndex
             if (range.IsEmpty() && _messages.Count > 1)
                 _messages.RemoveAt(index);
         }
+
+        public long Count => _messages.Sum(itm => itm.Count());
+
     }
 }

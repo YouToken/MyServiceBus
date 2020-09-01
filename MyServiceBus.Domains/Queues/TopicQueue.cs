@@ -211,6 +211,7 @@ namespace MyServiceBus.Domains.Queues
                 RangesData = _queue.GetSnapshot()
             };
         }
+        
 
         public long GetMinId()
         {

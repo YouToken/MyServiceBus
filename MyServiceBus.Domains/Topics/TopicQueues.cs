@@ -13,7 +13,6 @@ namespace MyServiceBus.Domains.Topics
         private readonly Dictionary<string, TopicQueue> _topicQueues = new Dictionary<string, TopicQueue>();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
 
-
         public int QueueCount { get; private set; }
         
         public void DeleteQueue(string queueName)
@@ -31,10 +30,8 @@ namespace MyServiceBus.Domains.Topics
             return _queuesAsReadOnlyList;
         }
 
-
         private long _maxMessageId;
         public long MinMessageId { get; private set; }
-
 
         public void NewMessage(long messageId)
         {
@@ -44,16 +41,16 @@ namespace MyServiceBus.Domains.Topics
                 if (messageId > _maxMessageId)
                     _maxMessageId = messageId;
             }
-            
         }
-
 
         public long GetMessagesCount()
         {
-            if (QueueCount == 0)
+
+            if (_queuesAsReadOnlyList.Count == 0)
                 return 0;
-            
-            return _maxMessageId-MinMessageId+1;
+
+            return _queuesAsReadOnlyList.Max(itm => itm.GetMessagesCount());
+
         }
 
 
@@ -67,7 +64,7 @@ namespace MyServiceBus.Domains.Topics
 
             MinMessageId = _topicQueues.Values.Min(itm => itm.GetMinId());
         }
-
+        
         public TopicQueue GetQueue(string queueId)
         {
 
