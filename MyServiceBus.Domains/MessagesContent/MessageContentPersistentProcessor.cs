@@ -63,7 +63,7 @@ namespace MyServiceBus.Domains.MessagesContent
                         contentByTopic.UploadPage(messages);
 
                         Console.WriteLine(
-                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow - now:g}");
+                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow - now:g}. Messages: {messages.Count}");
                     }
                     catch (Exception e)
                     {
