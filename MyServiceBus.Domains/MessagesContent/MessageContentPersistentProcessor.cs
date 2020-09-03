@@ -35,7 +35,7 @@ namespace MyServiceBus.Domains.MessagesContent
         }
 
 
-        private async Task LoadActivePagesAsync(MyTopic topic, IReadOnlyList<long> pages)
+        public async Task LoadActivePagesAsync(MyTopic topic, IReadOnlyList<long> pages)
         {
 
 
@@ -45,6 +45,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
                 foreach (var pageId in pages)
                 {
+
                     try
                     {
                         if (contentByTopic.HasCacheLoaded(pageId))
@@ -52,19 +53,24 @@ namespace MyServiceBus.Domains.MessagesContent
 
                         var now = DateTime.UtcNow;
 
+                        Console.WriteLine(
+                            $"Restoring messages for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
+
                         var messages =
                             await _messagesPersistentStorage.GetMessagesPageAsync(topic.TopicId,
                                 new MessagesPageId(pageId));
+                        
                         contentByTopic.UploadPage(messages);
 
                         Console.WriteLine(
-                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow-now:g}");
+                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow - now:g}");
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine($"Can not restore the page {pageId} for the topic [{topic.TopicId}]");
                         Console.WriteLine(e);
                     }
+
                 }
 
         }

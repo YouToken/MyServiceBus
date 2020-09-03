@@ -25,20 +25,30 @@ namespace MyServiceBus.Domains.Execution
             _messageContentPersistentProcessor = messageContentPersistentProcessor;
         }
 
-        public async ValueTask ExecuteAsync(DateTime now)
+        public async ValueTask ExecuteAsync()
         {
             
             var topics = _topicsList.Get();
 
-            await _topicsAndQueuesPersistenceProcessor.PersistTopicsAndQueuesInBackgroundAsync(topics);
-
             foreach (var topic in topics)
             {
-                await _messageContentPersistentProcessor.PersistMessageContentInBackgroundAsync(topic);
                 await _messageContentPersistentProcessor.GarbageCollectAsync(topic);
                 await _myServiceBusDeliveryHandler.SendMessagesAsync(topic);
             }
             
+        }
+
+
+        public async ValueTask PersistAsync()
+        {
+            var topics = _topicsList.Get();
+            
+            await _topicsAndQueuesPersistenceProcessor.PersistTopicsAndQueuesInBackgroundAsync(topics);
+            
+            foreach (var topic in topics)
+            {
+                await _messageContentPersistentProcessor.PersistMessageContentInBackgroundAsync(topic);
+            }
         }
         
         

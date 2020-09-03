@@ -74,16 +74,7 @@ namespace MyServiceBus.Server
 
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
         
-        private static async Task RestoreTopicsAsync(IServiceResolver serviceResolver)
-        {
 
-            var storage = serviceResolver.GetService<ITopicPersistenceStorage>();
-
-            var data = await storage.GetSnapshotAsync();
-
-            TopicsList.Restore(data);
-
-        }
 
         public static void Init(IServiceResolver serviceResolver)
         {
@@ -108,22 +99,25 @@ namespace MyServiceBus.Server
 
             PrometheusMetrics = serviceResolver.GetService<PrometheusMetrics>();
 
-            RestoreTopicsAsync(serviceResolver).Wait();
+            DataInitializer.InitAsync(serviceResolver).Wait();
         }
         
         
-        private static readonly MyTaskTimer TimerSeconds = new MyTaskTimer(1000);
+        private static readonly MyTaskTimer TimerGarbageCollector = new MyTaskTimer(1000);
+        
+        private static readonly MyTaskTimer TimerPersistent = new MyTaskTimer(1000);
 
         private static readonly MyTaskTimer TimerStatistic = new MyTaskTimer(1000);
-
-
 
 
         public static void Start()
         {
 
-            TimerSeconds.Register("Long pooling subscribers GarbageCollect",
-                () => _myServiceBusBackgroundExecutor.ExecuteAsync(DateTime.UtcNow));
+            TimerGarbageCollector.Register("Long pooling subscribers GarbageCollect",
+                _myServiceBusBackgroundExecutor.ExecuteAsync);
+            
+            TimerPersistent.Register("Long pooling subscribers Persist",
+                _myServiceBusBackgroundExecutor.PersistAsync);
 
             TimerStatistic.Register("Topics timer", () =>
             {
@@ -135,7 +129,8 @@ namespace MyServiceBus.Server
                 return new ValueTask();
             });
 
-            TimerSeconds.Start();
+            TimerGarbageCollector.Start();
+            TimerPersistent.Start();
             TimerStatistic.Start();
 
         }
@@ -148,7 +143,8 @@ namespace MyServiceBus.Server
 
             Console.WriteLine("Stopping background timers");
 
-            TimerSeconds.Stop();
+            TimerPersistent.Stop();
+            TimerGarbageCollector.Stop();
             TimerStatistic.Stop();
 
             Console.WriteLine("Waiting for produce requests are being finished");

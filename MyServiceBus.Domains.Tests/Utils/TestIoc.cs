@@ -67,9 +67,9 @@ namespace MyServiceBus.Domains.Tests.Utils
         public static void SetCurrentTime(this MyIoc ioc, DateTime now)
         {
             var backgroundExecutor = ioc.GetService<MyServiceBusBackgroundExecutor>();
-            backgroundExecutor.ExecuteAsync(now).AsTask().Wait();
+            backgroundExecutor.ExecuteAsync().AsTask().Wait();
+            backgroundExecutor.PersistAsync().AsTask().Wait();
         }
-
 
         public static int GetMessagesCount(this MyIoc ioc, string topicId, string queueId)
         {
