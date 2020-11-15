@@ -4,19 +4,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
     public class MessageContentPersistentProcessor
     {
-        private readonly IMessagesPersistentStorage _messagesPersistentStorage;
+        private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
         private readonly IMessagesToPersistQueue _messagesToPersistQueue;
         private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
 
-        public MessageContentPersistentProcessor(IMessagesPersistentStorage messagesPersistentStorage,
+        public MessageContentPersistentProcessor(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService,
             IMessagesToPersistQueue messagesToPersistQueue, MessageContentCacheByTopic messageContentCacheByTopic)
         {
-            _messagesPersistentStorage = messagesPersistentStorage;
+            _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
             _messagesToPersistQueue = messagesToPersistQueue;
             _messageContentCacheByTopic = messageContentCacheByTopic;
         }
@@ -26,7 +27,7 @@ namespace MyServiceBus.Domains.MessagesContent
             var messagesToPersist = _messagesToPersistQueue.GetMessagesToPersist(myTopic.TopicId);
             try
             {
-                await _messagesPersistentStorage.SaveAsync(myTopic.TopicId, messagesToPersist);
+                await _messagesPersistenceGrpcService.SaveMessagesAsync(myTopic.TopicId, messagesToPersist, 1024*1024*3);
             }
             catch (Exception)
             {
@@ -56,9 +57,11 @@ namespace MyServiceBus.Domains.MessagesContent
                         Console.WriteLine(
                             $"Restoring messages for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
 
-                        var messages =
-                            await _messagesPersistentStorage.GetMessagesPageAsync(topic.TopicId,
-                                new MessagesPageId(pageId));
+
+
+                        var messages = await _messagesPersistenceGrpcService.GetPageAsync(topic.TopicId, pageId)
+                            .ToPageInMemoryAsync(new MessagesPageId(pageId));
+
                         
                         contentByTopic.UploadPage(messages);
 
@@ -77,7 +80,6 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public async ValueTask GarbageCollectAsync(MyTopic topic)
         {
-            var minMessageId = topic.GetMinMessageId();
             
             var activePages = topic.GetActiveMessagePages();
 
@@ -85,7 +87,6 @@ namespace MyServiceBus.Domains.MessagesContent
             
             _messageContentCacheByTopic.GarbageCollect(topic.TopicId, activePages);
             
-            await _messagesPersistentStorage.GarbageCollectAsync(topic.TopicId, minMessageId);
         }
     }
 }

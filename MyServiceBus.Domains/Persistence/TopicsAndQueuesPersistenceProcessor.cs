@@ -2,18 +2,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Persistence
 {
     
     public class TopicsAndQueuesPersistenceProcessor
     {
+        private readonly IMyServiceBusQueuePersistenceGrpcService _grpcService;
 
-        private readonly ITopicPersistenceStorage _topicPersistenceStorage;
 
-        public TopicsAndQueuesPersistenceProcessor(ITopicPersistenceStorage topicPersistenceStorage)
+        public TopicsAndQueuesPersistenceProcessor(IMyServiceBusQueuePersistenceGrpcService grpcService)
         {
-            _topicPersistenceStorage = topicPersistenceStorage;
+            _grpcService = grpcService;
         }
 
         public async Task PersistTopicsAndQueuesInBackgroundAsync(IReadOnlyList<MyTopic> topics)
@@ -22,7 +23,9 @@ namespace MyServiceBus.Domains.Persistence
                 = topics
                     .Select(itm => itm.GetQueuesSnapshot())
                     .ToList();
-            await _topicPersistenceStorage.SaveAsync(toSave);
+
+            await _grpcService.SaveSnapshotAsync(toSave);
+            
         }
         
     }

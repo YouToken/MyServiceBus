@@ -12,11 +12,8 @@ namespace MyServiceBus.Server
         }
 
         [YamlProperty]
-        public string QueuesConnectionString { get; set; }
+        public string GrpcUrl { get; set; }
         
-        [YamlProperty]
-        public string MessagesConnectionString { get; set; }
-
         TimeSpan IMyServiceBusSettings.EventuallyPersistenceDelay => _eventuallyPersistentDelay.Value;
         private readonly Lazy<TimeSpan> _eventuallyPersistentDelay;
             

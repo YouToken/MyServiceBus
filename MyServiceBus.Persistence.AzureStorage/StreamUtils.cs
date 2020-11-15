@@ -41,15 +41,6 @@ namespace MyServiceBus.Persistence.AzureStorage
             stream.WriteByte(b);
         }
 
-
-        public static void WriteFromStream(this MemoryStream destStream, MemoryStream srcStream, int copySize)
-        {
-            var buffer = srcStream.GetBuffer();
-                
-            destStream.Write(buffer, (int)srcStream.Position, copySize);
-
-            srcStream.Position += copySize;
-        }
         
         public static int ReadInt(this Stream data)
         {

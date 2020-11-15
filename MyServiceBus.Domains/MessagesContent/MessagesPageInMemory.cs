@@ -43,13 +43,6 @@ namespace MyServiceBus.Domains.MessagesContent
         }
 
         public int Count => _messages.Count;
-        
-        public MessagesPageInMemory(MessagesPageInMemory src)
-        {
-            PageId = src.PageId;
-            
-            _messages = new Dictionary<long, IMessageContent>(src._messages);
-        }
 
 
         public bool Add(IMessageContent message)
@@ -71,12 +64,6 @@ namespace MyServiceBus.Domains.MessagesContent
         public IMessageContent Get(long messageId)
         {
             return _messages.ContainsKey(messageId) ? _messages[messageId] : null;
-        }
-
-
-        public MessagesPageInMemory Clone()
-        {
-            return new MessagesPageInMemory(this);
         }
 
     }

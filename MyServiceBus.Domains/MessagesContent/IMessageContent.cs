@@ -1,4 +1,5 @@
 using System;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
@@ -18,7 +19,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public DateTime Created { get; private set; }
 
-        public static MessageContent Create(long messageId, int attemptNo, byte[] data, DateTime created)
+        public static MessageContent Create(long messageId,  byte[] data, DateTime created)
         {
             return new MessageContent
             {
@@ -26,7 +27,17 @@ namespace MyServiceBus.Domains.MessagesContent
                 Data = data,
                 Created = created,
             };
-        } 
+        }
+
+        public static MessageContent FromGrpc(MessageContentGrpcModel grpcModel)
+        {
+            return new MessageContent
+            {
+                Created = grpcModel.Created,
+                Data = grpcModel.Data,
+                MessageId = grpcModel.MessageId
+            };
+        }
     }
     
 }

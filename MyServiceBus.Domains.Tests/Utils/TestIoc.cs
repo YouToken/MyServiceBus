@@ -4,10 +4,9 @@ using MyDependencies;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
+using MyServiceBus.Domains.Tests.GrpcMocks;
 using MyServiceBus.Domains.Topics;
-using MyServiceBus.Persistence.AzureStorage;
-using MyServiceBus.Persistence.AzureStorage.PageBlob;
-using MyServiceBus.Persistence.AzureStorage.TopicMessages;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Tests.Utils
 {
@@ -18,9 +17,9 @@ namespace MyServiceBus.Domains.Tests.Utils
         {
             var ioc = new MyIoc();
 
-            ioc.Register<IMessagesPersistentStorage>(new MessagesPersistentStorage((topic, pageId)=>new PageBlobInMem()));
+            ioc.Register<IMyServiceBusMessagesPersistenceGrpcService>(new MyServiceBusMessagesPersistenceGrpcServiceMock());
             
-            ioc.Register<ITopicPersistenceStorage>(new TopicsPersistentStorageAzureBlobs(new PageBlobInMem()));
+            ioc.Register<IMyServiceBusQueuePersistenceGrpcService>(new MyServiceBusQueuePersistenceGrpcServiceMock());
 
             ioc.Register<IMessagesToPersistQueue>(new MessagesToPersistQueueForTests());
             
@@ -87,14 +86,15 @@ namespace MyServiceBus.Domains.Tests.Utils
 
         public static MessagesPageInMemory GetMessagesFromPersistentStorage(this MyIoc ioc, string topicId)
         {
-            var persistentStorage = ioc.GetService<IMessagesPersistentStorage>();
-            return persistentStorage.GetMessagesPageAsync(topicId, new MessagesPageId(0)).Result;
+            var persistentStorage = ioc.GetService<IMyServiceBusMessagesPersistenceGrpcService>();
+            var messagesPageId = new MessagesPageId(0);
+            return persistentStorage.GetPageAsync(topicId, messagesPageId.Value).ToPageInMemoryAsync(messagesPageId).Result;
         }
         
         public static IQueueSnapshot GetMessageSnapshotsFromPersistentStorage(this MyIoc ioc, string topicId, string queueName)
         {
-            var persistentStorage = ioc.GetService<ITopicPersistenceStorage>();
-            var snapshot = persistentStorage.GetSnapshotAsync().Result.ToDictionary(itm => itm.TopicId);
+            var persistentStorage = ioc.GetService<IMyServiceBusQueuePersistenceGrpcService>();
+            var snapshot = persistentStorage.GetTopicsAndQueuesSnapshotAsync().Result.ToDictionary(itm => itm.TopicId);
             return snapshot[topicId].QueueSnapshots.First(itm => itm.QueueId == queueName);
         }
 

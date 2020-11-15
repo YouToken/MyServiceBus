@@ -6,13 +6,17 @@
 
     <ItemGroup>
       <PackageReference Include="MyDependencies" Version="1.0.1" />
-      <PackageReference Include="protobuf-net" Version="3.0.29" />
+      <PackageReference Include="protobuf-net" Version="3.0.62" />
       <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\MyServiceBus.Abstractions\MyServiceBus.Abstractions.csproj" />
       <ProjectReference Include="..\MyServiceBus.Domains\MyServiceBus.Domains.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="TopicMessages" />
     </ItemGroup>
 
 </Project>

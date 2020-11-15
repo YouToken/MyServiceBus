@@ -102,7 +102,7 @@ namespace MyServiceBus.Domains.Topics
                 {
                     var messageId = GetNextMessageId();
 
-                    var newMessage = MessageContent.Create(messageId, 0, message, now);
+                    var newMessage = MessageContent.Create(messageId, message, now);
 
                     messagesToPersist.Add(newMessage);
 

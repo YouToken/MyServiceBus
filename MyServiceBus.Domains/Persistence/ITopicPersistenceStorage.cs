@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace MyServiceBus.Domains.Persistence
 {
@@ -7,7 +6,6 @@ namespace MyServiceBus.Domains.Persistence
     {
         string TopicId { get; }
         long MessageId { get; }
-        int MaxMessagesInCache { get; }
         IReadOnlyList<IQueueSnapshot> QueueSnapshots { get; }
     }
 
@@ -20,11 +18,4 @@ namespace MyServiceBus.Domains.Persistence
 
     }
 
-    public interface ITopicPersistenceStorage
-    {
-        Task SaveAsync(IEnumerable<ITopicPersistence> snapshot);
-
-        Task<IReadOnlyList<ITopicPersistence>> GetSnapshotAsync();
-
-    }
 }

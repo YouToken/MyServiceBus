@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.WindowsAzure.Storage;
 using MyDependencies;
 using MyServiceBus.Server.Grpc;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.Domains;
 using MyServiceBus.Domains.Persistence;
-using MyServiceBus.Persistence.AzureStorage;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 using Prometheus;
@@ -46,10 +43,7 @@ namespace MyServiceBus.Server
             services.AddSignalR()
                 .AddMessagePackProtocol(options =>
                 {
-                    options.FormatterResolvers = new List<MessagePack.IFormatterResolver>()
-                    {
-                        MessagePack.Resolvers.StandardResolver.Instance
-                    };
+ 
                 });
 
             services.AddSwaggerDocument(o => o.Title = "MyServiceBus");
@@ -59,12 +53,7 @@ namespace MyServiceBus.Server
             ioc.Register<IMyServiceBusSettings>(settings);
             ioc.RegisterMyNoServiceBusDomainServices();
 
-            var cloudStorage = CloudStorageAccount.Parse(settings.QueuesConnectionString);
-            
-            var messagesConnectionString = CloudStorageAccount.Parse(settings.MessagesConnectionString);
-
-            ioc.BindTopicsPersistentStorage(cloudStorage);
-            ioc.BindMessagesPersistentStorage(messagesConnectionString);
+            ioc.BindGrpcServices(settings.GrpcUrl);
             ioc.BindServerServices();
             
             ioc.Register<IMessagesToPersistQueue, MessagesToPersistQueue>();

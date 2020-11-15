@@ -1,20 +1,20 @@
 using System;
 using System.Threading.Tasks;
-using MyServiceBus.Domains.Persistence;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
     public class MessageContentReader
     {
         private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
-        private readonly IMessagesPersistentStorage _messagesPersistentStorage;
+        private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
 
 
-        public MessageContentReader(MessageContentCacheByTopic messageContentCacheByTopic, 
-            IMessagesPersistentStorage messagesPersistentStorage)
+        public MessageContentReader(MessageContentCacheByTopic messageContentCacheByTopic,
+            IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService)
         {
             _messageContentCacheByTopic = messageContentCacheByTopic;
-            _messagesPersistentStorage = messagesPersistentStorage;
+            _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
         }
 
         private async Task<IMessageContent> LoadMessageAsync(MessagesContentCache cache, long messageId)
@@ -23,15 +23,16 @@ namespace MyServiceBus.Domains.MessagesContent
             var now = DateTime.UtcNow;
             while (true)
             {
-
+                
                 var pageId = messageId.GetMessageContentPageId();
-                
-                var messages = 
-                    await _messagesPersistentStorage.GetMessagesPageAsync(cache.TopicId, pageId);
-                
+
+                var page = 
+                     await _messagesPersistenceGrpcService.GetPageAsync(cache.TopicId, pageId.Value)
+                         .ToPageInMemoryAsync(pageId);
+
                 Console.WriteLine($"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
 
-                cache.UploadPage(messages);
+                cache.UploadPage(page);
                 
                 var result = cache.TryGetMessage(messageId);
 

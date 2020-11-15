@@ -5,6 +5,7 @@ using MyDependencies;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains
 {
@@ -14,9 +15,9 @@ namespace MyServiceBus.Domains
         private static async Task InitTopicsAsync(IServiceResolver serviceResolver)
         {
             var topicsList = serviceResolver.GetService<TopicsList>();
-            var storage = serviceResolver.GetService<ITopicPersistenceStorage>();
+            var storage = serviceResolver.GetService<IMyServiceBusQueuePersistenceGrpcService>();
 
-            var data = await storage.GetSnapshotAsync();
+            var data = await storage.GetTopicsAndQueuesSnapshotAsync();
 
             topicsList.Restore(data);
         }
