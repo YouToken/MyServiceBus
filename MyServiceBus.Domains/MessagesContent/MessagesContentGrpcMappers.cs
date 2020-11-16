@@ -23,8 +23,7 @@ namespace MyServiceBus.Domains.MessagesContent
         public static ValueTask SaveMessagesAsync(this IMyServiceBusMessagesPersistenceGrpcService grpcService,
             string topicId, IEnumerable<IMessageContent> messages, int packetSize)
         {
-            var grpcMessages = messages.Select(msg => msg.ToGrpcModel());
-
+            var grpcMessages = messages.OrderBy(itm => itm.MessageId).Select(msg => msg.ToGrpcModel());
             return grpcService.SaveMessagesAsync(topicId, grpcMessages.ToArray(), packetSize);
         }
         
