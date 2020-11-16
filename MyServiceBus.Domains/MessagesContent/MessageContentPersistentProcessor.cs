@@ -25,6 +25,10 @@ namespace MyServiceBus.Domains.MessagesContent
         public async Task PersistMessageContentInBackgroundAsync(MyTopic myTopic)
         {
             var messagesToPersist = _messagesToPersistQueue.GetMessagesToPersist(myTopic.TopicId);
+            
+            if (messagesToPersist.Count ==0)
+                return;
+
             try
             {
                 await _messagesPersistenceGrpcService.SaveMessagesAsync(myTopic.TopicId, messagesToPersist, 1024*1024*3);
