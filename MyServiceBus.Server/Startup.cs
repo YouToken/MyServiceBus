@@ -30,6 +30,9 @@ namespace MyServiceBus.Server
         public void ConfigureServices(IServiceCollection services)
         {
 
+            SocketMemoryUtils.AllocateByteArray = size => GC.AllocateUninitializedArray<byte>(size);
+            MyServiceBusMemory.AllocateByteArray = SocketMemoryUtils.AllocateByteArray;
+            
             services.AddCodeFirstGrpc();
             var settings = MySettingsReader.SettingsReader.GetSettings<SettingsModel>(".myservicebus");
             
@@ -74,8 +77,10 @@ namespace MyServiceBus.Server
                         Console.WriteLine($"{DateTime.UtcNow}: ClientId: {ctx.Id}. "+data);
                     }
                     
-                }); 
-            
+                });
+
+
+
             ServiceLocator.TcpServer.Start();
             
             
