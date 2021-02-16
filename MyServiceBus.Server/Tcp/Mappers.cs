@@ -9,7 +9,7 @@ namespace MyServiceBus.Server.Tcp
         public static NewMessageContract.NewMessageData ToMessageData(this IMessageContent messageContent, int attemptId)
         {
             
-            return new NewMessageContract.NewMessageData
+            return new ()
             {
                 Id = messageContent.MessageId,
                 Data = messageContent.Data,

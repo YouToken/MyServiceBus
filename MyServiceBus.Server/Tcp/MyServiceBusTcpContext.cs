@@ -62,10 +62,10 @@ namespace MyServiceBus.Server.Tcp
             await SendPacketAsync(resp);
         }
 
-        public MySession Session { get; private set; }
+        public MyServiceBusSession Session { get; private set; }
 
 
-        private static readonly Dictionary<int, int> AcceptedProtocolVersions = new Dictionary<int, int>()
+        private static readonly Dictionary<int, int> AcceptedProtocolVersions = new ()
         {
             [1] = 1,
             [2] = 2
@@ -96,7 +96,7 @@ namespace MyServiceBus.Server.Tcp
             }
 
             Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
-                TcpClient.Client.RemoteEndPoint.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion);
+                TcpClient.Client.RemoteEndPoint.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion, SessionType.Tcp);
 
             SetContextName(greetingContract.Name);
             return new ValueTask();

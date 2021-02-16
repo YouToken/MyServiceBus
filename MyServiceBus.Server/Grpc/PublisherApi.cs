@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyServiceBus.Domains.Execution;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Grpc;
 using MyServiceBus.Grpc.Contracts;
 using MyServiceBus.Grpc.Models;
@@ -11,7 +10,6 @@ namespace MyServiceBus.Server.Grpc
 {
     public class PublisherApi : ControllerBase, IPublisherGrpcService
     {
-
         public async ValueTask<PublishMessageGrpcResponse> PublishMessageAsync(PublishMessageGrpcRequest request)
         {
             var now = DateTime.UtcNow;
@@ -35,7 +33,6 @@ namespace MyServiceBus.Server.Grpc
             return new PublishMessageGrpcResponse
             {
                 Status = GrpcResponseStatus.Ok,
-                RequestIdConfirmed = request.RequestId
             };
 
         }

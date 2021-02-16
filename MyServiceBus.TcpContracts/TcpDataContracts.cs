@@ -211,7 +211,7 @@ namespace MyServiceBus.TcpContracts
         public string QueueId { get; set; }
         
         public long ConfirmationId { get; set; }
-        public IEnumerable<NewMessageData> Data { get; set; }
+        public IReadOnlyList<NewMessageData> Data { get; set; }
         
         public void Serialize(Stream stream, int protocolVersion, int packetVersion)
         {

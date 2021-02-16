@@ -18,7 +18,7 @@ namespace MyServiceBus.Domains.Tests.Utils
 
         private readonly TopicsList _topicsList;
         
-        public MySession MySession { get; }
+        public MyServiceBusSession MyServiceBusSession { get; }
         
         public MyServiceBusSubscriber Subscriber { get; }
         
@@ -35,7 +35,7 @@ namespace MyServiceBus.Domains.Tests.Utils
             Subscriber = sr.GetService<MyServiceBusSubscriber>();
             Publisher = sr.GetService<MyServiceBusPublisher>();
             
-            MySession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0);
+            MyServiceBusSession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0, SessionType.Http);
         }
         
         public readonly List<(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId)> Messages 
@@ -67,7 +67,7 @@ namespace MyServiceBus.Domains.Tests.Utils
         public ExecutionResult PublishMessage( string topicName, byte[] message, DateTime dateTime, bool persistImmediately = false)
         {
             topicName = topicName.ToLower();
-            return Publisher.PublishAsync(MySession, topicName, new[] {message}, dateTime, persistImmediately).Result;
+            return Publisher.PublishAsync(MyServiceBusSession, topicName, new[] {message}, dateTime, persistImmediately).Result;
         }
         
         public MyTopic CreateTopic(string topicName)

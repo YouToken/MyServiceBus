@@ -55,13 +55,20 @@ namespace MyServiceBus.TcpClient
         public void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
             Func<IMyServiceBusMessage, ValueTask> callback)
         {
-
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
             _subscribers.Add(id,
-                new SubscriberInfo(topicId, queueId, deleteOnDisconnect, callback));
+                new SubscriberInfo(topicId, queueId, deleteOnDisconnect, callback, null));
         }
+        
+        public void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
+            Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
+        {
+            var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
+            _subscribers.Add(id,
+                new SubscriberInfo(topicId, queueId, deleteOnDisconnect, null, callback));
+        }
 
         public void PublishFireAndForget(string topicId, byte[] valueToPublish)
         {
@@ -87,18 +94,15 @@ namespace MyServiceBus.TcpClient
 
         public Task PublishAsync(string topicId, byte[] valueToPublish, bool persistImmediately)
         {
-
             return PublishAsync(topicId, new[] {valueToPublish}, persistImmediately);
         }
         
         public Task PublishAsync(string topicId, IReadOnlyList<byte[]> valueToPublish, bool persistImmediately)
         {
-
             var item = (MyServiceBusTcpContext)_clientTcpSocket.CurrentTcpContext;
             
             if (item == null)
                 throw new Exception("No active connection");
-
 
             return item.PublishAsync(topicId, valueToPublish, persistImmediately);
         }

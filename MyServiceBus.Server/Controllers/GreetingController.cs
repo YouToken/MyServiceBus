@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using MyServiceBus.Domains.Sessions;
 
 namespace MyServiceBus.Server.Controllers
 {
@@ -10,8 +11,8 @@ namespace MyServiceBus.Server.Controllers
         public long Index([FromForm][Required]string name)
         {
             var session = ServiceLocator.SessionsList.NewSession(name, 
-                HttpContext.Connection.RemoteIpAddress.ToString(), 
-                DateTime.UtcNow, Startup.SessionTimeout, 0);
+                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
+                DateTime.UtcNow, Startup.SessionTimeout, 0, SessionType.Http);
             
             return session.Id;
         }

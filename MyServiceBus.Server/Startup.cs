@@ -40,14 +40,6 @@ namespace MyServiceBus.Server
 
             services.AddMvc(o => { o.EnableEndpointRouting = false; })
                 .AddNewtonsoftJson();
-            
-            
-
-            services.AddSignalR()
-                .AddMessagePackProtocol(options =>
-                {
- 
-                });
 
             services.AddSwaggerDocument(o => o.Title = "MyServiceBus");
             
@@ -79,10 +71,7 @@ namespace MyServiceBus.Server
                     
                 });
 
-
-
             ServiceLocator.TcpServer.Start();
-            
             
         }
 
@@ -100,7 +89,6 @@ namespace MyServiceBus.Server
 
             app.UseOpenApi();
             app.UseSwaggerUi3();
-
 
             app.UseRouting();
 

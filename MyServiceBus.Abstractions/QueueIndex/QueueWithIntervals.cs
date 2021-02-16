@@ -8,21 +8,21 @@ namespace MyServiceBus.Abstractions.QueueIndex
     {
         public QueueWithIntervals(long from, long to)
         {
-            _messages.Add(new QueueIndexRange(from, to));
+            _ranges.Add(new QueueIndexRange(from, to));
         }
         
         public QueueWithIntervals(long messageId)
         {
-            _messages.Add(new QueueIndexRange(messageId));
+            _ranges.Add(new QueueIndexRange(messageId));
         }
 
-        private readonly List<QueueIndexRange> _messages = new List<QueueIndexRange>();
+        private readonly List<QueueIndexRange> _ranges = new List<QueueIndexRange>();
 
         private int GetIndexToInsert(long messageId)
         {
             var i = 0;
 
-            foreach (var range in _messages)
+            foreach (var range in _ranges)
             {
                 if (range.IsBefore(messageId))
                     return i;
@@ -38,7 +38,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
             var i = 0;
 
-            foreach (var range in _messages)
+            foreach (var range in _ranges)
             {
                 if (range.FromId <= messageId && messageId <= range.ToId)
                     return i;
@@ -53,14 +53,14 @@ namespace MyServiceBus.Abstractions.QueueIndex
         {
 
 
-            if (_messages.Count == 1)
+            if (_ranges.Count == 1)
             {
-                var firstOne = _messages[0];
+                var firstOne = _ranges[0];
                 if (firstOne.IsEmpty() || firstOne.IsMyInterval(messageId))
                     return firstOne;
             }
 
-            foreach (var range in _messages)
+            foreach (var range in _ranges)
             {
                 if (range.IsMyInterval(messageId))
                     return range;
@@ -70,10 +70,10 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
             var newItem = new QueueIndexRange(0);
 
-            if (index >= _messages.Count)
-                _messages.Add(newItem);
+            if (index >= _ranges.Count)
+                _ranges.Add(newItem);
             else
-                _messages.Insert(index, newItem);
+                _ranges.Insert(index, newItem);
 
             return newItem;
 
@@ -82,7 +82,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         public IEnumerable<long> GetElements()
         {
-            return _messages.SelectMany(range => range.GetElements());
+            return _ranges.SelectMany(range => range.GetElements());
         }
 
 
@@ -95,14 +95,14 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         public long Dequeue()
         {
-            var interval = _messages[0];
+            var interval = _ranges[0];
             if (interval.IsEmpty())
                 return -1;
 
             var result = interval.GetNextMessage();
 
-            if (interval.IsEmpty() && _messages.Count > 1)
-                _messages.RemoveAt(0);
+            if (interval.IsEmpty() && _ranges.Count > 1)
+                _ranges.RemoveAt(0);
 
             return result;
 
@@ -110,23 +110,23 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         public long GetMessagesCount()
         {
-            return _messages.Sum(indexRange => indexRange.Count());
+            return _ranges.Sum(indexRange => indexRange.Count());
         }
 
         public override string ToString()
         {
-            return $"Intervals: {_messages.Count}. Count: {GetMessagesCount()}";
+            return $"Intervals: {_ranges.Count}. Count: {GetMessagesCount()}";
         }
 
         public IReadOnlyList<QueueIndexRangeReadOnly> GetSnapshot()
         {
-            return _messages.Select(QueueIndexRangeReadOnly.Create).ToList();
+            return _ranges.Select(QueueIndexRangeReadOnly.Create).ToList();
         }
 
 
         public long GetMinId()
         {
-            return _messages[0].FromId;
+            return _ranges[0].FromId;
         }
 
         public void Remove(in long messageId)
@@ -139,7 +139,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
                 return;
             }
 
-            var range = _messages[index];
+            var range = _ranges[index];
 
             if (range.FromId == messageId)
                 range.FromId++;
@@ -149,14 +149,22 @@ namespace MyServiceBus.Abstractions.QueueIndex
             {
                 var newRange = QueueIndexRange.Create(range.FromId, messageId - 1);
                 range.FromId = messageId + 1;
-                _messages.Insert(index, newRange);
+                _ranges.Insert(index, newRange);
             }
 
-            if (range.IsEmpty() && _messages.Count > 1)
-                _messages.RemoveAt(index);
+            if (range.IsEmpty() && _ranges.Count > 1)
+                _ranges.RemoveAt(index);
         }
 
-        public long Count => _messages.Sum(itm => itm.Count());
+        public long Count => _ranges.Sum(itm => itm.Count());
 
+        public void SetMinMessageId(long fromId, long toId)
+        {
+            while (_ranges.Count>1)
+                _ranges.RemoveAt(_ranges.Count - 1);
+
+            _ranges[0].FromId = fromId;
+            _ranges[0].ToId = toId;
+        }
     }
 }

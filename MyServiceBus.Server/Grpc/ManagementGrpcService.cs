@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Grpc;
 using MyServiceBus.Grpc.Contracts;
 using MyServiceBus.Grpc.Models;
@@ -65,8 +66,7 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<GreetingGrpcResponse> GreetingAsync(GreetingGrpcRequest request)
         {
-
-            var session = ServiceLocator.SessionsList.NewSession(request.Name, "127.0.0.1", DateTime.UtcNow, Startup.SessionTimeout, 0);
+            var session = ServiceLocator.SessionsList.NewSession(request.Name, "127.0.0.1", DateTime.UtcNow, Startup.SessionTimeout, 0, SessionType.Http);
 
             var result = new GreetingGrpcResponse
             {

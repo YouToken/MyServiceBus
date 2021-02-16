@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
+using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Tcp;
 
@@ -96,6 +97,20 @@ namespace MyServiceBus.Server.Models
             ReceiveTimeStamp = (now - context.SocketStatistic.LastReceiveTime).FormatTimeStamp();
             LastSendDuration = context.SocketStatistic.LastSendToSocketDuration.FormatTimeStamp();
         }
+        
+        internal void Init(MyServiceBusSession session)
+        {
+            var now = DateTime.UtcNow;
+            Id = session.Id;
+            Ip = session.Ip;
+            ConnectedTimeStamp = (now - session.Created).FormatTimeStamp();
+            SentBytes = 0;
+            SentBytes = 0;
+            ReceivedBytes = 0;
+            SentTimeStamp = "---";
+            ReceiveTimeStamp = (now - session.LastAccess).FormatTimeStamp();
+            LastSendDuration = "---";
+        }
 
         public static UnknownConnectionModel Create(MyServiceBusTcpContext ctx)
         {
@@ -138,6 +153,24 @@ namespace MyServiceBus.Server.Models
 
             return result;
         }
+        
+        public static ConnectionModel Create(MyServiceBusSession session)
+        {
+            var result = new ConnectionModel
+            {
+                Name = session.SessionType+"-"+session.Name,
+                Topics = session.GetTopicsToPublish(),
+                Queues = session.GetQueueSubscribers().Select(itm => itm.Topic.TopicId+">>>"+itm.QueueId),
+                PublishPacketsPerSecond = session.PublishPacketsPerSecond,
+                SubscribePacketsPerSecond = session.SubscribePacketsInternal,
+                PacketsPerSecondInternal = session.PacketsPerSecond,
+                ProtocolVersion = session.ProtocolVersion,
+            };
+            
+            result.Init(session);
+
+            return result;
+        }
     }
 
 
@@ -152,13 +185,15 @@ namespace MyServiceBus.Server.Models
     {
         public IEnumerable<TopicMonitoringModel> Topics { get; set; }
         
-        public IEnumerable<ConnectionModel> Connections { get; set; }
+        public List<ConnectionModel> Connections { get; set; }
         public IEnumerable<UnknownConnectionModel> UnknownConnections { get; set; }
         
         public IEnumerable<QueueToPersist> QueueToPersist { get; set; }
         
         public int TcpConnections { get; set; }
+        
     }
+    
 
 
     public static class MonitoringHelpers

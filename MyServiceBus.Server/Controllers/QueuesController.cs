@@ -19,5 +19,19 @@ namespace MyServiceBus.Server.Controllers
 
             return Content("Ok");
         }
+
+        [HttpPost("/Queues/SetMessageId")]
+        public IActionResult SetMessageId([FromQuery] [Required] string topicId, [FromQuery] [Required] string queueId,
+            [FromQuery] [Required] long messageId)
+        {
+            var topic = ServiceLocator.TopicsList.Get(topicId);
+
+            if (topic == null)
+                throw new Exception($"Topic {topicId} is not found");
+
+            topic.SetQueueMessageId(queueId, messageId);
+
+            return Content("Ok");
+        }
     }
 }

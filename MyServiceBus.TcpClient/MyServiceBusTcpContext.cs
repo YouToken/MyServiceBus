@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -129,22 +130,39 @@ namespace MyServiceBus.TcpClient
             return topicId + "|" + queueId;
         }
 
-        private async ValueTask NewMessageAsync(NewMessageContract newMsg)
+
+        private async ValueTask CallbackAsPackageAsync(NewMessageContract newMsg,
+            Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
         {
 
+            try
+            {
+                await callback(newMsg.Data);
+                SendMessageConfirmation(newMsg);
+            }
+            catch (Exception e)
+            {
+                SendMessageReject(newMsg);
 
+                WriteLog(
+                    $"Bulk Messages Reject [{newMsg.Data[0]}-{newMsg.Data[^1]}]. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}");
+                WriteLog(e);
+
+                _packetExceptionHandler?.Invoke(e);
+            }
+        }
+
+
+        private async ValueTask CallbackOneByOneAsync(NewMessageContract newMsg,
+            Func<IMyServiceBusMessage, ValueTask> callback)
+        {
+            
             foreach (var msg in newMsg.Data)
             {
                 try
                 {
-                    var id = GetId(newMsg.TopicId, newMsg.QueueId);
-
-                    var subscriber = _subscribers[id];
-
-
-                    await subscriber.Callback(msg);
+                    await callback(msg);
                 }
-
                 catch (Exception e)
                 {
                     SendMessageReject(newMsg);
@@ -160,7 +178,23 @@ namespace MyServiceBus.TcpClient
             }
 
             SendMessageConfirmation(newMsg); 
+        }
+
+
+        private ValueTask NewMessageAsync(NewMessageContract newMsg)
+        {
             
+            var id = GetId(newMsg.TopicId, newMsg.QueueId);
+
+            var subscriber = _subscribers[id];
+
+            if (subscriber.CallbackAsAPackage != null)
+                return CallbackAsPackageAsync(newMsg, subscriber.CallbackAsAPackage);
+
+            if (subscriber.CallbackAsOneMessage != null)
+                return CallbackOneByOneAsync(newMsg, subscriber.CallbackAsOneMessage);
+
+            return new ValueTask();
         }
         
         private void SendMessageConfirmation(NewMessageContract messages)

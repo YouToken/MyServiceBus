@@ -70,7 +70,7 @@ namespace MyServiceBus.Server
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
         public static MessageContentCacheByTopic CacheByTopic { get; private set; }
         
-        public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new MessagesPerSecondByTopic();
+        public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new ();
 
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
         
@@ -125,7 +125,7 @@ namespace MyServiceBus.Server
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);
 
                 TopicsList.Timer();
-                SessionsList.Timer();
+                SessionsList.Timer(DateTime.UtcNow);
                 return new ValueTask();
             });
 

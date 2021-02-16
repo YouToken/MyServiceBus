@@ -35,7 +35,7 @@ namespace MyServiceBus.Domains.Execution
         }
         
 
-        public async ValueTask<ExecutionResult> PublishAsync(MySession session, string topicId, IEnumerable<byte[]> messages, DateTime now, bool persistImmediately
+        public async ValueTask<ExecutionResult> PublishAsync(MyServiceBusSession session, string topicId, IEnumerable<byte[]> messages, DateTime now, bool persistImmediately
             )
         {
             

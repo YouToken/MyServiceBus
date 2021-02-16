@@ -126,9 +126,9 @@ namespace MyServiceBus.Domains.Topics
                 var queue = _topicQueues.GetQueue(queueName);
                 
                 if (ok)
-                    queue.ConfirmDelivery(confirmationId);
+                    queue.ConfirmDelivery(confirmationId, MessageId);
                 else
-                    queue.ConfirmNotDelivery(confirmationId);
+                    queue.ConfirmNotDelivery(confirmationId, MessageId);
                 
                 _topicQueues.CalcMinMessageId();
                 _metricCollector.TopicQueueSize(TopicId, _topicQueues.GetMessagesCount());
@@ -189,6 +189,25 @@ namespace MyServiceBus.Domains.Topics
                     }
                     _topicQueues.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges, _lockObject);
                 }
+            }
+        }
+
+        public void SetQueueMessageId(string queueId, long messageId)
+        {
+            lock (_lockObject)
+            {
+                var queue = _topicQueues.GetQueue(queueId);
+
+                if (queue == null)
+                    throw new Exception($"Queue {queueId} is not found");
+                
+                if (messageId<0)
+                    throw new Exception($"MessageId must be above 0");
+                
+                if (messageId>MessageId)
+                    throw new Exception($"MessageId can not be greater than the Topic messageId which is {MessageId} now");
+                
+                queue.SetInterval(messageId, MessageId);
             }
         }
     }

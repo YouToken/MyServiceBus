@@ -5,13 +5,21 @@ using MyServiceBus.Domains.Queues;
 
 namespace MyServiceBus.Domains.Sessions
 {
-    public class MySession
+    public enum SessionType
+    {
+        Tcp, Http
+    }
+    
+    
+    public class MyServiceBusSession
     {
         public long Id { get; private set; }
         public string Ip { get; private set; }
         public string Name { get; private set; }
         public DateTime LastAccess { get; internal set; }
         public TimeSpan SessionTimeout { get; private set; }
+        
+        public DateTime Created { get; } = DateTime.UtcNow;
         
         public int ProtocolVersion { get; private set; }
         
@@ -73,11 +81,14 @@ namespace MyServiceBus.Domains.Sessions
             return _subscribersToQueueAsList;
         }
 
-        private Action<MySession> _onDisconnect;
+        private Action<MyServiceBusSession> _onDisconnect;
 
-        public static MySession Create(long id, string name, string ip, DateTime nowTime, in TimeSpan timeout, Action<MySession> onDisconnect, int protocolVersion)
+        
+        public SessionType SessionType { get; private set; }
+        public static MyServiceBusSession Create(long id, string name, string ip, DateTime nowTime, in TimeSpan timeout, Action<MyServiceBusSession> onDisconnect, int protocolVersion,
+            SessionType sessionType)
         {
-            return new MySession
+            return new MyServiceBusSession
             {
                 Id = id,
                 Name = name,
@@ -85,7 +96,8 @@ namespace MyServiceBus.Domains.Sessions
                 Ip = ip,
                 SessionTimeout = timeout,
                 _onDisconnect = onDisconnect,
-                ProtocolVersion = protocolVersion
+                ProtocolVersion = protocolVersion,
+                SessionType = sessionType
             };
         }
 

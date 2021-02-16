@@ -23,6 +23,8 @@ namespace MyServiceBus.Domains.Queues
         private readonly Dictionary<long, int> _attempts = new Dictionary<long, int>();
 
 
+        private long _setMinMessageId = -1;
+
         private void ResetAttempt(long messageId)
         {
             if (_attempts.ContainsKey(messageId))
@@ -147,7 +149,8 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
-        public void ConfirmDelivery(long confirmationId)
+
+        public void ConfirmDelivery(long confirmationId, long topicMessageId)
         {
 
             lock (_lockObject)
@@ -162,10 +165,16 @@ namespace MyServiceBus.Domains.Queues
                     _leasedQueue.Remove(msgDelivered.MessageId);
                     ResetAttempt(msgDelivered.MessageId);
                 }
+                
+                if (_setMinMessageId > -1){
+                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
+                    _setMinMessageId = -1;
+                }
+                
             }
         }
         
-        public void ConfirmNotDelivery(long confirmationId)
+        public void ConfirmNotDelivery(long confirmationId, long topicMessageId)
         {
 
             lock (_lockObject)
@@ -178,6 +187,11 @@ namespace MyServiceBus.Domains.Queues
                 foreach (var message in messagesDelivered)
                 {          
                     NotDelivered(message);
+                }
+                
+                if (_setMinMessageId > -1){
+                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
+                    _setMinMessageId = -1;
                 }
                 
             }
@@ -293,5 +307,13 @@ namespace MyServiceBus.Domains.Queues
 
         }
 
+        public void SetInterval(long minId, long maxId)
+        {
+
+            if (_leasedQueue.Count == 0)
+                _queue.SetMinMessageId(minId, maxId);
+            else
+                _setMinMessageId = minId;
+        }
     }
 }

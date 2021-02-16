@@ -19,7 +19,7 @@ namespace MyServiceBus.Server.Controllers
         }
 
         [HttpPost("Topics/Create")]
-        public async Task<IActionResult> Create([FromForm][Required]string topicId, [FromForm][Required]int maxCachedMessages)
+        public async Task<IActionResult> Create([FromForm][Required]string topicId)
         {
             await ServiceLocator.TopicsManagement.AddIfNotExistsAsync(topicId);
             return Json(GetAll());
@@ -36,5 +36,7 @@ namespace MyServiceBus.Server.Controllers
             var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
             return Json(new {result});
         }
+
+
     }
 }

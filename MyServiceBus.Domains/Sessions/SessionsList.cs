@@ -22,16 +22,16 @@ namespace MyServiceBus.Domains.Sessions
             }
         }
         
-        private readonly Dictionary<long, MySession> _sessions = new Dictionary<long, MySession>();
-        private IReadOnlyList<MySession> _sessionsAsList = Array.Empty<MySession>();
+        private readonly Dictionary<long, MyServiceBusSession> _sessions = new Dictionary<long, MyServiceBusSession>();
+        private IReadOnlyList<MyServiceBusSession> _sessionsAsList = Array.Empty<MyServiceBusSession>();
 
-        public MySession NewSession(string name, string ip, DateTime nowTime, in TimeSpan sessionTimeout, int protocolVersion)
+        public MyServiceBusSession NewSession(string name, string ip, DateTime nowTime, in TimeSpan sessionTimeout, int protocolVersion, SessionType sessionType)
         {
             _lockObject.EnterWriteLock();
             try
             {
                 var sessionId = GetNextSessionId();
-                var grpcSession = MySession.Create(sessionId, name, ip, nowTime, sessionTimeout, RemoveIfExists, protocolVersion);
+                var grpcSession = MyServiceBusSession.Create(sessionId, name, ip, nowTime, sessionTimeout, RemoveIfExists, protocolVersion, sessionType);
 
                 _sessions.Add(sessionId, grpcSession);
                 _sessionsAsList = _sessions.Values.AsReadOnlyList();
@@ -43,13 +43,13 @@ namespace MyServiceBus.Domains.Sessions
             }
         }
 
-        public IReadOnlyList<MySession> GetSessions()
+        public IReadOnlyList<MyServiceBusSession> GetSessions()
         {
             return _sessionsAsList;
         }
 
 
-        public MySession GetSession(long sessionId, DateTime now)
+        public MyServiceBusSession GetSession(long sessionId, DateTime now)
         {
             _lockObject.EnterReadLock();
             try
@@ -67,69 +67,33 @@ namespace MyServiceBus.Domains.Sessions
             }
         }
 
-        private IReadOnlyList<MySession> GetSessionsToGarbageCollect(DateTime now)
+        private IReadOnlyList<MyServiceBusSession> GetSessionsToGarbageCollect(DateTime now)
         {
-            List<MySession> result = null;
+            List<MyServiceBusSession> result = null;
             var sessions = _sessionsAsList;
 
-            foreach (var mySession in sessions)
+            foreach (var mySession in sessions.Where(itm => itm.SessionType == SessionType.Http))
             {
-                if (mySession.IsExpired(now))
-                {
-                    if (result == null)
-                        result = new List<MySession>();
-                    
-                    result.Add(mySession);
-                }
+                if (!mySession.IsExpired(now)) continue;
+                result ??= new List<MyServiceBusSession>();
+
+                result.Add(mySession);
             }
 
             return result;
         }
 
-
-        public IReadOnlyList<MySession> GarbageCollect(DateTime now)
-        {
-            var sessionsToGarbageCollect = GetSessionsToGarbageCollect(now);
-
-            if (sessionsToGarbageCollect == null)
-                return Array.Empty<MySession>();
-
-            _lockObject.EnterWriteLock();
-            try
-            {
-                foreach (var sessionToGc in sessionsToGarbageCollect)
-                {
-                    if (_sessions.ContainsKey(sessionToGc.Id))
-                        _sessions.Remove(sessionToGc.Id);
-                    
-                    
-                    Console.WriteLine($"Session with Id {sessionToGc.Id} Name {sessionToGc.Name} LastAccess:{sessionToGc.LastAccess} and Ip {sessionToGc.Ip} is expired at {now}");
-                }
-
-                _sessionsAsList = _sessions.Values.AsReadOnlyList();
-
-            }
-            finally
-            {
-                _lockObject.ExitWriteLock();
-            }
-
-            return sessionsToGarbageCollect;
-
-        }
-
-        public IReadOnlyList<MySession> GetByCondition(Func<MySession, bool> condition)
+        public IReadOnlyList<MyServiceBusSession> GetByCondition(Func<MyServiceBusSession, bool> condition)
         {
 
-            List<MySession> result = null; 
+            List<MyServiceBusSession> result = null; 
             _lockObject.EnterReadLock();
             try
             {
                 foreach (var session in _sessions.Values.Where(condition))
                 {
-                    if (result == null)
-                        result = new List<MySession>();
-                        
+                    result ??= new List<MyServiceBusSession>();
+
                     result.Add(session);
                 }
             }
@@ -139,23 +103,9 @@ namespace MyServiceBus.Domains.Sessions
             }
 
             if (result == null)
-                return Array.Empty<MySession>();
+                return Array.Empty<MyServiceBusSession>();
 
             return result;
-        }
-
-        public void Update(long sessionId, Action<MySession> sessionUpdater)
-        {
-            _lockObject.EnterReadLock();
-            try
-            {
-                if (_sessions.ContainsKey(sessionId))
-                    sessionUpdater(_sessions[sessionId]);
-            }
-            finally
-            {
-                _lockObject.ExitReadLock();
-            }
         }
 
         public void RemoveIfExists(in long sessionId)
@@ -173,23 +123,25 @@ namespace MyServiceBus.Domains.Sessions
                  _lockObject.ExitWriteLock();
              }
         }
-        
-        public void RemoveIfExists(MySession session)
+
+        private void RemoveIfExists(MyServiceBusSession session)
         {
            RemoveIfExists(session.Id);
         }
 
 
-        public void Timer()
+        public void Timer(DateTime utcNow)
         {
-
             var list = _sessionsAsList;
 
             foreach (var mySession in list)
-            {
                 mySession.Timer();
-            }
 
+            var garbageCollectedSessions = GetSessionsToGarbageCollect(utcNow);
+            
+            if (garbageCollectedSessions != null)
+                foreach (var session in garbageCollectedSessions)
+                    session.Disconnect();   
         }
     }
 }
