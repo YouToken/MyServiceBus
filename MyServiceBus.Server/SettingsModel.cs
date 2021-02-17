@@ -1,6 +1,6 @@
 using System;
 using MyServiceBus.Domains;
-using MyYamlSettingsParser;
+using MyYamlParser;
 
 namespace MyServiceBus.Server
 {
@@ -19,6 +19,9 @@ namespace MyServiceBus.Server
             
         [YamlProperty]
         public string EventuallyPersistenceDelay { get; set; }
+        
+        [YamlProperty(defaultValue: 1024*1024)]
+        public int MaxDeliveryPackageSize { get; set; }
     }
 
 }

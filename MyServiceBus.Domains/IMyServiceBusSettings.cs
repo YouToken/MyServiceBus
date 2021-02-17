@@ -6,6 +6,7 @@ namespace MyServiceBus.Domains
     {
         TimeSpan EventuallyPersistenceDelay { get; }
         
+        int MaxDeliveryPackageSize { get; }
 
     }
 }

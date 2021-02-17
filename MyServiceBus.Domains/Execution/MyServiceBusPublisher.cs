@@ -46,12 +46,11 @@ namespace MyServiceBus.Domains.Execution
             
             session.PublishToTopic(topicId);
             
-            var addedMessages = topic.Publish(messages, now, msgs =>
-            {
-                var cache = _messageContentCacheByTopic.GetTopic(topicId);
-                cache.AddMessages(msgs); 
-                _messagesToPersistQueue.EnqueueToPersist(topicId, msgs);
-            });
+            var addedMessages = topic.Publish(messages, now);
+            
+            var cache = _messageContentCacheByTopic.GetTopic(topicId);
+            cache.AddMessages(addedMessages); 
+            _messagesToPersistQueue.EnqueueToPersist(topicId, addedMessages);
 
             
             if (addedMessages.Count == 0)

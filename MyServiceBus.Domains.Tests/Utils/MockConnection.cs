@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MyDependencies;
+using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
@@ -24,16 +24,16 @@ namespace MyServiceBus.Domains.Tests.Utils
         
         public MyServiceBusPublisher Publisher { get; }
 
-        public MockConnection(IServiceResolver sr, string sessionsName, DateTime dt)
+        public MockConnection(IServiceProvider sr, string sessionsName, DateTime dt)
         {
             SubscriberId = sessionsName;
-            var sessionsList = sr.GetService<SessionsList>();
-            _topicsList = sr.GetService<TopicsList>();
-            _topicsManagement = sr.GetService<TopicsManagement>();
+            var sessionsList = sr.GetRequiredService<SessionsList>();
+            _topicsList = sr.GetRequiredService<TopicsList>();
+            _topicsManagement = sr.GetRequiredService<TopicsManagement>();
 
 
-            Subscriber = sr.GetService<MyServiceBusSubscriber>();
-            Publisher = sr.GetService<MyServiceBusPublisher>();
+            Subscriber = sr.GetRequiredService<MyServiceBusSubscriber>();
+            Publisher = sr.GetRequiredService<MyServiceBusPublisher>();
             
             MyServiceBusSession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0, SessionType.Http);
         }
