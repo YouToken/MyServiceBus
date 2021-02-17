@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Persistence.Grpc;
@@ -17,6 +18,8 @@ namespace MyServiceBus.Domains.Topics
 
         public MessageIdGenerator MessageId { get; }
         
+        public MessagesContentCache MessagesContentCache { get; }
+        
         public override string ToString()
         {
             return "Topic: " + TopicId;
@@ -28,6 +31,7 @@ namespace MyServiceBus.Domains.Topics
             TopicId = id;
             MessageId = new MessageIdGenerator(startMessageId);
             _topicQueues = new TopicQueues(_lockObject);
+            MessagesContentCache = new MessagesContentCache(id);
         }
         
         public string TopicId { get; }
@@ -69,7 +73,7 @@ namespace MyServiceBus.Domains.Topics
         {
             _requestsPerSecond++;
 
-            var messagesToPersist = new List<MessageContentGrpcModel>();
+            var newMessages = new List<MessageContentGrpcModel>();
 
             MessageId.Lock(generator =>
             {
@@ -83,7 +87,7 @@ namespace MyServiceBus.Domains.Topics
                         Data = message
                     };
 
-                    messagesToPersist.Add(newMessage);
+                    newMessages.Add(newMessage);
 
                     _messagePerSecond++;
                 }
@@ -91,7 +95,8 @@ namespace MyServiceBus.Domains.Topics
             
             _metricCollector.TopicQueueSize(TopicId, _topicQueues.GetMessagesCount());
 
-            return messagesToPersist;
+            MessagesContentCache.AddMessages(newMessages);
+            return newMessages;
         }
 
         public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok)

@@ -65,7 +65,7 @@ namespace MyServiceBus.Server.Models
                 Consumers = topic.GetConsumers(),
                 MessageId = topic.MessageId.Value,
                 Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
-                CachedPages = ServiceLocator.CacheByTopic.GetPagesByTopic(topic.TopicId),
+                CachedPages = topic.MessagesContentCache.Pages,
                 MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)
             };
         }
@@ -183,16 +183,11 @@ namespace MyServiceBus.Server.Models
     public class MonitoringModel
     {
         public IEnumerable<TopicMonitoringModel> Topics { get; set; }
-        
         public List<ConnectionModel> Connections { get; set; }
         public IEnumerable<UnknownConnectionModel> UnknownConnections { get; set; }
-        
         public IEnumerable<QueueToPersist> QueueToPersist { get; set; }
-        
         public int TcpConnections { get; set; }
-        
     }
-    
 
 
     public static class MonitoringHelpers

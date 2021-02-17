@@ -7,8 +7,6 @@ using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Domains.Execution
 {
-
-
     
     public class MyServiceBusDeliveryHandler
     {
@@ -21,41 +19,42 @@ namespace MyServiceBus.Domains.Execution
             _myServiceBusSettings = myServiceBusSettings;
         }
 
-
-        private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
+        private ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
             
-            var messageId = topicQueue.DequeAndLease();
-            
-            if (messageId<0)
-                return;
-
-            while (messageId >= 0)
+            return topicQueue.LockAndGetAccessAsync(async topicDequeue =>
             {
-                var myMessage =
-                    await _messageContentReader.GetAsync(topicQueue.Topic.TopicId, messageId);
+                   
+                var messageId = topicDequeue.DequeAndLease();
+            
+                if (messageId<0)
+                    return;
 
-                subscriber.AddMessage(myMessage);
-
-                if (subscriber.QueueSubscriber.Disconnected)
+                while (messageId >= 0)
                 {
-                    Console.WriteLine("Disconnected in the Leased State. Messages Size: "+subscriber.MessagesSize);
-                    Console.WriteLine("First Message: "+subscriber.MessagesOnDelivery[0].MessageId);
-                    Console.WriteLine("Last Message: "+subscriber.MessagesOnDelivery[^1].MessageId);
-                    break;
+                    var myMessage =
+                        await _messageContentReader.GetAsync(topicQueue.Topic, messageId);
+
+                    subscriber.AddMessage(myMessage);
+
+                    if (subscriber.QueueSubscriber.Disconnected)
+                    {
+                        Console.WriteLine("Disconnected in the Leased State. Messages Size: "+subscriber.MessagesSize);
+                        Console.WriteLine("First Message: "+subscriber.MessagesOnDelivery[0].MessageId);
+                        Console.WriteLine("Last Message: "+subscriber.MessagesOnDelivery[^1].MessageId);
+                        break;
+                    }
+
+                    if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
+                        break;
+
+                    messageId = topicDequeue.DequeAndLease();
                 }
-
-                if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
-                    break;
-
-                messageId = topicQueue.DequeAndLease();
-            }
+            });
         }
-
 
         public async ValueTask SendMessagesAsync(TopicQueue topicQueue)
         {
-
             var leasedSubscriber = topicQueue.QueueSubscribersList.LeaseSubscriber();
             
             if (leasedSubscriber == null)

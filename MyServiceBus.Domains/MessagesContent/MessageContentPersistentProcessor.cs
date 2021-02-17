@@ -12,16 +12,13 @@ namespace MyServiceBus.Domains.MessagesContent
     {
         private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
         private readonly IMessagesToPersistQueue _messagesToPersistQueue;
-        private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
         private readonly IMyServiceBusSettings _myServiceBusSettings;
 
         public MessageContentPersistentProcessor(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService,
-            IMessagesToPersistQueue messagesToPersistQueue, MessageContentCacheByTopic messageContentCacheByTopic, 
-            IMyServiceBusSettings myServiceBusSettings)
+            IMessagesToPersistQueue messagesToPersistQueue, IMyServiceBusSettings myServiceBusSettings)
         {
             _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
             _messagesToPersistQueue = messagesToPersistQueue;
-            _messageContentCacheByTopic = messageContentCacheByTopic;
             _myServiceBusSettings = myServiceBusSettings;
         }
 
@@ -47,8 +44,7 @@ namespace MyServiceBus.Domains.MessagesContent
         {
 
 
-                var contentByTopic = _messageContentCacheByTopic.TryGetTopic(topic.TopicId) 
-                                     ?? _messageContentCacheByTopic.Create(topic.TopicId);
+                var contentByTopic = topic.MessagesContentCache;
 
 
                 foreach (var pageId in pages)
@@ -82,18 +78,15 @@ namespace MyServiceBus.Domains.MessagesContent
                     }
 
                 }
-
         }
 
         public async ValueTask GarbageCollectAsync(MyTopic topic)
         {
-            
             var activePages = topic.GetActiveMessagePages();
 
             await LoadActivePagesAsync(topic, activePages.Keys.ToList());
             
-            _messageContentCacheByTopic.GarbageCollect(topic.TopicId, activePages);
-            
+            topic.MessagesContentCache.GarbageCollect(activePages);
         }
     }
 }

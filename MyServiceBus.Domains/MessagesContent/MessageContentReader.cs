@@ -1,18 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using MyServiceBus.Domains.Topics;
 using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
     public class MessageContentReader
     {
-        private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
         private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
 
-        public MessageContentReader(MessageContentCacheByTopic messageContentCacheByTopic,
-            IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService)
+        public MessageContentReader(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService)
         {
-            _messageContentCacheByTopic = messageContentCacheByTopic;
             _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
         }
 
@@ -53,9 +51,9 @@ namespace MyServiceBus.Domains.MessagesContent
             }
         }
 
-        public ValueTask<MessageContentGrpcModel> GetAsync(string topicId, long id)
+        public ValueTask<MessageContentGrpcModel> GetAsync(MyTopic topic, long id)
         {
-            var cache = _messageContentCacheByTopic.GetTopic(topicId);
+            var cache = topic.MessagesContentCache;
 
             var message = cache.TryGetMessage(id);
             
