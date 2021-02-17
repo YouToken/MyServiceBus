@@ -20,8 +20,7 @@ namespace MyServiceBus.Domains.Queues
 
         private readonly object _lockObject;
         
-        private readonly Dictionary<long, int> _attempts = new Dictionary<long, int>();
-
+        private readonly Dictionary<long, int> _attempts = new ();
 
         private long _setMinMessageId = -1;
 
@@ -120,7 +119,6 @@ namespace MyServiceBus.Domains.Queues
             _queue.Enqueue(message.MessageId);
             IncAttempt(message.MessageId);
         }
-        
 
         public void NotDelivered(IReadOnlyList<IMessageContent> messages)
         {
@@ -140,6 +138,7 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
+        //ToDo - Why it is not used?
         public void NewMessage(long messageId)
         {
             lock (_lockObject)
@@ -147,8 +146,6 @@ namespace MyServiceBus.Domains.Queues
                 _queue.Enqueue(messageId);
             }
         }
-
-
 
         public void ConfirmDelivery(long confirmationId, long topicMessageId)
         {
@@ -309,7 +306,6 @@ namespace MyServiceBus.Domains.Queues
 
         public void SetInterval(long minId, long maxId)
         {
-
             if (_leasedQueue.Count == 0)
                 _queue.SetMinMessageId(minId, maxId);
             else

@@ -26,7 +26,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 
                 var pageId = queue.GetMinId().GetMessageContentPageId();
 
-                var maxPageId = topic.MessageId.GetMessageContentPageId();
+                var maxPageId = topic.MessageId.Value.GetMessageContentPageId();
                 
                 if (!result.ContainsKey(pageId.Value))
                     result.Add(pageId.Value, pageId.Value);

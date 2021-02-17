@@ -10,49 +10,86 @@ namespace MyServiceBus.Domains.Topics
 {
     public class TopicQueues
     {
-        private readonly Dictionary<string, TopicQueue> _topicQueues = new Dictionary<string, TopicQueue>();
+        private readonly object _lockObject;
+        private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
 
-        public int QueueCount { get; private set; }
-        
-        public void DeleteQueue(string queueName)
+        public TopicQueues(object lockObject)
         {
-            if (!_topicQueues.ContainsKey(queueName))
-                return;
-
-            _topicQueues.Remove(queueName);
-            _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
-            QueueCount = _topicQueues.Count;
+            _lockObject = lockObject;
         }
         
+                
+        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges,
+            object lockObject)
+        {
+
+            lock (_lockObject)
+            {
+                var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges, lockObject);
+                _topicQueues.Add(queueName, queue);
+                _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
+
+                CalcMinMessageId();
+            }
+   
+        }
+        
+        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId,
+            object lockObject)
+        {
+
+            lock (_lockObject)
+            {
+
+                var (added, newDictionary, value) = _topicQueues.AddIfNotExistsByCreatingNewDictionary(queueName,
+                    () => new TopicQueue(topic, queueName, deleteOnDisconnect, messageId, lockObject));
+
+                if (!added)
+                    return value;
+
+                _topicQueues = newDictionary;
+                _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
+
+                return value;
+            }
+ 
+        }
+
+        public void DeleteQueue(string queueName)
+        {
+            lock (_lockObject)
+            {
+                if (!_topicQueues.ContainsKey(queueName))
+                    return;
+
+                var newDictionary = _topicQueues.RemoveIfExistsByCreatingNewDictionary(queueName,
+                    (k1, k2)=> k1 == k2);
+
+                if (!newDictionary.removed) 
+                    return;
+                
+                _topicQueues = newDictionary.result;
+                _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
+
+            }
+        }
+
+
         public IReadOnlyList<TopicQueue> GetQueues()
         {
             return _queuesAsReadOnlyList;
         }
 
-        private long _maxMessageId;
         public long MinMessageId { get; private set; }
 
-        public void NewMessage(long messageId)
-        {
-            foreach (var queue in _queuesAsReadOnlyList)
-            {
-                queue.NewMessage(messageId);
-                if (messageId > _maxMessageId)
-                    _maxMessageId = messageId;
-            }
-        }
 
         public long GetMessagesCount()
         {
-
-            if (_queuesAsReadOnlyList.Count == 0)
-                return 0;
-
-            return _queuesAsReadOnlyList.Max(itm => itm.GetMessagesCount());
-
+            return _queuesAsReadOnlyList.Count == 0 
+                ? 0 
+                : _queuesAsReadOnlyList.Max(itm => itm.GetMessagesCount());
         }
-
 
         public void CalcMinMessageId()
         {
@@ -67,47 +104,18 @@ namespace MyServiceBus.Domains.Topics
         
         public TopicQueue GetQueue(string queueId)
         {
-
-            if (_topicQueues.ContainsKey(queueId))
-                return _topicQueues[queueId];
+            if (_topicQueues.TryGetValue(queueId, out var result))
+                return result;
 
             throw new Exception($"Queue with id {queueId} is not found");
         }
 
 
-        private void AddQueuePostProcessing()
-        {
-            QueueCount = _topicQueues.Count;
-            _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
-        }
         
-        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges,
-            object lockObject)
-        {
-
-            var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges, lockObject);
-            _topicQueues.Add(queueName, queue);
-
-            AddQueuePostProcessing();
-
-            CalcMinMessageId();
-        }
 
 
-        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId,
-            object lockObject)
-        {
 
-            if (_topicQueues.ContainsKey(queueName))
-                return _topicQueues[queueName];
 
-            var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, messageId, lockObject);
-            _topicQueues.Add(queueName, queue);
-
-            AddQueuePostProcessing();
-
-            return queue;
-        }
 
         public long GetQueueMessagesCount(string queueName)
         {
