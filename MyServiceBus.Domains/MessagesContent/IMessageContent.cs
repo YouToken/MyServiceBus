@@ -1,27 +1,19 @@
-using System;
-using MyServiceBus.Persistence.Grpc;
+
 
 namespace MyServiceBus.Domains.MessagesContent
 {
-    public interface IMessageContent
-    {
-        long MessageId { get; }
-        byte[] Data { get; }
-        DateTime Created { get; }
-    }
-    
-    public class MessageContent : IMessageContent
+    /*
+    public class MessageContent 
     {
         public long MessageId { get; private set; }
 
         public byte[] Data { get; private set; }
-        
 
         public DateTime Created { get; private set; }
 
         public static MessageContent Create(long messageId,  byte[] data, DateTime created)
         {
-            return new MessageContent
+            return new ()
             {
                 MessageId = messageId,
                 Data = data,
@@ -31,7 +23,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public static MessageContent FromGrpc(MessageContentGrpcModel grpcModel)
         {
-            return new MessageContent
+            return new()
             {
                 Created = grpcModel.Created,
                 Data = grpcModel.Data,
@@ -39,5 +31,6 @@ namespace MyServiceBus.Domains.MessagesContent
             };
         }
     }
+    */
     
 }

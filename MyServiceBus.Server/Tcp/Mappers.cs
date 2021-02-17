@@ -1,4 +1,4 @@
-using MyServiceBus.Domains.MessagesContent;
+using MyServiceBus.Persistence.Grpc;
 using MyServiceBus.TcpContracts;
 
 namespace MyServiceBus.Server.Tcp
@@ -6,7 +6,7 @@ namespace MyServiceBus.Server.Tcp
     public static class Mappers
     {
 
-        public static NewMessageContract.NewMessageData ToMessageData(this IMessageContent messageContent, int attemptId)
+        public static NewMessageContract.NewMessageData ToMessageData(this MessageContentGrpcModel messageContent, int attemptId)
         {
             
             return new ()

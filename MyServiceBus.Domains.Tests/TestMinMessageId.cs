@@ -11,8 +11,7 @@ namespace MyServiceBus.Domains.Tests
         public void TestMinMessageIdCleaning()
         {
 
-            var ioc = TestIoc.CreateForTests()
-                .WithEventuallyPersistenceTimeOut(TimeSpan.FromSeconds(5));
+            var ioc = TestIoc.CreateForTests();
             
             const string topicName = "testtopic";
             const string queueName = "testqueue";

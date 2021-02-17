@@ -34,20 +34,6 @@ namespace MyServiceBus.Domains.Tests.Utils
             return ioc.BuildServiceProvider();
         }
 
-        public static IServiceProvider WithSessionTimeOut(this IServiceProvider ioc, TimeSpan sessionTimeOut)
-        {
-            var settings = (TestSettings)ioc.GetRequiredService<IMyServiceBusSettings>();
-            settings.SessionTimeOut = sessionTimeOut;
-            return ioc;
-        }
-
-        public static IServiceProvider WithEventuallyPersistenceTimeOut(this IServiceProvider ioc, 
-            TimeSpan eventuallyPersistenceTimeOut)
-        {
-            var settings = (TestSettings)ioc.GetRequiredService<IMyServiceBusSettings>();
-            settings.EventuallyPersistenceDelay = eventuallyPersistenceTimeOut;
-            return ioc;
-        }
     }
 
 

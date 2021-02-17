@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using MyServiceBus.Domains.MessagesContent;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Persistence
 {
 
     public interface IMessagesToPersistQueue
     {
-        void EnqueueToPersist(string topicId, IEnumerable<MessageContent> messages);
+        void EnqueueToPersist(string topicId, IEnumerable<MessageContentGrpcModel> messages);
 
-        IReadOnlyList<MessageContent> GetMessagesToPersist(string topicId);
+        IReadOnlyList<MessageContentGrpcModel> GetMessagesToPersist(string topicId);
 
         IReadOnlyList<(string topic, int count)> GetMessagesToPersistCount();
 
@@ -20,8 +20,8 @@ namespace MyServiceBus.Domains.Persistence
     {
         private readonly IMetricCollector _metricCollector;
 
-        private readonly Dictionary<string, List<MessageContent>> _messagesToPersist 
-            = new Dictionary<string, List<MessageContent>>();
+        private readonly Dictionary<string, List<MessageContentGrpcModel>> _messagesToPersist 
+            = new ();
 
 
         public MessagesToPersistQueue(IMetricCollector metricCollector)
@@ -35,13 +35,13 @@ namespace MyServiceBus.Domains.Persistence
                 return _messagesToPersist.Select(itm => (itm.Key, itm.Value.Count)).ToList();
         }
 
-        public void EnqueueToPersist(string topicId, IEnumerable<MessageContent> messages)
+        public void EnqueueToPersist(string topicId, IEnumerable<MessageContentGrpcModel> messages)
         {
             lock (_messagesToPersist)
             {
                 
                 if (!_messagesToPersist.ContainsKey(topicId))
-                    _messagesToPersist.Add(topicId, new List<MessageContent>());
+                    _messagesToPersist.Add(topicId, new List<MessageContentGrpcModel>());
 
                 _messagesToPersist[topicId].AddRange(messages);
                 
@@ -54,20 +54,20 @@ namespace MyServiceBus.Domains.Persistence
             _metricCollector.ToPersistSize(topicId,_messagesToPersist[topicId].Count);
         }
 
-        public IReadOnlyList<MessageContent> GetMessagesToPersist(string topicId)
+        public IReadOnlyList<MessageContentGrpcModel> GetMessagesToPersist(string topicId)
         {
 
             lock (_messagesToPersist)
             {
                 if (!_messagesToPersist.ContainsKey(topicId))
-                    return Array.Empty<MessageContent>();
+                    return Array.Empty<MessageContentGrpcModel>();
 
                 var queue = _messagesToPersist[topicId];
                 
                 if (queue.Count == 0)
-                    return Array.Empty<MessageContent>();
+                    return Array.Empty<MessageContentGrpcModel>();
                 
-                _messagesToPersist[topicId] = new List<MessageContent>();
+                _messagesToPersist[topicId] = new List<MessageContentGrpcModel>();
                 PutMessagesToPersistMetric(topicId);
                 
                 return queue;

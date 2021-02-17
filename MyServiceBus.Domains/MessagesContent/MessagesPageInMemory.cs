@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
@@ -32,20 +33,20 @@ namespace MyServiceBus.Domains.MessagesContent
     public class MessagesPageInMemory
     {
 
-        private readonly Dictionary<long, IMessageContent> _messages;
+        private readonly Dictionary<long, MessageContentGrpcModel> _messages;
         
         public MessagesPageId PageId { get;  }
 
         public MessagesPageInMemory(MessagesPageId pageId)
         {
             PageId = pageId;
-            _messages = new Dictionary<long, IMessageContent>();
+            _messages = new Dictionary<long, MessageContentGrpcModel>();
         }
 
         public int Count => _messages.Count;
 
 
-        public bool Add(IMessageContent message)
+        public bool Add(MessageContentGrpcModel message)
         {
             if (!_messages.ContainsKey(message.MessageId))
             {
@@ -56,12 +57,12 @@ namespace MyServiceBus.Domains.MessagesContent
             return false;
         }
 
-        public IEnumerable<IMessageContent> Get()
+        public IEnumerable<MessageContentGrpcModel> Get()
         {
             return _messages.Values;
         }
         
-        public IMessageContent Get(long messageId)
+        public MessageContentGrpcModel Get(long messageId)
         {
             return _messages.ContainsKey(messageId) ? _messages[messageId] : null;
         }

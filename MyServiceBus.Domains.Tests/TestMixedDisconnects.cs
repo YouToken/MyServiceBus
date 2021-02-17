@@ -11,12 +11,10 @@ namespace MyServiceBus.Domains.Tests
         [Test]
         public void TestThreePublishesFirstAndThirdDisconnect()
         {
-            var ioc = TestIoc.CreateForTests()
-                .WithSessionTimeOut(TimeSpan.FromSeconds(5));
+            var ioc = TestIoc.CreateForTests();
 
             const string topicName = "testtopic";
             const string queueName = "testqueue";
-
 
             var nowTime = DateTime.Parse("2019-01-01T00:00:00");
             var session1 = ioc.ConnectSession("MySession1", nowTime);

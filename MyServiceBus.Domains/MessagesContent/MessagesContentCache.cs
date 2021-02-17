@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using DotNetCoreDecorators;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
@@ -22,7 +23,7 @@ namespace MyServiceBus.Domains.MessagesContent
             TopicId = topicId;
         }
 
-        public void AddMessages(IEnumerable<IMessageContent> messages)
+        public void AddMessages(IEnumerable<MessageContentGrpcModel> messages)
         {
             
             _lockSlim.EnterWriteLock();
@@ -50,7 +51,7 @@ namespace MyServiceBus.Domains.MessagesContent
             
         }
 
-        public IMessageContent TryGetMessage(in long messageId)
+        public MessageContentGrpcModel TryGetMessage(in long messageId)
         {
             
             _lockSlim.EnterReadLock();

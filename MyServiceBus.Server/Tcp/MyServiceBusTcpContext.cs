@@ -8,6 +8,7 @@ using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Sessions;
+using MyServiceBus.Persistence.Grpc;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -212,7 +213,7 @@ namespace MyServiceBus.Server.Tcp
 
 
 
-        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId)
+        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)
         {
             
             

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains.Execution;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Tests.Utils
 {
@@ -38,18 +38,18 @@ namespace MyServiceBus.Domains.Tests.Utils
             MyServiceBusSession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0, SessionType.Http);
         }
         
-        public readonly List<(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId)> Messages 
-            = new List<(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId)>();
+        public readonly List<(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)> Messages 
+            = new ();
 
 
 
-        public (TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId) GetLastSentMessage()
+        public (TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId) GetLastSentMessage()
         {
             return Messages.Last();
         }
         
         
-        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId)
+        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)
         {
             Messages.Add((topicQueue, messages, confirmationId));
         }

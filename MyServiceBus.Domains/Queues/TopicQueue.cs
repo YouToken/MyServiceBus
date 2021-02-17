@@ -7,6 +7,7 @@ using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Queues
 {
@@ -113,14 +114,14 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
-        private void NotDelivered(IMessageContent message)
+        private void NotDelivered(MessageContentGrpcModel message)
         {
             _leasedQueue.Remove(message.MessageId); 
             _queue.Enqueue(message.MessageId);
             IncAttempt(message.MessageId);
         }
 
-        public void NotDelivered(IReadOnlyList<IMessageContent> messages)
+        public void NotDelivered(IReadOnlyList<MessageContentGrpcModel> messages)
         {
             lock (_lockObject)
             {
@@ -138,12 +139,14 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
-        //ToDo - Why it is not used?
-        public void NewMessage(long messageId)
+
+        public void EnqueueMessages(IReadOnlyList<MessageContentGrpcModel> messages)
         {
             lock (_lockObject)
             {
-                _queue.Enqueue(messageId);
+
+                foreach (var message in messages)
+                    _queue.Enqueue(message.MessageId);
             }
         }
 

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
@@ -13,7 +14,7 @@ namespace MyServiceBus.Domains.MessagesContent
             return new MessagesPageId(messageId / MessagesInChunk);
         }
         
-        public static MessagesPageId GetMessageContentPageId(this IMessageContent message)
+        public static MessagesPageId GetMessageContentPageId(this MessageContentGrpcModel message)
         {
             return new MessagesPageId(message.MessageId / MessagesInChunk);
         }

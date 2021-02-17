@@ -20,9 +20,9 @@ namespace MyServiceBus.Domains.Execution
             _messageContentReader = messageContentReader;
             _myServiceBusSettings = myServiceBusSettings;
         }
-        
-        
-        public async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
+
+
+        private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
             
             var messageId = topicQueue.DequeAndLease();
@@ -34,7 +34,6 @@ namespace MyServiceBus.Domains.Execution
             {
                 var myMessage =
                     await _messageContentReader.GetAsync(topicQueue.Topic.TopicId, messageId);
-
 
                 subscriber.AddMessage(myMessage);
 
@@ -56,7 +55,6 @@ namespace MyServiceBus.Domains.Execution
 
         public async ValueTask SendMessagesAsync(TopicQueue topicQueue)
         {
-
 
             var leasedSubscriber = topicQueue.QueueSubscribersList.LeaseSubscriber();
             

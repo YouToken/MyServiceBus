@@ -12,7 +12,7 @@ namespace MyServiceBus.Domains.Topics
     {
         public long Value { get; private set; }
 
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new ();
 
 
         public void Lock(Action<INextMessageIdGenerator> callback)
@@ -30,8 +30,15 @@ namespace MyServiceBus.Domains.Topics
 
         long INextMessageIdGenerator.GetNextMessageId()
         {
-            Value++;
-            return Value;
+
+            try
+            {
+                return Value;
+            }
+            finally
+            {
+                Value++;
+            }
         }
     }
 }

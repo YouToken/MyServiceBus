@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Topics
 {
@@ -65,19 +65,23 @@ namespace MyServiceBus.Domains.Topics
                 _lockObject);
         }
 
-        public IReadOnlyList<MessageContent> Publish(IEnumerable<byte[]> messages, DateTime now)
+        public IReadOnlyList<MessageContentGrpcModel> Publish(IEnumerable<byte[]> messages, DateTime now)
         {
             _requestsPerSecond++;
 
-            var messagesToPersist = new List<MessageContent>();
+            var messagesToPersist = new List<MessageContentGrpcModel>();
 
             MessageId.Lock(generator =>
             {
                 foreach (var message in messages)
                 {
-                    var messageId = generator.GetNextMessageId();
 
-                    var newMessage = MessageContent.Create(messageId, message, now);
+                    var newMessage = new MessageContentGrpcModel
+                    {
+                        MessageId = generator.GetNextMessageId(),
+                        Created = now,
+                        Data = message
+                    };
 
                     messagesToPersist.Add(newMessage);
 

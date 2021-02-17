@@ -64,6 +64,9 @@ namespace MyServiceBus.Domains.Execution
                 persistMessagesTask = _messageContentPersistentProcessor.PersistMessageContentInBackgroundAsync(topic);
             }
 
+            foreach (var topicQueue in topic.GetQueues())
+                topicQueue.EnqueueMessages(addedMessages);
+
             await _myServiceBusDeliveryHandler.SendMessagesAsync(topic);
 
             if (persistentQueueTask != null)
