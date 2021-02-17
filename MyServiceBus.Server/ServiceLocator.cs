@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using MyDependencies;
+using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.MessagesContent;
@@ -76,30 +76,30 @@ namespace MyServiceBus.Server
         
 
 
-        public static void Init(IServiceResolver serviceResolver)
+        public static void Init(IServiceProvider serviceProvider)
         {
-            TopicsManagement = serviceResolver.GetService<TopicsManagement>();
-            TopicsList = serviceResolver.GetService<TopicsList>();
+            TopicsManagement = serviceProvider.GetRequiredService<TopicsManagement>();
+            TopicsList = serviceProvider.GetRequiredService<TopicsList>();
             
-            MyGlobalVariables = serviceResolver.GetService<GlobalVariables>();
+            MyGlobalVariables = serviceProvider.GetRequiredService<GlobalVariables>();
 
-            MyServiceBusPublisher = serviceResolver.GetService<MyServiceBusPublisher>();
-            Subscriber = serviceResolver.GetService<MyServiceBusSubscriber>();
+            MyServiceBusPublisher = serviceProvider.GetRequiredService<MyServiceBusPublisher>();
+            Subscriber = serviceProvider.GetRequiredService<MyServiceBusSubscriber>();
             
-            SessionsList = serviceResolver.GetService<SessionsList>();
+            SessionsList = serviceProvider.GetRequiredService<SessionsList>();
 
-            MessagesToPersistQueue = serviceResolver.GetService<IMessagesToPersistQueue>();
+            MessagesToPersistQueue = serviceProvider.GetRequiredService<IMessagesToPersistQueue>();
 
 
-            MyServiceBusDeliveryHandler = serviceResolver.GetService<MyServiceBusDeliveryHandler>();
+            MyServiceBusDeliveryHandler = serviceProvider.GetRequiredService<MyServiceBusDeliveryHandler>();
             
-            _myServiceBusBackgroundExecutor = serviceResolver.GetService<MyServiceBusBackgroundExecutor>();
+            _myServiceBusBackgroundExecutor = serviceProvider.GetRequiredService<MyServiceBusBackgroundExecutor>();
 
-            CacheByTopic = serviceResolver.GetService<MessageContentCacheByTopic>();
+            CacheByTopic = serviceProvider.GetRequiredService<MessageContentCacheByTopic>();
 
-            PrometheusMetrics = serviceResolver.GetService<PrometheusMetrics>();
+            PrometheusMetrics = serviceProvider.GetRequiredService<PrometheusMetrics>();
 
-            DataInitializer.InitAsync(serviceResolver).Wait();
+            DataInitializer.InitAsync(serviceProvider).Wait();
         }
         
         

@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.QueueSubscribers
 {
     public interface IQueueSubscriber
     {
-        void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<IMessageContent> messages, long confirmationId);
+        void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId);
         
         string SubscriberId { get; }
         

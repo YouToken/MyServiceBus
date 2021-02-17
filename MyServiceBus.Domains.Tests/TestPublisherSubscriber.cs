@@ -9,14 +9,11 @@ namespace MyServiceBus.Domains.Tests
         
         
         [Test]
-        public void TestPublishWithNoSusbcriberTestCount()
+        public void TestPublishWithNoSubscriberTestCount()
         {
             var ioc = TestIoc.CreateForTests();
 
             const string topicName = "testtopic";
-
-            
-
 
             var session = ioc.ConnectSession("MySession");
 
@@ -25,7 +22,6 @@ namespace MyServiceBus.Domains.Tests
             var message = new byte[] {1, 2, 3};
 
             session.PublishMessage(topicName, message, DateTime.UtcNow);
-
             
             Assert.AreEqual(0, topic.MessagesCount);
             

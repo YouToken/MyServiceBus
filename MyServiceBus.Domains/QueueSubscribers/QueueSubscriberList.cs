@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetCoreDecorators;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.QueueSubscribers
 {
@@ -29,9 +29,9 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public IQueueSubscriber QueueSubscriber { get; }
 
-        private List<IMessageContent> _onDelivery = new List<IMessageContent>();
+        private List<MessageContentGrpcModel> _onDelivery = new ();
 
-        public IReadOnlyList<IMessageContent> MessagesOnDelivery => _onDelivery;
+        public IReadOnlyList<MessageContentGrpcModel> MessagesOnDelivery => _onDelivery;
         
         public long ConfirmationId { get; private set; }
         
@@ -50,7 +50,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         }
 
 
-        public void AddMessage(IMessageContent messageContent)
+        public void AddMessage(MessageContentGrpcModel messageContent)
         {
             if (Status != SubscriberStatus.Leased)
                 throw new Exception($"Can not add message when Status is: {Status}. Status must Be Leased");
@@ -83,7 +83,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
             if (MessagesSize == 0)
                 return;
             MessagesSize = 0;
-            _onDelivery = new List<IMessageContent>();
+            _onDelivery = new List<MessageContentGrpcModel>();
         }
 
     }
@@ -156,7 +156,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         }
 
-
         public TheQueueSubscriber LeaseSubscriber()
         {
             lock (_lockObject)
@@ -174,7 +173,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 return readyToBeLeased;
             }
         }
-
 
         private bool Subscribed(TheQueueSubscriber subscriber)
         {
@@ -201,7 +199,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         }
 
 
-        public IReadOnlyList<IMessageContent> Delivered(long confirmationId)
+        public IReadOnlyList<MessageContentGrpcModel> Delivered(long confirmationId)
         {
             lock (_lockObject)
             {

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using DotNetCoreDecorators;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Tests.Utils
 {
@@ -11,10 +11,10 @@ namespace MyServiceBus.Domains.Tests.Utils
         private readonly MessagesToPersistQueue _messagesToPersistQueue = new MessagesToPersistQueue(new MetricsCollectorMock());
         
         
-        public readonly Dictionary<string, List<MessageContent>> MessagesToPersist 
-            = new Dictionary<string, List<MessageContent>>();
+        public readonly Dictionary<string, List<MessageContentGrpcModel>> MessagesToPersist 
+            = new Dictionary<string, List<MessageContentGrpcModel>>();
         
-        public void EnqueueToPersist(string topicId, IEnumerable<MessageContent> messages)
+        public void EnqueueToPersist(string topicId, IEnumerable<MessageContentGrpcModel> messages)
         {
 
             var messagesAsReadOnlyList = messages.AsReadOnlyList();
@@ -22,7 +22,7 @@ namespace MyServiceBus.Domains.Tests.Utils
             lock (MessagesToPersist)
             {
                 if (!MessagesToPersist.ContainsKey(topicId))
-                    MessagesToPersist.Add(topicId, new List<MessageContent>());
+                    MessagesToPersist.Add(topicId, new List<MessageContentGrpcModel>());
                     
                 MessagesToPersist[topicId].AddRange(messagesAsReadOnlyList);
             }
@@ -30,7 +30,7 @@ namespace MyServiceBus.Domains.Tests.Utils
             _messagesToPersistQueue.EnqueueToPersist(topicId, messagesAsReadOnlyList);
         }
 
-        public IReadOnlyList<MessageContent> GetMessagesToPersist(string topicId)
+        public IReadOnlyList<MessageContentGrpcModel> GetMessagesToPersist(string topicId)
         {
             return _messagesToPersistQueue.GetMessagesToPersist(topicId);
         }

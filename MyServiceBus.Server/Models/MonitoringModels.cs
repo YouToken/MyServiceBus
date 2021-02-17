@@ -9,7 +9,6 @@ using MyServiceBus.Server.Tcp;
 namespace MyServiceBus.Server.Models
 {
 
-
     public class QueueSlice
     {
         public long From { get; set; }
@@ -64,7 +63,7 @@ namespace MyServiceBus.Server.Models
                 MsgPerSec = topic.MessagesPerSecond,
                 RequestsPerSec = topic.RequestsPerSecond,
                 Consumers = topic.GetConsumers(),
-                MessageId = topic.MessageId,
+                MessageId = topic.MessageId.Value,
                 Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
                 CachedPages = ServiceLocator.CacheByTopic.GetPagesByTopic(topic.TopicId),
                 MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)

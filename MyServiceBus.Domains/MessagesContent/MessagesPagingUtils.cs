@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
 {
@@ -10,12 +11,12 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public static MessagesPageId GetMessageContentPageId(this long messageId)
         {
-            return new MessagesPageId(messageId / MessagesInChunk);
+            return new (messageId / MessagesInChunk);
         }
         
-        public static MessagesPageId GetMessageContentPageId(this IMessageContent message)
+        public static MessagesPageId GetMessageContentPageId(this MessageContentGrpcModel message)
         {
-            return new MessagesPageId(message.MessageId / MessagesInChunk);
+            return new (message.MessageId / MessagesInChunk);
         }
         
         public static Dictionary<long, long> GetActiveMessagePages(this MyTopic topic)
@@ -26,7 +27,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 
                 var pageId = queue.GetMinId().GetMessageContentPageId();
 
-                var maxPageId = topic.MessageId.GetMessageContentPageId();
+                var maxPageId = topic.MessageId.Value.GetMessageContentPageId();
                 
                 if (!result.ContainsKey(pageId.Value))
                     result.Add(pageId.Value, pageId.Value);

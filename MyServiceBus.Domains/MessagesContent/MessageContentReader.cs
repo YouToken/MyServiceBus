@@ -9,7 +9,6 @@ namespace MyServiceBus.Domains.MessagesContent
         private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
         private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
 
-
         public MessageContentReader(MessageContentCacheByTopic messageContentCacheByTopic,
             IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService)
         {
@@ -17,47 +16,52 @@ namespace MyServiceBus.Domains.MessagesContent
             _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
         }
 
-        private async Task<IMessageContent> LoadMessageAsync(MessagesContentCache cache, long messageId)
+        private async Task<MessageContentGrpcModel> LoadMessageAsync(MessagesContentCache cache, long messageId)
         {
+            var pageId = messageId.GetMessageContentPageId();
+            
+            var attemptNo = 0;
 
-            var now = DateTime.UtcNow;
             while (true)
             {
-                
-                var pageId = messageId.GetMessageContentPageId();
+                if (attemptNo >= 5)
+                    return null;
 
-                var page = 
-                     await _messagesPersistenceGrpcService.GetPageAsync(cache.TopicId, pageId.Value)
-                         .ToPageInMemoryAsync(pageId);
-
-                Console.WriteLine($"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
-
-                cache.UploadPage(page);
-                
-                var result = cache.TryGetMessage(messageId);
-
-                if (result != null)
-                    return result;
-
-                if ((DateTime.UtcNow - now).TotalSeconds > 3)
+                try
                 {
-                    Console.WriteLine($"Can not load message {messageId} from DB");
+                    Console.WriteLine(
+                        $"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
+
+                    var page =
+                        await _messagesPersistenceGrpcService.GetPageAsync(cache.TopicId, pageId.Value)
+                            .ToPageInMemoryAsync(pageId);
+
+                    cache.UploadPage(page);
+
+                    return cache.TryGetMessage(messageId);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(
+                        $"Count not load page {pageId} for topic {cache.TopicId}. Attempt: {attemptNo}. Message: " +
+                        e.Message);
+
+                    await Task.Delay(200);
+                    attemptNo++;
                 }
 
-                await Task.Delay(200);
             }
         }
-        
-        public ValueTask<IMessageContent> GetAsync(string topicId, long id)
+
+        public ValueTask<MessageContentGrpcModel> GetAsync(string topicId, long id)
         {
             var cache = _messageContentCacheByTopic.GetTopic(topicId);
 
             var message = cache.TryGetMessage(id);
             
-            if (message != null)
-                return new ValueTask<IMessageContent>(message);
-            
-            return new ValueTask<IMessageContent>(LoadMessageAsync(cache, id));
+            return message != null 
+                ? new ValueTask<MessageContentGrpcModel>(message) 
+                : new ValueTask<MessageContentGrpcModel>(LoadMessageAsync(cache, id));
         }
         
     }

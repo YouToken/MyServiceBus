@@ -13,13 +13,16 @@ namespace MyServiceBus.Domains.MessagesContent
         private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
         private readonly IMessagesToPersistQueue _messagesToPersistQueue;
         private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
+        private readonly IMyServiceBusSettings _myServiceBusSettings;
 
         public MessageContentPersistentProcessor(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService,
-            IMessagesToPersistQueue messagesToPersistQueue, MessageContentCacheByTopic messageContentCacheByTopic)
+            IMessagesToPersistQueue messagesToPersistQueue, MessageContentCacheByTopic messageContentCacheByTopic, 
+            IMyServiceBusSettings myServiceBusSettings)
         {
             _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
             _messagesToPersistQueue = messagesToPersistQueue;
             _messageContentCacheByTopic = messageContentCacheByTopic;
+            _myServiceBusSettings = myServiceBusSettings;
         }
 
         public async Task PersistMessageContentInBackgroundAsync(MyTopic myTopic)
@@ -31,7 +34,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
             try
             {
-                await _messagesPersistenceGrpcService.SaveMessagesAsync(myTopic.TopicId, messagesToPersist, 1024*1024*3);
+                await _messagesPersistenceGrpcService.SaveMessagesAsync(myTopic.TopicId, messagesToPersist.ToArray(), _myServiceBusSettings.MaxPersistencePackage);
             }
             catch (Exception)
             {

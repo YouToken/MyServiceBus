@@ -7,18 +7,22 @@ using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Domains.Execution
 {
+
+
+    
     public class MyServiceBusDeliveryHandler
     {
         private readonly MessageContentReader _messageContentReader;
+        private readonly IMyServiceBusSettings _myServiceBusSettings;
 
-        public MyServiceBusDeliveryHandler(MessageContentReader messageContentReader)
+        public MyServiceBusDeliveryHandler(MessageContentReader messageContentReader, IMyServiceBusSettings myServiceBusSettings)
         {
             _messageContentReader = messageContentReader;
+            _myServiceBusSettings = myServiceBusSettings;
         }
 
-        private const int MaxMessagesSize = 1024 * 1024;
-        
-        public async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
+
+        private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
             
             var messageId = topicQueue.DequeAndLease();
@@ -31,7 +35,6 @@ namespace MyServiceBus.Domains.Execution
                 var myMessage =
                     await _messageContentReader.GetAsync(topicQueue.Topic.TopicId, messageId);
 
-
                 subscriber.AddMessage(myMessage);
 
                 if (subscriber.QueueSubscriber.Disconnected)
@@ -42,7 +45,7 @@ namespace MyServiceBus.Domains.Execution
                     break;
                 }
 
-                if (subscriber.MessagesSize >= MaxMessagesSize)
+                if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
                     break;
 
                 messageId = topicQueue.DequeAndLease();
@@ -52,7 +55,6 @@ namespace MyServiceBus.Domains.Execution
 
         public async ValueTask SendMessagesAsync(TopicQueue topicQueue)
         {
-
 
             var leasedSubscriber = topicQueue.QueueSubscribersList.LeaseSubscriber();
             
@@ -78,7 +80,6 @@ namespace MyServiceBus.Domains.Execution
             }
 
         }
-
 
         public async ValueTask SendMessagesAsync(MyTopic topic)
         {

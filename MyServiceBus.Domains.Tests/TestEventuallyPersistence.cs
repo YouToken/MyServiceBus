@@ -11,7 +11,7 @@ namespace MyServiceBus.Domains.Tests
         [Test]
         public void TestPersistence()
         {
-            var ioc = TestIoc.CreateForTests().WithEventuallyPersistenceTimeOut(TimeSpan.FromSeconds(5));
+            var ioc = TestIoc.CreateForTests();
             
             const string topicName = "testtopic";
             const string queueName = "testqueue";
@@ -29,7 +29,7 @@ namespace MyServiceBus.Domains.Tests
             ioc.SetCurrentTime(nowTime);
             
             var savedMessages = ioc.GetMessagesFromPersistentStorage(topicName);
-            var snapshot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
+            ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
             
             Assert.AreEqual(2,savedMessages.Count);
 
@@ -41,13 +41,13 @@ namespace MyServiceBus.Domains.Tests
             ioc.SetCurrentTime(nowTime);
             
             savedMessages = ioc.GetMessagesFromPersistentStorage(topicName);
-            snapshot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
+            var snapShot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
 
             Assert.AreEqual(4,savedMessages.Count);
 
             
-            Assert.AreEqual(1,snapshot.Ranges.AsReadOnlyList()[0].FromId);
-            Assert.AreEqual(3,snapshot.Ranges.AsReadOnlyList()[0].ToId);
+            Assert.AreEqual(1,snapShot.Ranges.AsReadOnlyList()[0].FromId);
+            Assert.AreEqual(3,snapShot.Ranges.AsReadOnlyList()[0].ToId);
         }
         
         
@@ -55,7 +55,7 @@ namespace MyServiceBus.Domains.Tests
         [Test]
         public void TestWhenWeDeliverHalfAndNotDeliverHalf()
         {
-            var ioc = TestIoc.CreateForTests().WithEventuallyPersistenceTimeOut(TimeSpan.FromSeconds(5));
+            var ioc = TestIoc.CreateForTests();
             
             const string topicName = "testtopic";
             const string queueName = "testqueue";
@@ -78,7 +78,7 @@ namespace MyServiceBus.Domains.Tests
             ioc.SetCurrentTime(nowTime);
             
             var savedMessages = ioc.GetMessagesFromPersistentStorage(topicName);
-            var snapshot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
+            ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
             
             Assert.AreEqual(2,savedMessages.Count);
 
@@ -93,7 +93,7 @@ namespace MyServiceBus.Domains.Tests
             
             
             savedMessages = ioc.GetMessagesFromPersistentStorage(topicName);
-            snapshot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
+            var snapshot = ioc.GetMessageSnapshotsFromPersistentStorage(topicName, queueName);
 
             Assert.AreEqual(4,savedMessages.Count);
 

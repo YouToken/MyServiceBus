@@ -1,5 +1,5 @@
 using Grpc.Net.Client;
-using MyDependencies;
+using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains;
 using MyServiceBus.Persistence.Grpc;
 using MyServiceBus.Server.Services;
@@ -9,23 +9,23 @@ namespace MyServiceBus.Server
 {
     public static class ServiceBinder
     {
-        public static void BindServerServices(this IServiceRegistrator sr)
+        public static void BindServerServices(this IServiceCollection sr)
         {
             var prometheusMetrics = new PrometheusMetrics();
-            sr.Register<IMetricCollector>(prometheusMetrics);
-            sr.Register(prometheusMetrics);
+            sr.AddSingleton<IMetricCollector>(prometheusMetrics);
+            sr.AddSingleton(prometheusMetrics);
         }
 
 
-        public static void BindGrpcServices(this IServiceRegistrator sr, string grpcUrl)
+        public static void BindGrpcServices(this IServiceCollection sr, string grpcUrl)
         {
             GrpcClientFactory.AllowUnencryptedHttp2 = true;
             
-            sr.Register(GrpcChannel
+            sr.AddSingleton(GrpcChannel
                 .ForAddress(grpcUrl)
                 .CreateGrpcService<IMyServiceBusMessagesPersistenceGrpcService>());
             
-            sr.Register(GrpcChannel
+            sr.AddSingleton(GrpcChannel
                 .ForAddress(grpcUrl)
                 .CreateGrpcService<IMyServiceBusQueuePersistenceGrpcService>());
 

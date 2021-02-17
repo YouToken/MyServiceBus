@@ -7,6 +7,7 @@ using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Queues
 {
@@ -20,8 +21,7 @@ namespace MyServiceBus.Domains.Queues
 
         private readonly object _lockObject;
         
-        private readonly Dictionary<long, int> _attempts = new Dictionary<long, int>();
-
+        private readonly Dictionary<long, int> _attempts = new ();
 
         private long _setMinMessageId = -1;
 
@@ -114,15 +114,14 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
-        private void NotDelivered(IMessageContent message)
+        private void NotDelivered(MessageContentGrpcModel message)
         {
             _leasedQueue.Remove(message.MessageId); 
             _queue.Enqueue(message.MessageId);
             IncAttempt(message.MessageId);
         }
-        
 
-        public void NotDelivered(IReadOnlyList<IMessageContent> messages)
+        public void NotDelivered(IReadOnlyList<MessageContentGrpcModel> messages)
         {
             lock (_lockObject)
             {
@@ -140,15 +139,16 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
-        public void NewMessage(long messageId)
+
+        public void EnqueueMessages(IReadOnlyList<MessageContentGrpcModel> messages)
         {
             lock (_lockObject)
             {
-                _queue.Enqueue(messageId);
+
+                foreach (var message in messages)
+                    _queue.Enqueue(message.MessageId);
             }
         }
-
-
 
         public void ConfirmDelivery(long confirmationId, long topicMessageId)
         {
@@ -309,7 +309,6 @@ namespace MyServiceBus.Domains.Queues
 
         public void SetInterval(long minId, long maxId)
         {
-
             if (_leasedQueue.Count == 0)
                 _queue.SetMinMessageId(minId, maxId);
             else

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.AwaitingMessages
 {
@@ -18,17 +19,17 @@ namespace MyServiceBus.Domains.AwaitingMessages
             return now - Created >= ExpirationTimeout;
         }
         
-        public void SendMessages(TopicQueue topicQueue,  IReadOnlyList<IMessageContent> messages, long messageId)
+        public void SendMessages(TopicQueue topicQueue,  IReadOnlyList<MessageContentGrpcModel> messages, long messageId)
         {
             Response.SetResult((messages, messageId));
         }
         
         public void ExpireRequest()
         {
-            Response.SetResult((Array.Empty<IMessageContent>(), -1));
+            Response.SetResult((Array.Empty<MessageContentGrpcModel>(), -1));
         }
 
-        public Task<(IReadOnlyList<IMessageContent> messages, long messageId)> GetMessages()
+        public Task<(IReadOnlyList<MessageContentGrpcModel> messages, long messageId)> GetMessages()
         {
             return Response.Task;
         }
@@ -37,8 +38,8 @@ namespace MyServiceBus.Domains.AwaitingMessages
         public string Queue { get; private set; }
         
         
-        public readonly TaskCompletionSource<(IReadOnlyList<IMessageContent> messages, long messageId)> Response  
-            = new TaskCompletionSource<(IReadOnlyList<IMessageContent> messages, long messageId)>();
+        public readonly TaskCompletionSource<(IReadOnlyList<MessageContentGrpcModel> messages, long messageId)> Response  
+            = new ();
         
         public static AwaitingMessagesGrpcRequest Create(string topic, string queue, DateTime now)
         {

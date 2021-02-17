@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using MyDependencies;
 using MyServiceBus.Server.Grpc;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.Domains;
@@ -27,8 +26,12 @@ namespace MyServiceBus.Server
 
         public static readonly TimeSpan SessionTimeout = TimeSpan.FromMinutes(1);
 
+        private IServiceCollection _services;
+
         public void ConfigureServices(IServiceCollection services)
         {
+            
+            _services = services;
 
             SocketMemoryUtils.AllocateByteArray = size => GC.AllocateUninitializedArray<byte>(size);
             MyServiceBusMemory.AllocateByteArray = SocketMemoryUtils.AllocateByteArray;
@@ -42,37 +45,19 @@ namespace MyServiceBus.Server
                 .AddNewtonsoftJson();
 
             services.AddSwaggerDocument(o => o.Title = "MyServiceBus");
-            
-            var ioc = new MyIoc();
 
-            ioc.Register<IMyServiceBusSettings>(settings);
-            ioc.RegisterMyNoServiceBusDomainServices();
+            services.AddSingleton<IMyServiceBusSettings>(settings);
+            services.RegisterMyNoServiceBusDomainServices();
 
-            ioc.BindGrpcServices(settings.GrpcUrl);
-            ioc.BindServerServices();
+            services.BindGrpcServices(settings.GrpcUrl);
+            services.BindServerServices();
             
-            ioc.Register<IMessagesToPersistQueue, MessagesToPersistQueue>();
-            
-            
-            ServiceLocator.Init(ioc);
-            ServiceLocator.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
-                .RegisterSerializer(()=> new MyServiceBusTcpSerializer())
-                .SetService(()=>new MyServiceBusTcpContext())
-                .AddLog((ctx, data) =>
-                {
-                    if (ctx == null)
-                    {
-                        Console.WriteLine($"{DateTime.UtcNow}: "+data);    
-                    }
-                    else
-                    {
-                        Console.WriteLine($"{DateTime.UtcNow}: ClientId: {ctx.Id}. "+data);
-                    }
-                    
-                });
+            services.AddSingleton<IMessagesToPersistQueue, MessagesToPersistQueue>();
 
-            ServiceLocator.TcpServer.Start();
             
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,6 +87,29 @@ namespace MyServiceBus.Server
                     endpoints.MapMetrics();
                 });
 
+
+
+            var sp = _services.BuildServiceProvider();
+                        
+            ServiceLocator.Init(sp);
+            ServiceLocator.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
+                .RegisterSerializer(()=> new MyServiceBusTcpSerializer())
+                .SetService(()=>new MyServiceBusTcpContext())
+                .AddLog((ctx, data) =>
+                {
+                    if (ctx == null)
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow}: "+data);    
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{DateTime.UtcNow}: ClientId: {ctx.Id}. "+data);
+                    }
+                    
+                });
+
+            ServiceLocator.TcpServer.Start();
+            
             ServiceLocator.Start();
 
         }

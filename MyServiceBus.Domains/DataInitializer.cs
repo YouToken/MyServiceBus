@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using MyDependencies;
+using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
@@ -12,10 +13,11 @@ namespace MyServiceBus.Domains
     public static class DataInitializer
     {
 
-        private static async Task InitTopicsAsync(IServiceResolver serviceResolver)
+        private static async Task InitTopicsAsync(IServiceProvider serviceProvider)
         {
-            var topicsList = serviceResolver.GetService<TopicsList>();
-            var storage = serviceResolver.GetService<IMyServiceBusQueuePersistenceGrpcService>();
+            
+            var topicsList = serviceProvider.GetRequiredService<TopicsList>();
+            var storage = serviceProvider.GetRequiredService<IMyServiceBusQueuePersistenceGrpcService>();
 
             var data = await storage.GetTopicsAndQueuesSnapshotAsync();
 
@@ -24,11 +26,11 @@ namespace MyServiceBus.Domains
         
 
 
-        private static async Task RestoreMessagesAsync(IServiceResolver serviceResolver)
+        private static async Task RestoreMessagesAsync(IServiceProvider serviceProvider)
         { 
-            var topicsList = serviceResolver.GetService<TopicsList>();
+            var topicsList = serviceProvider.GetRequiredService<TopicsList>();
 
-            var persistentProcessor = serviceResolver.GetService<MessageContentPersistentProcessor>();
+            var persistentProcessor = serviceProvider.GetRequiredService<MessageContentPersistentProcessor>();
 
             var tasks = new List<Task>();
             foreach (var topic in topicsList.Get())
@@ -43,10 +45,10 @@ namespace MyServiceBus.Domains
 
         }
 
-        public static async Task InitAsync(IServiceResolver serviceResolver)
+        public static async Task InitAsync(IServiceProvider serviceProvider)
         {
-            await InitTopicsAsync(serviceResolver);
-            await RestoreMessagesAsync(serviceResolver);
+            await InitTopicsAsync(serviceProvider);
+            await RestoreMessagesAsync(serviceProvider);
         }
         
     }
