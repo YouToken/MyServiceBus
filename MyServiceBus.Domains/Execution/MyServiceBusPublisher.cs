@@ -15,14 +15,12 @@ namespace MyServiceBus.Domains.Execution
         private readonly IMessagesToPersistQueue _messagesToPersistQueue;
         private readonly MyServiceBusDeliveryHandler _myServiceBusDeliveryHandler;
         private readonly TopicsAndQueuesPersistenceProcessor _topicsAndQueuesPersistenceProcessor;
-        private readonly MessageContentCacheByTopic _messageContentCacheByTopic;
         private readonly MessageContentPersistentProcessor _messageContentPersistentProcessor;
 
         public MyServiceBusPublisher(TopicsList topicsList, 
             IMessagesToPersistQueue messagesToPersistQueue,
             MyServiceBusDeliveryHandler myServiceBusDeliveryHandler, 
             TopicsAndQueuesPersistenceProcessor topicsAndQueuesPersistenceProcessor,
-            MessageContentCacheByTopic messageContentCacheByTopic,
             MessageContentPersistentProcessor messageContentPersistentProcessor
             )
         {
@@ -30,7 +28,6 @@ namespace MyServiceBus.Domains.Execution
             _messagesToPersistQueue = messagesToPersistQueue;
             _myServiceBusDeliveryHandler = myServiceBusDeliveryHandler;
             _topicsAndQueuesPersistenceProcessor = topicsAndQueuesPersistenceProcessor;
-            _messageContentCacheByTopic = messageContentCacheByTopic;
             _messageContentPersistentProcessor = messageContentPersistentProcessor;
         }
         
@@ -47,9 +44,8 @@ namespace MyServiceBus.Domains.Execution
             session.PublishToTopic(topicId);
             
             var addedMessages = topic.Publish(messages, now);
-            
-            var cache = _messageContentCacheByTopic.GetTopic(topicId);
-            cache.AddMessages(addedMessages); 
+
+
             _messagesToPersistQueue.EnqueueToPersist(topicId, addedMessages);
 
             

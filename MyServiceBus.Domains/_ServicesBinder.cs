@@ -18,7 +18,6 @@ namespace MyServiceBus.Domains
             sc.AddSingleton<MyServiceBusPublisher>();
             sc.AddSingleton<MyServiceBusSubscriber>();
             sc.AddSingleton<MyServiceBusBackgroundExecutor>();
-            sc.AddSingleton<MessageContentCacheByTopic>();
             
             sc.AddSingleton<TopicsAndQueuesPersistenceProcessor>();
             

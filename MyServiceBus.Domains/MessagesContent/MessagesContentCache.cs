@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DotNetCoreDecorators;
 using MyServiceBus.Persistence.Grpc;
 
@@ -37,7 +38,7 @@ namespace MyServiceBus.Domains.MessagesContent
                     {
                         Console.WriteLine($"Added page to MessagesCache for Topic {TopicId} with #"+pageId);
                         _messages = result.newDictionary;
-                        Pages = _messages.Keys.AsReadOnlyList();
+                        Pages = _messages.Keys.OrderBy(key => key).AsReadOnlyList();
                     }
                     
                     result.value.Add(message);
@@ -79,7 +80,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 }
                 
                 _messages.AddIfNotExistsByCreatingNewDictionary(page.PageId.Value, ()=>page);
-                Pages = _messages.Keys.AsReadOnlyList();
+                Pages = _messages.Keys.OrderBy(key => key).AsReadOnlyList();
             }
 
         }
@@ -123,71 +124,12 @@ namespace MyServiceBus.Domains.MessagesContent
                 }
                 finally
                 {
-                    Pages = _messages.Keys.AsReadOnlyList();
+                    Pages = _messages.Keys.OrderBy(key => key).AsReadOnlyList();
                 }
             }
         }
         
     }
 
-    public class MessageContentCacheByTopic
-    {
-        private Dictionary<string, MessagesContentCache> _messagesCache 
-            = new ();
-
-        private readonly object _lockObject 
-            = new ();
-
-        public MessagesContentCache Create(string topicId)
-        {
-
-            lock (_lockObject)
-            {
-                var (added, newDictionary, value) = _messagesCache.AddIfNotExistsByCreatingNewDictionary(topicId,
-                    () => new MessagesContentCache(topicId));
-
-                if (added)
-                    _messagesCache = newDictionary;
-
-                return value;
-            }
-
-        }
-
-        public MessagesContentCache TryGetTopic(string topicId)
-        {
-            return _messagesCache.TryGetValue(topicId, out var result) 
-                ? result 
-                : null;
-        }
-
-        public int GetMessagesAmount(string topicId)
-        {
-            var cacheByTopic = TryGetTopic(topicId);
-            return cacheByTopic?.GetMessagesCount() ?? 0;
-        }
-
-        public IReadOnlyList<long> GetPagesByTopic(string topicId)
-        {
-            return _messagesCache.TryGetValue(topicId, out var result) 
-                ? result.Pages 
-                : Array.Empty<long>();
-        }
-
-        public MessagesContentCache GetTopic(string topicId)
-        {
-            if (_messagesCache.TryGetValue(topicId, out var result))
-                return result;
-
-            throw new Exception($"Messages Cache for topic {topicId} is not found");
-        }
-
-        public void GarbageCollect(string topicId, IDictionary<long, long> activePages)
-        {
-            if (_messagesCache.TryGetValue(topicId, out var cache))
-                cache.GarbageCollect(activePages);
-        }
-
-    }
     
 }

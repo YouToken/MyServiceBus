@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains;
 using MyServiceBus.Domains.Execution;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Sessions;
@@ -50,13 +49,13 @@ namespace MyServiceBus.Server
             Console.WriteLine();
         }
 
-        public static string AppName { get; private set; }
-        public static string AppVersion { get; private set; }
+        public static string AppName { get; }
+        public static string AppVersion { get;}
 
-        public static DateTime StartedAt { get; private set; }
+        public static DateTime StartedAt { get; }
 
-        public static string AspNetEnvironment { get; private set; }
-        public static string Host { get; private set; }
+        public static string AspNetEnvironment { get;  }
+        public static string Host { get; }
         public static SessionsList SessionsList { get; private set; }
         public static TopicsManagement TopicsManagement { get; private set; }
         public static TopicsList TopicsList { get; private set; }
@@ -65,16 +64,11 @@ namespace MyServiceBus.Server
         public static MyServiceBusSubscriber Subscriber { get; private set; }
 
         private static MyServiceBusBackgroundExecutor _myServiceBusBackgroundExecutor;
-        public static MyServiceBusDeliveryHandler MyServiceBusDeliveryHandler { get; private set; }
         public static MyServerTcpSocket<IServiceBusTcpContract> TcpServer { get; internal set; }
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
-        public static MessageContentCacheByTopic CacheByTopic { get; private set; }
         
         public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new ();
-
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
-        
-
 
         public static void Init(IServiceProvider serviceProvider)
         {
@@ -89,13 +83,8 @@ namespace MyServiceBus.Server
             SessionsList = serviceProvider.GetRequiredService<SessionsList>();
 
             MessagesToPersistQueue = serviceProvider.GetRequiredService<IMessagesToPersistQueue>();
-
-
-            MyServiceBusDeliveryHandler = serviceProvider.GetRequiredService<MyServiceBusDeliveryHandler>();
             
             _myServiceBusBackgroundExecutor = serviceProvider.GetRequiredService<MyServiceBusBackgroundExecutor>();
-
-            CacheByTopic = serviceProvider.GetRequiredService<MessageContentCacheByTopic>();
 
             PrometheusMetrics = serviceProvider.GetRequiredService<PrometheusMetrics>();
 
@@ -103,11 +92,11 @@ namespace MyServiceBus.Server
         }
         
         
-        private static readonly MyTaskTimer TimerGarbageCollector = new MyTaskTimer(1000);
+        private static readonly MyTaskTimer TimerGarbageCollector = new (1000);
         
-        private static readonly MyTaskTimer TimerPersistent = new MyTaskTimer(1000);
+        private static readonly MyTaskTimer TimerPersistent = new (1000);
 
-        private static readonly MyTaskTimer TimerStatistic = new MyTaskTimer(1000);
+        private static readonly MyTaskTimer TimerStatistic = new (1000);
 
 
         public static void Start()
