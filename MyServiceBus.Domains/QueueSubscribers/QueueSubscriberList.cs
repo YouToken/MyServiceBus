@@ -29,9 +29,9 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public IQueueSubscriber QueueSubscriber { get; }
 
-        private List<MessageContentGrpcModel> _onDelivery = new ();
+        private List<(MessageContentGrpcModel message, int attemptNo)> _onDelivery = new ();
 
-        public IReadOnlyList<MessageContentGrpcModel> MessagesOnDelivery => _onDelivery;
+        public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> MessagesOnDelivery => _onDelivery;
         
         public long ConfirmationId { get; private set; }
         
@@ -50,12 +50,12 @@ namespace MyServiceBus.Domains.QueueSubscribers
         }
 
 
-        public void AddMessage(MessageContentGrpcModel messageContent)
+        public void AddMessage(MessageContentGrpcModel messageContent, int attemptNo)
         {
             if (Status != SubscriberStatus.Leased)
                 throw new Exception($"Can not add message when Status is: {Status}. Status must Be Leased");
             
-            _onDelivery.Add(messageContent);
+            _onDelivery.Add((messageContent, attemptNo));
             MessagesSize += messageContent.Data.Length;
         }
 
@@ -83,7 +83,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
             if (MessagesSize == 0)
                 return;
             MessagesSize = 0;
-            _onDelivery = new List<MessageContentGrpcModel>();
+            _onDelivery = new List<(MessageContentGrpcModel, int)>();
         }
 
     }
@@ -199,7 +199,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         }
 
 
-        public IReadOnlyList<MessageContentGrpcModel> Delivered(long confirmationId)
+        public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> Delivered(long confirmationId)
         {
             lock (_lockObject)
             {
@@ -215,7 +215,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 item.SetToUnLeased();
                 
                 return result;
-
             }
         }
         

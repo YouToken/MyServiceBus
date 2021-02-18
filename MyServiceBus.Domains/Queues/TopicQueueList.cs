@@ -4,21 +4,20 @@ using System.Linq;
 using DotNetCoreDecorators;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Persistence;
-using MyServiceBus.Domains.Queues;
+using MyServiceBus.Domains.Topics;
 
-namespace MyServiceBus.Domains.Topics
+namespace MyServiceBus.Domains.Queues
 {
-    public class TopicQueues
+    public class TopicQueueList
     {
         private readonly object _lockObject;
         private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
 
-        public TopicQueues(object lockObject)
+        public TopicQueueList(object lockObject)
         {
             _lockObject = lockObject;
         }
-        
                 
         public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges,
             object lockObject)

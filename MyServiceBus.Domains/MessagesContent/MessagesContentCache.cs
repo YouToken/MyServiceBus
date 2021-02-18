@@ -12,13 +12,14 @@ namespace MyServiceBus.Domains.MessagesContent
         private Dictionary<long, MessagesPageInMemory> _messages = new ();
         public string TopicId { get; }
         
-        private readonly object _lockObject = new ();
+        private readonly object _lockObject;
 
         public IReadOnlyList<long> Pages { get; private set; } = Array.Empty<long>();
         
-        public MessagesContentCache(string topicId)
+        public MessagesContentCache(string topicId, object lockObject)
         {
             TopicId = topicId;
+            _lockObject = lockObject;
         }
 
         public void AddMessages(IEnumerable<MessageContentGrpcModel> messages)

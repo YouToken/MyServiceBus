@@ -53,7 +53,7 @@ namespace MyServiceBus.Domains.Tests
 
             var lastMessage = session.GetLastSentMessage();
             
-            Assert.AreEqual(message.Length, lastMessage.messages[0].Data.Length);
+            Assert.AreEqual(message.Length, lastMessage.messages[0].message.Data.Length);
         }
         
         [Test]

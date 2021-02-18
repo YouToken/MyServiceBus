@@ -22,33 +22,33 @@ namespace MyServiceBus.Domains.Execution
         private ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
             
-            return topicQueue.LockAndGetAccessAsync(async topicDequeue =>
+            return topicQueue.LockAndGetWriteAccessAsync(async topicDequeue =>
             {
                    
-                var messageId = topicDequeue.DequeAndLease();
+                var msg = topicDequeue.DequeAndLease();
             
-                if (messageId<0)
+                if (msg.messageId<0)
                     return;
 
-                while (messageId >= 0)
+                while (msg.messageId >= 0)
                 {
                     var myMessage =
-                        await _messageContentReader.GetAsync(topicQueue.Topic, messageId);
+                        await _messageContentReader.GetAsync(topicQueue.Topic, msg.messageId);
 
-                    subscriber.AddMessage(myMessage);
+                    subscriber.AddMessage(myMessage, msg.attemptNo);
 
                     if (subscriber.QueueSubscriber.Disconnected)
                     {
                         Console.WriteLine("Disconnected in the Leased State. Messages Size: "+subscriber.MessagesSize);
-                        Console.WriteLine("First Message: "+subscriber.MessagesOnDelivery[0].MessageId);
-                        Console.WriteLine("Last Message: "+subscriber.MessagesOnDelivery[^1].MessageId);
+                        Console.WriteLine("First Message: "+subscriber.MessagesOnDelivery[0].message.MessageId);
+                        Console.WriteLine("Last Message: "+subscriber.MessagesOnDelivery[^1].message.MessageId);
                         break;
                     }
 
                     if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
                         break;
 
-                    messageId = topicDequeue.DequeAndLease();
+                    msg = topicDequeue.DequeAndLease();
                 }
             });
         }
@@ -65,13 +65,14 @@ namespace MyServiceBus.Domains.Execution
                 await FillMessagesAsync(topicQueue, leasedSubscriber);
                 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 if (leasedSubscriber.MessagesSize > 0)
                 {
-                    topicQueue.NotDelivered(leasedSubscriber.MessagesOnDelivery);
+                    topicQueue.NotDelivered(leasedSubscriber.MessagesOnDelivery, 0);
                     leasedSubscriber.ClearMessages();
                 }
+                Console.WriteLine(ex);
             }
             finally
             {
