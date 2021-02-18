@@ -15,12 +15,12 @@ namespace MyServiceBus.Domains.Queues
         (long messageId, int attemptNo) DequeAndLease();
         void EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages);
 
-        void ConfirmDelivery(long confirmationId, long topicMessageId);
+        void ConfirmDelivery(TheQueueSubscriber subscriber);
 
-        void ConfirmNotDelivery(long confirmationId, long topicMessageId);
+        void ConfirmNotDelivery(TheQueueSubscriber subscriber);
 
-        void ConfirmNotDelivered(IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages,
-            int incrementAttemptNo);
+        void CancelDelivery(TheQueueSubscriber leasedSubscriber);
+
     }
 
     public class TopicQueue : ITopicQueueWriteAccess
@@ -30,16 +30,12 @@ namespace MyServiceBus.Domains.Queues
 
         private readonly QueueWithIntervals _leasedQueue;
 
-        private readonly object _lockObject;
+        private readonly object _topicLock = new();
 
         private readonly Dictionary<long, int> _attempts = new();
 
-        private long _setMinMessageId = -1;
-        
-        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges,
-            object lockObject)
+        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges)
         {
-            _lockObject = lockObject;
             Topic = topic;
             QueueId = queueId;
             DeleteOnDisconnect = deleteOnDisconnect;
@@ -53,18 +49,17 @@ namespace MyServiceBus.Domains.Queues
             }
 
             _leasedQueue = new QueueWithIntervals(messageId);
-            QueueSubscribersList = new QueueSubscribersList(this, lockObject);
+            QueueSubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
-        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, long messageId, object lockObject)
+        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, long messageId)
         {
-            _lockObject = lockObject;
             Topic = topic;
             QueueId = queueId;
             DeleteOnDisconnect = deleteOnDisconnect;
             _queue = new QueueWithIntervals(messageId);
             _leasedQueue = new QueueWithIntervals(messageId);
-            QueueSubscribersList = new QueueSubscribersList(this, lockObject);
+            QueueSubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
         public MyTopic Topic { get; }
@@ -74,12 +69,28 @@ namespace MyServiceBus.Domains.Queues
 
         public (IReadOnlyList<IQueueIndexRange> queues, IReadOnlyList<IQueueIndexRange> leased) GetQueueIntervals()
         {
-            lock (_lockObject)
+            lock (_topicLock)
             {
                 return (_queue.GetSnapshot(), _leasedQueue.GetSnapshot());
             }
-
         }
+
+        public void LockAndGetWriteAccess(Action<ITopicQueueWriteAccess> callback)
+        {
+            lock (_topicLock)
+            {
+                callback(this);
+            }
+        }
+        
+        public T LockAndGetWriteAccess<T>(Func<ITopicQueueWriteAccess, T> callback)
+        {
+            lock (_topicLock)
+            {
+                return callback(this);
+            }
+        }
+
 
         (long messageId, int attemptNo) ITopicQueueWriteAccess.DequeAndLease()
         {
@@ -92,113 +103,66 @@ namespace MyServiceBus.Domains.Queues
 
             return (result, attemptNo);
         }
-
-        public ValueTask LockAndGetWriteAccessAsync(Func<ITopicQueueWriteAccess, ValueTask> callback)
-        {
-            lock (_lockObject)
-            {
-                return callback(this);
-            }
-
-        }
-
-        public void LockAndGetWriteAccess(Action<ITopicQueueWriteAccess> callback)
-        {
-            lock (_lockObject)
-            {
-                callback(this);
-            }
-        }
         
         private void NotDelivered(MessageContentGrpcModel message, int attemptNo)
         {
-            _leasedQueue.Remove(message.MessageId);
             _queue.Enqueue(message.MessageId);
 
             if (!_attempts.TryAdd(message.MessageId, attemptNo))
                 _attempts[message.MessageId] = attemptNo;
         }
 
-        void ITopicQueueWriteAccess.ConfirmNotDelivered(
+
+        private void DisposeNotDeliveredMessages(
             IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
         {
             foreach (var (message, attemptNo) in messages)
+            {
+                _leasedQueue.Remove(message.MessageId);
                 NotDelivered(message, attemptNo + incrementAttemptNo);
+            }
         }
-
+        
+        
+        void ITopicQueueWriteAccess. CancelDelivery(TheQueueSubscriber leasedSubscriber)
+        {
+            DisposeNotDeliveredMessages(leasedSubscriber.MessagesCollector, 0);
+            leasedSubscriber.SetToUnLeased();
+        }
 
         void ITopicQueueWriteAccess.EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages)
         {
-            lock (_lockObject)
-            {
-                foreach (var message in messages)
-                    _queue.Enqueue(message.MessageId);
-            }
+            foreach (var message in messages)
+                _queue.Enqueue(message.MessageId);
         }
 
-        void ITopicQueueWriteAccess.ConfirmDelivery(long confirmationId, long topicMessageId)
+        void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber)
         {
-
-            lock (_lockObject)
-            {
-                var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
-
-                if (messagesDelivered == null)
-                    throw new Exception(
-                        $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
-
-                foreach (var msgDelivered in messagesDelivered)
-                {
-                    _leasedQueue.Remove(msgDelivered.message.MessageId);
-                }
-
-                if (_setMinMessageId > -1)
-                {
-                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
-                    _setMinMessageId = -1;
-                }
-
-            }
+            foreach (var (message, _) in subscriber.MessagesOnDelivery)
+                _leasedQueue.Remove(message.MessageId);
+            
+            subscriber.SetToUnLeased();
         }
 
-        void ITopicQueueWriteAccess.ConfirmNotDelivery(long confirmationId, long topicMessageId)
+        void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber)
         {
-
-            lock (_lockObject)
-            {
-                var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
-
-                if (messagesDelivered == null)
-                    throw new Exception(
-                        $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
-
-                foreach (var msg in messagesDelivered)
-                {
-                    NotDelivered(msg.message, msg.attemptNo+1);
-                }
-
-                if (_setMinMessageId > -1)
-                {
-                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
-                    _setMinMessageId = -1;
-                }
-
-            }
+            DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
+            subscriber.SetToUnLeased();
         }
 
         public long GetLeasedMessagesCount()
         {
-            lock (_lockObject)
+            lock (_topicLock)
             {
-                return _leasedQueue.GetMessagesCount();
+                return _leasedQueue.Count;
             }
         }
 
         public long GetMessagesCount()
         {
-            lock (_lockObject)
+            lock (_topicLock)
             {
-                return _queue.GetMessagesCount();
+                return _queue.Count;
             }
         }
 
@@ -215,7 +179,7 @@ namespace MyServiceBus.Domains.Queues
         public long GetMinId()
         {
 
-            lock (_lockObject)
+            lock (_topicLock)
             {
                 var minFromQueue = _queue.GetMinId();
                 var minFromLeasedQueue = _leasedQueue.GetMinId();
@@ -227,33 +191,28 @@ namespace MyServiceBus.Domains.Queues
 
         public QueueSubscribersList QueueSubscribersList { get; }
 
-        public async ValueTask<bool> DisconnectedAsync(IQueueSubscriber queueSubscriber)
+
+        public async ValueTask<bool> DisconnectedAsync(IMyServiceBusSession session)
         {
-
-            var theSubscriber = QueueSubscribersList.Unsubscribe(queueSubscriber);
-
+            
+            var theSubscriber = QueueSubscribersList.Unsubscribe(session);
+            
             if (theSubscriber == null)
                 return false;
 
-            if (theSubscriber.Status == SubscriberStatus.Leased)
+
+            while (theSubscriber.Status == SubscriberStatus.Leased)
+                await Task.Delay(100);
+
+
+            lock (_topicLock)
             {
-                Console.WriteLine($"Got subscriber {theSubscriber.QueueSubscriber.SubscriberId} in Leased Status");
+                if (theSubscriber.MessagesOnDelivery.Count>0)
+                    DisposeNotDeliveredMessages(theSubscriber.MessagesOnDelivery, 1);
 
-                while (theSubscriber.Status == SubscriberStatus.Leased)
-                    await Task.Delay(100);
-
+                return true;
             }
 
-            if (theSubscriber.Status == SubscriberStatus.OnDelivery)
-            {
-                LockAndGetWriteAccess(writer =>
-                {
-                    writer.ConfirmNotDelivered(theSubscriber.MessagesOnDelivery, 0);
-                });
-            }
-
-
-            return true;
         }
 
         public override string ToString()
@@ -262,10 +221,10 @@ namespace MyServiceBus.Domains.Queues
             var result = new StringBuilder();
 
 
-            lock (_lockObject)
+            lock (_topicLock)
             {
                 result.Append("Queue:[");
-                if (_queue.GetMessagesCount() == 0)
+                if (_queue.Count == 0)
                 {
                     result.Append("Empty");
                 }
@@ -278,7 +237,7 @@ namespace MyServiceBus.Domains.Queues
                 result.Append("]");
 
                 result.Append("Leased:[");
-                if (_leasedQueue.GetMessagesCount() == 0)
+                if (_leasedQueue.Count == 0)
                 {
                     result.Append("Empty");
                 }
@@ -298,10 +257,16 @@ namespace MyServiceBus.Domains.Queues
 
         public void SetInterval(long minId, long maxId)
         {
-            if (_leasedQueue.Count == 0)
+            lock (_topicLock)
+            {
+                var subscribersCount = QueueSubscribersList.GetCount();
+
+                if (subscribersCount > 0)
+                    throw new Exception(
+                        $"Queue has: {subscribersCount}. You can rewind the queue only if it has 0 subscribers");
+
                 _queue.SetMinMessageId(minId, maxId);
-            else
-                _setMinMessageId = minId;
+            }
         }
     }
 }

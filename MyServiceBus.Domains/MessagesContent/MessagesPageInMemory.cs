@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
@@ -34,7 +35,7 @@ namespace MyServiceBus.Domains.MessagesContent
     {
 
         private readonly Dictionary<long, MessageContentGrpcModel> _messages;
-        
+
         public MessagesPageId PageId { get;  }
 
         public MessagesPageInMemory(MessagesPageId pageId)
@@ -62,7 +63,7 @@ namespace MyServiceBus.Domains.MessagesContent
             return _messages.Values;
         }
         
-        public MessageContentGrpcModel Get(long messageId)
+        public MessageContentGrpcModel TryGet(long messageId)
         {
             return _messages.ContainsKey(messageId) ? _messages[messageId] : null;
         }

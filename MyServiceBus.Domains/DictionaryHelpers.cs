@@ -19,17 +19,15 @@ namespace MyServiceBus.Domains
             return result;
         }
         
-        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> src, TKey key, Func<TValue> create)
+        public static (TValue value, bool created) GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> src, TKey key, Func<TValue> create)
         {
 
-            if (src.ContainsKey(key))
-                return src[key];
+            if (src.TryGetValue(key, out var foundValue))
+                return (foundValue, false);
             
             var result = create();
-            
             src.Add(key, result);
-
-            return result;
+            return (result, true);
         }
         
         public static TValue GetOrCreate<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> getValue)

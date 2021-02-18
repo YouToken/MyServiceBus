@@ -10,39 +10,30 @@ namespace MyServiceBus.Domains.Queues
 {
     public class TopicQueueList
     {
-        private readonly object _lockObject;
+        private readonly object _lockObject = new();
         private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
-
-        public TopicQueueList(object lockObject)
-        {
-            _lockObject = lockObject;
-        }
                 
-        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges,
-            object lockObject)
+        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges)
         {
-
             lock (_lockObject)
             {
-                var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges, lockObject);
+                var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges);
                 _topicQueues.Add(queueName, queue);
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
 
                 CalcMinMessageId();
             }
-   
         }
         
-        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId,
-            object lockObject)
+        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId)
         {
 
             lock (_lockObject)
             {
 
                 var (added, newDictionary, value) = _topicQueues.AddIfNotExistsByCreatingNewDictionary(queueName,
-                    () => new TopicQueue(topic, queueName, deleteOnDisconnect, messageId, lockObject));
+                    () => new TopicQueue(topic, queueName, deleteOnDisconnect, messageId));
 
                 if (!added)
                     return value;
@@ -110,21 +101,12 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
-        
-
-
-
-
-
         public long GetQueueMessagesCount(string queueName)
         {
+            if (_topicQueues.TryGetValue(queueName, out var topicQueue))
+                return topicQueue.GetMessagesCount();
 
-            if (!_topicQueues.ContainsKey(queueName))
-                throw new Exception($"Queue [{queueName}] is not found");
-
-            var topicQueue = _topicQueues[queueName];
-
-            return topicQueue.GetMessagesCount();
+            throw new Exception($"Queue [{queueName}] is not found");
         }
 
 
