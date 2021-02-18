@@ -45,6 +45,7 @@ namespace MyServiceBus.Domains.MessagesContent
                         e.Message);
 
                     await Task.Delay(200);
+                    //ToDo - если 5 раз мы не смогли восстанивить страницу - мы восстанавливаем пустую.
                     attemptNo++;
                 }
 

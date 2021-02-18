@@ -129,60 +129,50 @@ namespace MyServiceBus.Domains.Queues
 
         void ITopicQueueWriteAccess.EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages)
         {
-            lock (_lockObject)
-            {
-                foreach (var message in messages)
-                    _queue.Enqueue(message.MessageId);
-            }
+            foreach (var message in messages)
+                _queue.Enqueue(message.MessageId);
         }
 
         void ITopicQueueWriteAccess.ConfirmDelivery(long confirmationId, long topicMessageId)
         {
 
-            lock (_lockObject)
+            var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
+
+            if (messagesDelivered == null)
+                throw new Exception(
+                    $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
+
+            foreach (var msgDelivered in messagesDelivered)
             {
-                var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
-
-                if (messagesDelivered == null)
-                    throw new Exception(
-                        $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
-
-                foreach (var msgDelivered in messagesDelivered)
-                {
-                    _leasedQueue.Remove(msgDelivered.message.MessageId);
-                }
-
-                if (_setMinMessageId > -1)
-                {
-                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
-                    _setMinMessageId = -1;
-                }
-
+                _leasedQueue.Remove(msgDelivered.message.MessageId);
             }
+
+            if (_setMinMessageId > -1)
+            {
+                _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
+                _setMinMessageId = -1;
+            }
+
         }
 
         void ITopicQueueWriteAccess.ConfirmNotDelivery(long confirmationId, long topicMessageId)
         {
 
-            lock (_lockObject)
+            var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
+
+            if (messagesDelivered == null)
+                throw new Exception(
+                    $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
+
+            foreach (var msg in messagesDelivered)
             {
-                var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
+                NotDelivered(msg.message, msg.attemptNo + 1);
+            }
 
-                if (messagesDelivered == null)
-                    throw new Exception(
-                        $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
-
-                foreach (var msg in messagesDelivered)
-                {
-                    NotDelivered(msg.message, msg.attemptNo+1);
-                }
-
-                if (_setMinMessageId > -1)
-                {
-                    _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
-                    _setMinMessageId = -1;
-                }
-
+            if (_setMinMessageId > -1)
+            {
+                _queue.SetMinMessageId(_setMinMessageId, topicMessageId);
+                _setMinMessageId = -1;
             }
         }
 
