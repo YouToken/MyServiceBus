@@ -69,7 +69,11 @@ namespace MyServiceBus.Domains.Execution
             {
                 if (leasedSubscriber.MessagesSize > 0)
                 {
-                    topicQueue.NotDelivered(leasedSubscriber.MessagesOnDelivery, 0);
+                    topicQueue.LockAndGetWriteAccess(writeAccess =>
+                    {
+                        writeAccess.ConfirmNotDelivered(leasedSubscriber.MessagesOnDelivery, 0);    
+                    });
+                    
                     leasedSubscriber.ClearMessages();
                 }
                 Console.WriteLine(ex);

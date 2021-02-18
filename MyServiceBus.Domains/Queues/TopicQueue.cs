@@ -18,6 +18,9 @@ namespace MyServiceBus.Domains.Queues
         void ConfirmDelivery(long confirmationId, long topicMessageId);
 
         void ConfirmNotDelivery(long confirmationId, long topicMessageId);
+
+        void ConfirmNotDelivered(IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages,
+            int incrementAttemptNo);
     }
 
     public class TopicQueue : ITopicQueueWriteAccess
@@ -106,6 +109,7 @@ namespace MyServiceBus.Domains.Queues
                 callback(this);
             }
         }
+        
         private void NotDelivered(MessageContentGrpcModel message, int attemptNo)
         {
             _leasedQueue.Remove(message.MessageId);
@@ -115,13 +119,11 @@ namespace MyServiceBus.Domains.Queues
                 _attempts[message.MessageId] = attemptNo;
         }
 
-        public void NotDelivered(IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
+        void ITopicQueueWriteAccess.ConfirmNotDelivered(
+            IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
         {
-            lock (_lockObject)
-            {
-                foreach (var (message, attemptNo) in messages)
-                    NotDelivered(message, attemptNo + incrementAttemptNo);
-            }
+            foreach (var (message, attemptNo) in messages)
+                NotDelivered(message, attemptNo + incrementAttemptNo);
         }
 
 
@@ -243,11 +245,15 @@ namespace MyServiceBus.Domains.Queues
             }
 
             if (theSubscriber.Status == SubscriberStatus.OnDelivery)
-                NotDelivered(theSubscriber.MessagesOnDelivery, 0);
+            {
+                LockAndGetWriteAccess(writer =>
+                {
+                    writer.ConfirmNotDelivered(theSubscriber.MessagesOnDelivery, 0);
+                });
+            }
+
 
             return true;
-
-
         }
 
         public override string ToString()
