@@ -11,7 +11,7 @@ using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Tests.Utils
 {
-    public class MockConnection : IQueueSubscriber
+    public class MockConnection : IMyServiceBusSession
     {
 
         private readonly TopicsManagement _topicsManagement;
@@ -41,14 +41,13 @@ namespace MyServiceBus.Domains.Tests.Utils
         public readonly List<(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)> Messages 
             = new ();
 
-
-
         public (TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId) GetLastSentMessage()
         {
             return Messages.Last();
         }
-        
-        
+
+        public string Name => "Mock";
+
         public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)
         {
             Messages.Add((topicQueue, messages, confirmationId));

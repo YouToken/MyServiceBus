@@ -4,53 +4,124 @@ using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Execution
 {
+    internal enum FillPageIterationResult
+    {
+        Finished, LoadPage
+    }
+    
     
     public class MyServiceBusDeliveryHandler
     {
-        private readonly MessageContentReader _messageContentReader;
+        private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
         private readonly IMyServiceBusSettings _myServiceBusSettings;
+        private readonly Log _log;
 
-        public MyServiceBusDeliveryHandler(MessageContentReader messageContentReader, IMyServiceBusSettings myServiceBusSettings)
+        public MyServiceBusDeliveryHandler(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService, 
+            IMyServiceBusSettings myServiceBusSettings, Log log)
         {
-            _messageContentReader = messageContentReader;
+            _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
             _myServiceBusSettings = myServiceBusSettings;
+            _log = log;
+        }
+        
+        private async Task LoadPageAsync(MessagesContentCache cache, long messageId)
+        {
+            var pageId = messageId.GetMessageContentPageId();
+            
+            var attemptNo = 0;
+
+            while (true)
+            {
+                if (attemptNo >= 5)
+                {
+                    var emptyPage = new MessagesPageInMemory(pageId);
+                    cache.UploadPage(emptyPage);
+                    return;
+                }
+
+                try
+                {
+                    Console.WriteLine(
+                        $"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
+
+                    var page =
+                        await _messagesPersistenceGrpcService.GetPageAsync(cache.TopicId, pageId.Value)
+                            .ToPageInMemoryAsync(pageId);
+
+                    cache.UploadPage(page);
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(
+                        $"Count not load page {pageId} for topic {cache.TopicId}. Attempt: {attemptNo}. Message: " +
+                        e.Message);
+
+                    await Task.Delay(200);
+                    attemptNo++;
+                }
+
+            }
         }
 
-        private ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
+        private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
-            
-            return topicQueue.LockAndGetWriteAccessAsync(async topicDequeue =>
+
+            long messageId = -1;
+
+
+            while (true)
             {
-                   
-                var msg = topicDequeue.DequeAndLease();
-            
-                if (msg.messageId<0)
-                    return;
 
-                while (msg.messageId >= 0)
+                var nextAction = topicQueue.LockAndGetWriteAccess(topicDequeue =>
                 {
-                    var myMessage =
-                        await _messageContentReader.GetAsync(topicQueue.Topic, msg.messageId);
-
-                    subscriber.AddMessage(myMessage, msg.attemptNo);
-
-                    if (subscriber.QueueSubscriber.Disconnected)
+                    do
                     {
-                        Console.WriteLine("Disconnected in the Leased State. Messages Size: "+subscriber.MessagesSize);
-                        Console.WriteLine("First Message: "+subscriber.MessagesOnDelivery[0].message.MessageId);
-                        Console.WriteLine("Last Message: "+subscriber.MessagesOnDelivery[^1].message.MessageId);
-                        break;
-                    }
+                        var nextMessage = topicDequeue.DequeAndLease();
+                        messageId = nextMessage.messageId;
 
-                    if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
-                        break;
+                        if (messageId < 0)
+                            return FillPageIterationResult.Finished;
 
-                    msg = topicDequeue.DequeAndLease();
-                }
-            });
+                        var (myMessage, pageIsLoaded) = topicQueue.Topic.MessagesContentCache.TryGetMessage(messageId);
+
+                        
+                        if (!pageIsLoaded)
+                            return FillPageIterationResult.LoadPage;
+                        
+
+                        if (myMessage == null)
+                        {
+                            _log.AddLog(LogLevel.Warning, topicQueue,
+                                $"Message #{messageId} with AttemptNo:{nextMessage.attemptNo} is not found. Skipping it...");
+                            continue;
+                        }
+
+                        subscriber.AddMessage(myMessage, nextMessage.attemptNo);
+
+                        if (subscriber.Session.Disconnected)
+                        {
+                            _log.AddLog(LogLevel.Warning, topicQueue,
+                                $"Disconnected while we were Filling package with Messages for the Session: {subscriber.Session.SubscriberId}");
+                            return FillPageIterationResult.Finished;
+                        }
+
+                    } while (subscriber.MessagesSize < _myServiceBusSettings.MaxDeliveryPackageSize);
+
+                    return FillPageIterationResult.Finished;
+                });
+
+                if (nextAction == FillPageIterationResult.Finished)
+                    break;
+
+                if (nextAction == FillPageIterationResult.LoadPage)
+                    await LoadPageAsync(topicQueue.Topic.MessagesContentCache, messageId);
+            }
+
         }
 
         public async ValueTask SendMessagesAsync(TopicQueue topicQueue)
@@ -63,7 +134,6 @@ namespace MyServiceBus.Domains.Execution
             try
             {
                 await FillMessagesAsync(topicQueue, leasedSubscriber);
-                
             }
             catch (Exception ex)
             {
@@ -71,18 +141,16 @@ namespace MyServiceBus.Domains.Execution
                 {
                     topicQueue.LockAndGetWriteAccess(writeAccess =>
                     {
-                        writeAccess.ConfirmNotDelivered(leasedSubscriber.MessagesOnDelivery, 0);    
+                        writeAccess.CancelDelivery(leasedSubscriber);    
                     });
-                    
-                    leasedSubscriber.ClearMessages();
                 }
+                _log.AddLog(LogLevel.Error, topicQueue, ex.Message);
                 Console.WriteLine(ex);
             }
             finally
             {
                 topicQueue.QueueSubscribersList.UnLease(leasedSubscriber);
             }
-
         }
 
         public async ValueTask SendMessagesAsync(MyTopic topic)
@@ -90,6 +158,5 @@ namespace MyServiceBus.Domains.Execution
             foreach (var topicQueue in topic.GetQueues())
                 await SendMessagesAsync(topicQueue);
         }
-
     }
 }

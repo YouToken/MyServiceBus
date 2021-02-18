@@ -23,13 +23,13 @@ namespace MyServiceBus.Domains
             
             sc.AddSingleton<MessageContentPersistentProcessor>();
             
-            sc.AddSingleton<MessageContentReader>();
-            
             sc.AddSingleton<TopicsManagement>();
             
             sc.AddSingleton<SessionsList>();
             
             sc.AddSingleton<MyServiceBusDeliveryHandler>();
+
+            sc.AddSingleton<Log>();
         }
         
     }

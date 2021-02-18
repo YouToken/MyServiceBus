@@ -50,17 +50,27 @@ namespace MyServiceBus.Server.Grpc
                 return new ValueTask<CreateQueueGrpcResponse>(resultNoSession);
             }
 
-            var topic = ServiceLocator.TopicsList.Get(request.TopicId);
+            var topic = ServiceLocator.TopicsList.TryGet(request.TopicId);
+
+            if (topic == null)
+            {
+                var topicNotFoundResult = new CreateQueueGrpcResponse
+                {
+                    SessionId = request.SessionId,
+                    Status = GrpcResponseStatus.TopicNotFound
+                };
+                return new ValueTask<CreateQueueGrpcResponse>(topicNotFoundResult); 
+            }
 
             topic.CreateQueueIfNotExists(request.QueueId, request.DeleteOnNoConnections);
 
-            var result = new CreateQueueGrpcResponse
+            var okResult = new CreateQueueGrpcResponse
             {
                 SessionId = request.SessionId,
                 Status = GrpcResponseStatus.Ok
 
             };
-            return new ValueTask<CreateQueueGrpcResponse>(result);
+            return new ValueTask<CreateQueueGrpcResponse>(okResult);
             
         }
 

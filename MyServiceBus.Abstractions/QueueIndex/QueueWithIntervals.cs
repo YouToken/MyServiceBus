@@ -108,14 +108,9 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         }
 
-        public long GetMessagesCount()
-        {
-            return _ranges.Sum(indexRange => indexRange.Count());
-        }
-
         public override string ToString()
         {
-            return $"Intervals: {_ranges.Count}. Count: {GetMessagesCount()}";
+            return $"Intervals: {_ranges.Count}. Count: {Count}";
         }
 
         public IReadOnlyList<QueueIndexRangeReadOnly> GetSnapshot()
@@ -156,8 +151,8 @@ namespace MyServiceBus.Abstractions.QueueIndex
                 _ranges.RemoveAt(index);
         }
 
-        public long Count => _ranges.Sum(itm => itm.Count());
-
+        public long Count => _ranges.Sum(itm => itm.Count);
+        
         public void SetMinMessageId(long fromId, long toId)
         {
             while (_ranges.Count>1)

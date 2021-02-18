@@ -84,11 +84,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
             return FromId + " - " + ToId;
         }
 
-        public long Count()
-        {
-            return ToId - FromId + 1;
-        }
-
+        public long Count => ToId - FromId + 1;
 
         public IEnumerable<long> GetElements()
         {

@@ -196,7 +196,6 @@ namespace MyServiceBus.Server.Models
         {
             foreach (var topicQueue in topic.GetQueues())
             {
-
                 var intervals = topicQueue.GetQueueIntervals();
                 
                 yield return new ConsumerModel

@@ -13,20 +13,18 @@ using MyTcpSockets;
 
 namespace MyServiceBus.Server.Tcp
 {
-    public class MyServiceBusTcpContext : TcpContext<IServiceBusTcpContract>, IQueueSubscriber
+    public class MyServiceBusTcpContext : TcpContext<IServiceBusTcpContract>, IMyServiceBusSession
     {
         private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
         {
 
             var topic = ServiceLocator.TopicsList.TryFindTopic(topicId);
 
-            if (topic == null)
-            {
-                Console.WriteLine($"There is a confirmation {confirmationId} for a topic {topicId} which is not found");
-                return DisconnectAsync();
-            }
-
-            return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
+            if (topic != null)
+                return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
+            
+            Console.WriteLine($"There is a confirmation {confirmationId} for a topic {topicId} which is not found");
+            return DisconnectAsync();
         }
 
         private async ValueTask PublishAsync(PublishContract contract)
@@ -71,7 +69,7 @@ namespace MyServiceBus.Server.Tcp
             [2] = 2
         };
 
-        public static string GetAcceptedProtocolVersions()
+        private static string GetAcceptedProtocolVersions()
         {
             var result = new StringBuilder();
 
@@ -88,7 +86,6 @@ namespace MyServiceBus.Server.Tcp
         private ValueTask GreetingAsync(GreetingContract greetingContract)
         {
 
-
             if (!AcceptedProtocolVersions.ContainsKey(greetingContract.ProtocolVersion))
             {
                 Console.WriteLine(greetingContract.Name + $" is attempting to connect with invalid protocol version {greetingContract.ProtocolVersion}. Acceptable versions are {GetAcceptedProtocolVersions()}");
@@ -96,7 +93,7 @@ namespace MyServiceBus.Server.Tcp
             }
 
             Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
-                TcpClient.Client.RemoteEndPoint.ToString(), DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion, SessionType.Tcp);
+                TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknownIP", DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion, SessionType.Tcp);
 
             SetContextName(greetingContract.Name);
             return new ValueTask();
@@ -114,7 +111,7 @@ namespace MyServiceBus.Server.Tcp
                 return;
             }
 
-            var topic = ServiceLocator.TopicsList.Get(contract.TopicId);
+            var topic = ServiceLocator.TopicsList.TryGet(contract.TopicId);
 
             if (topic == null)
             {
@@ -172,7 +169,6 @@ namespace MyServiceBus.Server.Tcp
                     case NewMessageConfirmationContract confirmRequestContract:
                         return ExecuteConfirmAsync(confirmRequestContract.TopicId, confirmRequestContract.QueueId, confirmRequestContract.ConfirmationId, true);
                     
-                    
                     case MessagesConfirmationAsFailContract fail:
                         return ExecuteConfirmAsync(fail.TopicId, fail.QueueId, fail.ConfirmationId, false);
 
@@ -210,8 +206,6 @@ namespace MyServiceBus.Server.Tcp
             return Task.CompletedTask;
         }
 
-
-
         public void SendMessagesAsync(TopicQueue topicQueue,
             IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)
         {
@@ -236,7 +230,6 @@ namespace MyServiceBus.Server.Tcp
         }
 
         private string _subscriberId;
-
         public string SubscriberId
         {
             get

@@ -101,10 +101,6 @@ namespace MyServiceBus.TcpClientTest
                 //myServiceBusTcpClient.PublishFireAndForget("test-topic", asArray);
                 Task.Delay(1000).Wait();
             }
-
-            Console.ReadLine();
-
-            Console.WriteLine("Hello World!");
         }
     }
 }

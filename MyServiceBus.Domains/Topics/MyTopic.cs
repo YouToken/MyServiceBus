@@ -14,7 +14,6 @@ namespace MyServiceBus.Domains.Topics
 
         private readonly TopicQueueList _topicQueueList; 
 
-        private readonly object _lockObject = new ();
 
         public MessageIdGenerator MessageId { get; }
         
@@ -30,8 +29,8 @@ namespace MyServiceBus.Domains.Topics
             _metricCollector = metricCollector;
             TopicId = id;
             MessageId = new MessageIdGenerator(startMessageId);
-            _topicQueueList = new TopicQueueList(_lockObject);
-            MessagesContentCache = new MessagesContentCache(id, _lockObject);
+            _topicQueueList = new TopicQueueList();
+            MessagesContentCache = new MessagesContentCache(id);
         }
         
         public string TopicId { get; }
@@ -65,8 +64,7 @@ namespace MyServiceBus.Domains.Topics
 
         public TopicQueue CreateQueueIfNotExists(string queueName, bool deleteOnDisconnect)
         {
-            return _topicQueueList.CreateQueueIfNotExists(this, queueName, deleteOnDisconnect, MessageId.Value,
-                _lockObject);
+            return _topicQueueList.CreateQueueIfNotExists(this, queueName, deleteOnDisconnect, MessageId.Value);
         }
 
         public IReadOnlyList<MessageContentGrpcModel> Publish(IEnumerable<byte[]> messages, DateTime now)
@@ -106,9 +104,9 @@ namespace MyServiceBus.Domains.Topics
             queue.LockAndGetWriteAccess(writeAccess =>
             {
                 if (ok)
-                    writeAccess.ConfirmDelivery(confirmationId, MessageId.Value);
+                    writeAccess.ConfirmDelivery(confirmationId);
                 else
-                    writeAccess.ConfirmNotDelivery(confirmationId, MessageId.Value);  
+                    writeAccess.ConfirmNotDelivery(confirmationId);  
             });
 
             _topicQueueList.CalcMinMessageId();
@@ -119,8 +117,7 @@ namespace MyServiceBus.Domains.Topics
 
         public long GetQueueMessagesCount(string queueName)
         {
-            lock (_lockObject)
-                return _topicQueueList.GetQueueMessagesCount(queueName);
+            return _topicQueueList.GetQueueMessagesCount(queueName);
         }
 
         public ITopicPersistence GetQueuesSnapshot()
@@ -153,7 +150,7 @@ namespace MyServiceBus.Domains.Topics
                     Console.WriteLine(indexRange.FromId + "-" + indexRange.ToId);
                 }
 
-                _topicQueueList.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges, _lockObject);
+                _topicQueueList.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges);
             }
         }
 
