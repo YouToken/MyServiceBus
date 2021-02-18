@@ -6,8 +6,7 @@ namespace MyServiceBus.Domains.Tests
 {
     public class TestPublisherSubscriber
     {
-        
-        
+
         [Test]
         public void TestPublishWithNoSubscriberTestCount()
         {
@@ -28,8 +27,6 @@ namespace MyServiceBus.Domains.Tests
         }
         
         
-        
-        
         [Test]
         public void TestFirstSubscribeNextPublish()
         {
@@ -38,12 +35,10 @@ namespace MyServiceBus.Domains.Tests
             const string topicName = "testtopic";
             const string queueName = "testqueue";
 
-
             var session = ioc.ConnectSession("MySession");
             session.CreateTopic(topicName);
 
             session.Subscribe(topicName, queueName);
-
 
             var message = new byte[] {1, 2, 3};
 
@@ -53,7 +48,7 @@ namespace MyServiceBus.Domains.Tests
 
             var lastMessage = session.GetLastSentMessage();
             
-            Assert.AreEqual(message.Length, lastMessage.messages[0].Data.Length);
+            Assert.AreEqual(message.Length, lastMessage.messages[0].message.Data.Length);
         }
         
         [Test]

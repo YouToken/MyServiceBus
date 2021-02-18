@@ -10,10 +10,10 @@ namespace MyServiceBus.Domains.Topics
     {
         private readonly IMetricCollector _metricCollector;
 
-        private Dictionary<string, MyTopic> _topics = new Dictionary<string, MyTopic>();
+        private Dictionary<string, MyTopic> _topics = new ();
         private IReadOnlyList<MyTopic> _topicsAsList = new List<MyTopic>();
         
-        private readonly object _lockObject = new object();
+        private readonly object _lockObject = new ();
 
 
         public TopicsList(IMetricCollector metricCollector)

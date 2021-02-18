@@ -12,7 +12,7 @@ namespace MyServiceBus.Domains.Topics
     {
         private readonly IMetricCollector _metricCollector;
 
-        private readonly TopicQueues _topicQueues;
+        private readonly TopicQueueList _topicQueueList; 
 
         private readonly object _lockObject = new ();
 
@@ -30,8 +30,8 @@ namespace MyServiceBus.Domains.Topics
             _metricCollector = metricCollector;
             TopicId = id;
             MessageId = new MessageIdGenerator(startMessageId);
-            _topicQueues = new TopicQueues(_lockObject);
-            MessagesContentCache = new MessagesContentCache(id);
+            _topicQueueList = new TopicQueueList(_lockObject);
+            MessagesContentCache = new MessagesContentCache(id, _lockObject);
         }
         
         public string TopicId { get; }
@@ -53,19 +53,19 @@ namespace MyServiceBus.Domains.Topics
 
         public IReadOnlyList<TopicQueue> GetQueues()
         {
-            return _topicQueues.GetQueues();
+            return _topicQueueList.GetQueues();
         }
 
-        public long MessagesCount => _topicQueues.GetMessagesCount();
+        public long MessagesCount => _topicQueueList.GetMessagesCount();
 
         public void DeleteQueue(string queueName)
         {
-            _topicQueues.DeleteQueue(queueName);
+            _topicQueueList.DeleteQueue(queueName);
         }
 
         public TopicQueue CreateQueueIfNotExists(string queueName, bool deleteOnDisconnect)
         {
-            return _topicQueues.CreateQueueIfNotExists(this, queueName, deleteOnDisconnect, MessageId.Value,
+            return _topicQueueList.CreateQueueIfNotExists(this, queueName, deleteOnDisconnect, MessageId.Value,
                 _lockObject);
         }
 
@@ -93,7 +93,7 @@ namespace MyServiceBus.Domains.Topics
                 }
             });
             
-            _metricCollector.TopicQueueSize(TopicId, _topicQueues.GetMessagesCount());
+            _metricCollector.TopicQueueSize(TopicId, _topicQueueList.GetMessagesCount());
 
             MessagesContentCache.AddMessages(newMessages);
             return newMessages;
@@ -101,15 +101,18 @@ namespace MyServiceBus.Domains.Topics
 
         public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok)
         {
-            var queue = _topicQueues.GetQueue(queueName);
+            var queue = _topicQueueList.GetQueue(queueName);
+            
+            queue.LockAndGetWriteAccess(writeAccess =>
+            {
+                if (ok)
+                    writeAccess.ConfirmDelivery(confirmationId, MessageId.Value);
+                else
+                    writeAccess.ConfirmNotDelivery(confirmationId, MessageId.Value);  
+            });
 
-            if (ok)
-                queue.ConfirmDelivery(confirmationId, MessageId.Value);
-            else
-                queue.ConfirmNotDelivery(confirmationId, MessageId.Value);
-
-            _topicQueues.CalcMinMessageId();
-            _metricCollector.TopicQueueSize(TopicId, _topicQueues.GetMessagesCount());
+            _topicQueueList.CalcMinMessageId();
+            _metricCollector.TopicQueueSize(TopicId, _topicQueueList.GetMessagesCount());
 
             return queue;
         }
@@ -117,7 +120,7 @@ namespace MyServiceBus.Domains.Topics
         public long GetQueueMessagesCount(string queueName)
         {
             lock (_lockObject)
-                return _topicQueues.GetQueueMessagesCount(queueName);
+                return _topicQueueList.GetQueueMessagesCount(queueName);
         }
 
         public ITopicPersistence GetQueuesSnapshot()
@@ -126,18 +129,18 @@ namespace MyServiceBus.Domains.Topics
             {
                 TopicId = TopicId,
                 MessageId = MessageId.Value,
-                QueueSnapshots = _topicQueues.GetQueuesSnapshot()
+                QueueSnapshots = _topicQueueList.GetQueuesSnapshot()
             };
         }
 
         public long GetMinMessageId()
         {
-            return _topicQueues.MinMessageId;
+            return _topicQueueList.MinMessageId;
         }
 
         public TopicQueue GetQueue(string queueId)
         {
-            return _topicQueues.GetQueue(queueId);
+            return _topicQueueList.GetQueue(queueId);
         }
 
         public void Init(IReadOnlyList<IQueueSnapshot> queueSnapshots)
@@ -150,14 +153,14 @@ namespace MyServiceBus.Domains.Topics
                     Console.WriteLine(indexRange.FromId + "-" + indexRange.ToId);
                 }
 
-                _topicQueues.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges, _lockObject);
+                _topicQueueList.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges, _lockObject);
             }
         }
 
         public void SetQueueMessageId(string queueId, long messageId)
         {
 
-            var queue = _topicQueues.GetQueue(queueId);
+            var queue = _topicQueueList.GetQueue(queueId);
 
             if (queue == null)
                 throw new Exception($"Queue {queueId} is not found");

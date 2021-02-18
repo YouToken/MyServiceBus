@@ -6,7 +6,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
 {
     public interface IQueueSubscriber
     {
-        void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId);
+        void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId);
         
         string SubscriberId { get; }
         

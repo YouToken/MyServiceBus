@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.Execution;
-using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Sessions;
@@ -213,25 +212,24 @@ namespace MyServiceBus.Server.Tcp
 
 
 
-        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)
+        public void SendMessagesAsync(TopicQueue topicQueue,
+            IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)
         {
-            
-            
-            var messageData = new List<NewMessageContract.NewMessageData>(messages.Count);
-                            
-            topicQueue.GetAttempts(func =>
+            var messageData = messages.Select(
+                msg => new NewMessageContract.NewMessageData
             {
-                messageData.AddRange(messages.Select(msg => msg.ToMessageData(func(msg.MessageId))));
-            });
+                Id = msg.message.MessageId,
+                Data = msg.message.Data,
+                AttemptNo = msg.attemptNo
+            }).ToList();
 
             var contract = new NewMessageContract
             {
                 TopicId = topicQueue.Topic.TopicId,
                 QueueId = topicQueue.QueueId,
                 ConfirmationId = confirmationId,
-                Data = messageData
+                Data = messageData,
             };
-
 
             Session.SubscribePacketsInternal++;
             SendPacketAsync(contract);

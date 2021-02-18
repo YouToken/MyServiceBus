@@ -38,18 +38,18 @@ namespace MyServiceBus.Domains.Tests.Utils
             MyServiceBusSession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0, SessionType.Http);
         }
         
-        public readonly List<(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)> Messages 
+        public readonly List<(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)> Messages 
             = new ();
 
 
 
-        public (TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId) GetLastSentMessage()
+        public (TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId) GetLastSentMessage()
         {
             return Messages.Last();
         }
         
         
-        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<MessageContentGrpcModel> messages, long confirmationId)
+        public void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)
         {
             Messages.Add((topicQueue, messages, confirmationId));
         }
