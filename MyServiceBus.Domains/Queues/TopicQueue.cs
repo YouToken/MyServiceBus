@@ -255,7 +255,6 @@ namespace MyServiceBus.Domains.Queues
 
         }
 
-
         public void SetInterval(long minId, long maxId)
         {
             lock (_topicLock)

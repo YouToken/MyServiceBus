@@ -14,7 +14,6 @@ namespace MyServiceBus.Domains.Topics
 
         private readonly TopicQueueList _topicQueueList; 
 
-
         public MessageIdGenerator MessageId { get; }
         
         public MessagesContentCache MessagesContentCache { get; }

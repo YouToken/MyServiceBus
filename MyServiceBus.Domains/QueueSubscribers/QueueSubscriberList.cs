@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Domains.Queues;
-using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.QueueSubscribers
 {
@@ -10,7 +9,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
     public class QueueSubscribersList
     {
-        public TopicQueue TopicQueue { get; }
+        private readonly TopicQueue _topicQueue;
         
         private readonly Dictionary<string, TheQueueSubscriber> _subscribers 
             = new ();
@@ -23,7 +22,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public QueueSubscribersList(TopicQueue topicQueue, object lockObject)
         {
-            TopicQueue = topicQueue;
+            _topicQueue = topicQueue;
             _lockObject = lockObject;
         }
 
@@ -33,9 +32,9 @@ namespace MyServiceBus.Domains.QueueSubscribers
             lock (_lockObject)
             {
                 if (_subscribers.ContainsKey(session.SubscriberId))
-                    throw new Exception($"Subscriber to topic: {TopicQueue.Topic}  and queue: {TopicQueue.QueueId} is already exists");
+                    throw new Exception($"Subscriber to topic: {_topicQueue.Topic}  and queue: {_topicQueue.QueueId} is already exists");
 
-                var theSubscriber = new TheQueueSubscriber(session, TopicQueue);
+                var theSubscriber = new TheQueueSubscriber(session, _topicQueue);
                 
                 _subscribers.Add(session.SubscriberId, theSubscriber);
                 _subscribersByDeliveryId.Add(theSubscriber.ConfirmationId, theSubscriber);
@@ -88,9 +87,12 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public TheQueueSubscriber TryGetSubscriber(long confirmationId)
         {
-            return _subscribersByDeliveryId.TryGetValue(confirmationId, out var subscriber) 
-                ? subscriber 
-                : null;
+            lock (_lockObject)
+            {
+                return _subscribersByDeliveryId.TryGetValue(confirmationId, out var subscriber) 
+                    ? subscriber 
+                    : null;
+            }
         }
         
         
