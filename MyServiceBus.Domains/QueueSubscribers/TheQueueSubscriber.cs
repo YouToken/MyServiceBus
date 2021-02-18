@@ -34,7 +34,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 throw new Exception($"Only leased status can be switched to - on Deliver. Now status is: {Status}");
             MessagesOnDelivery = MessagesCollector;
             Status = SubscriberStatus.OnDelivery;
-            MessagesCollector = null;
             OnDeliveryStart = DateTime.UtcNow;
             Session.SendMessagesAsync(_topicQueue, MessagesOnDelivery, ConfirmationId);
         }

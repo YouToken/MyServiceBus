@@ -86,19 +86,11 @@ namespace MyServiceBus.Domains.QueueSubscribers
             }
         }
 
-        public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> Delivered(long confirmationId)
+        public TheQueueSubscriber TryGetSubscriber(long confirmationId)
         {
-            lock (_lockObject)
-            {
-                if (!_subscribersByDeliveryId.TryGetValue(confirmationId, out var subscriber)) 
-                    return null;
-                
-                var result = subscriber.MessagesOnDelivery;
-                
-                subscriber.SetToUnLeased();
-                    
-                return result;
-            }
+            return _subscribersByDeliveryId.TryGetValue(confirmationId, out var subscriber) 
+                ? subscriber 
+                : null;
         }
         
         

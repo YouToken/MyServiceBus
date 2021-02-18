@@ -100,13 +100,18 @@ namespace MyServiceBus.Domains.Topics
         public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok)
         {
             var queue = _topicQueueList.GetQueue(queueName);
+
+            var subscriber = queue.QueueSubscribersList.TryGetSubscriber(confirmationId);
+
+            if (subscriber == null)
+                return queue;
             
             queue.LockAndGetWriteAccess(writeAccess =>
             {
                 if (ok)
-                    writeAccess.ConfirmDelivery(confirmationId);
+                    writeAccess.ConfirmDelivery(subscriber);
                 else
-                    writeAccess.ConfirmNotDelivery(confirmationId);  
+                    writeAccess.ConfirmNotDelivery(subscriber);  
             });
 
             _topicQueueList.CalcMinMessageId();

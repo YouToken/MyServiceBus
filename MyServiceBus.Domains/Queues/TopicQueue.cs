@@ -15,9 +15,9 @@ namespace MyServiceBus.Domains.Queues
         (long messageId, int attemptNo) DequeAndLease();
         void EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages);
 
-        void ConfirmDelivery(long confirmationId);
+        void ConfirmDelivery(TheQueueSubscriber subscriber);
 
-        void ConfirmNotDelivery(long confirmationId);
+        void ConfirmNotDelivery(TheQueueSubscriber subscriber);
 
         void CancelDelivery(TheQueueSubscriber leasedSubscriber);
 
@@ -113,20 +113,20 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
-        private void DisposeMessagesOnDelivery(
-            IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo, bool delivered)
+        private void DisposeNotDeliveredMessages(
+            IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
         {
             foreach (var (message, attemptNo) in messages)
             {
                 _leasedQueue.Remove(message.MessageId);
-                if (!delivered)
-                    NotDelivered(message, attemptNo + incrementAttemptNo);
+                NotDelivered(message, attemptNo + incrementAttemptNo);
             }
         }
         
-        void ITopicQueueWriteAccess.CancelDelivery(TheQueueSubscriber leasedSubscriber)
+        
+        void ITopicQueueWriteAccess. CancelDelivery(TheQueueSubscriber leasedSubscriber)
         {
-            DisposeMessagesOnDelivery(leasedSubscriber.MessagesCollector, 0, false);
+            DisposeNotDeliveredMessages(leasedSubscriber.MessagesCollector, 0);
             leasedSubscriber.SetToUnLeased();
         }
 
@@ -136,31 +136,18 @@ namespace MyServiceBus.Domains.Queues
                 _queue.Enqueue(message.MessageId);
         }
 
-        void ITopicQueueWriteAccess.ConfirmDelivery(long confirmationId)
+        void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber)
         {
-            var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
-
-            if (messagesDelivered != null)
-                DisposeMessagesOnDelivery(messagesDelivered, 0, true);
+            foreach (var (message, _) in subscriber.MessagesOnDelivery)
+                _leasedQueue.Remove(message.MessageId);
+            
+            subscriber.SetToUnLeased();
         }
 
-
-        private void ConfirmNotDelivery(long confirmationId)
+        void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber)
         {
-            var messagesDelivered = QueueSubscribersList.Delivered(confirmationId);
-
-            if (messagesDelivered == null)
-                throw new Exception(
-                    $"Can not find collector on delivery with confirmationId {confirmationId} for TopicId: {Topic} and QueueId: {QueueId}");
-
-            foreach (var msg in messagesDelivered)
-            {
-                NotDelivered(msg.message, msg.attemptNo + 1);
-            }
-        }
-        void ITopicQueueWriteAccess.ConfirmNotDelivery(long confirmationId)
-        {
-            ConfirmNotDelivery(confirmationId);
+            DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
+            subscriber.SetToUnLeased();
         }
 
         public long GetLeasedMessagesCount()
@@ -221,7 +208,7 @@ namespace MyServiceBus.Domains.Queues
             lock (_topicLock)
             {
                 if (theSubscriber.MessagesOnDelivery.Count>0)
-                    DisposeMessagesOnDelivery(theSubscriber.MessagesOnDelivery, 1, false);
+                    DisposeNotDeliveredMessages(theSubscriber.MessagesOnDelivery, 1);
 
                 return true;
             }
