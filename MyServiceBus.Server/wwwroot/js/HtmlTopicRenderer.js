@@ -109,7 +109,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                 leasedSlicesBadge +
                 "</td><td>" + this.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) + "</td></tr></table>";
         }
-        return itm + "</table>";
+        return itm;
     };
     HtmlTopicRenderer.renderGraph = function (c, showValue) {
         var max = Utils.getMax(c);

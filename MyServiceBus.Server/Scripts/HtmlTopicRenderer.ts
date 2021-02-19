@@ -128,7 +128,7 @@ class HtmlTopicRenderer {
         "</td><td>"+this.renderGraph(el.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
     }
 
-    return itm+"</table>";
+    return itm;
   }
 
   private static renderGraph(c: number[], showValue: (v:number)=>string) {
