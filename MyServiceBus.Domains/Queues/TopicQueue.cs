@@ -305,7 +305,7 @@ namespace MyServiceBus.Domains.Queues
                     return;
                 
                 var amount = _executionDuraton / _executedAmount;
-                _executionDuration.PutData((int)amount.TotalMilliseconds);
+                _executionDuration.PutData((int) (amount.TotalMilliseconds*1000));
                 _executedAmount = 0;
                 _executionDuraton = TimeSpan.Zero;
             }

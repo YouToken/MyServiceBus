@@ -16,10 +16,8 @@ class HtmlTopicRenderer {
   }
   
   private static toDuration(v:number):string {
-    if (v < 1000)
-      return v + "ms";
 
-    return (v / 1000).toFixed(3) + "sec";
+    return (v / 1000).toFixed(3) + "ms";
   }
 
   public static renderTableData(r: ITopicInfo[], c: IConnection[]): string {
