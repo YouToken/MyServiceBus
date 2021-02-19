@@ -14,7 +14,13 @@ var HtmlTopicRenderer = /** @class */ (function () {
             "</tbody>" +
             "</table>");
     };
+    HtmlTopicRenderer.toDuration = function (v) {
+        if (v < 1000)
+            return v + "ms";
+        return (v / 1000).toFixed(3) + "sec";
+    };
     HtmlTopicRenderer.renderTableData = function (r, c) {
+        var _this = this;
         var itm = "";
         for (var _i = 0, r_1 = r; _i < r_1.length; _i++) {
             var el = r_1[_i];
@@ -29,8 +35,11 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     "<hr/><div>Cached:</div><div>" +
                     this.renderCachedPages(el) +
                     "</div><div>" +
-                    this.renderGraph(el.messagesPerSecond) +
-                    "</div></td>" +
+                    this.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
+                    "</div>" +
+                    "<hr/><div>Handling duration per msg:</div>" +
+                    this.renderGraph(el.messagesPerSecond, function (v) { return _this.toDuration(v); }) +
+                    "</td>" +
                     "<td>" +
                     el.size +
                     "</td>" +
@@ -111,7 +120,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
         }
         return itm;
     };
-    HtmlTopicRenderer.renderGraph = function (c) {
+    HtmlTopicRenderer.renderGraph = function (c, showValue) {
         var max = Utils.getMax(c);
         var w = 50;
         var coef = max == 0 ? 0 : w / max;
@@ -136,7 +145,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     '" style="stroke:lightblue;stroke-width:2" />';
             i += 2;
         }
-        return result + '<text x="0" y="15" fill="red">' + max + "</text></svg>";
+        return result + '<text x="0" y="15" fill="red">' + showValue(max) + "</text></svg>";
     };
     return HtmlTopicRenderer;
 }());

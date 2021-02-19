@@ -14,6 +14,13 @@ class HtmlTopicRenderer {
       "</table>"
     );
   }
+  
+  private static toDuration(v:number):string {
+    if (v < 1000)
+      return v + "ms";
+
+    return (v / 1000).toFixed(3) + "sec";
+  }
 
   public static renderTableData(r: ITopicInfo[], c: IConnection[]): string {
     let itm = "";
@@ -30,8 +37,11 @@ class HtmlTopicRenderer {
         "<hr/><div>Cached:</div><div>" +
         this.renderCachedPages(el) +
         "</div><div>" +
-        this.renderGraph(el.messagesPerSecond) +
-        "</div></td>" +
+        this.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
+        "</div>" +
+          "<hr/><div>Handling duration per msg:</div>" +
+          this.renderGraph(el.messagesPerSecond, v => this.toDuration(v)) +
+          "</td>" +
         "<td>" +
         el.size +
         "</td>" +
@@ -130,7 +140,7 @@ class HtmlTopicRenderer {
     return itm;
   }
 
-  private static renderGraph(c: number[]) {
+  private static renderGraph(c: number[], showValue: (v:number)=>string) {
     const max = Utils.getMax(c);
 
     const w = 50;
@@ -161,6 +171,6 @@ class HtmlTopicRenderer {
       i += 2;
     }
 
-    return result + '<text x="0" y="15" fill="red">' + max + "</text></svg>";
+    return result + '<text x="0" y="15" fill="red">' + showValue(max) + "</text></svg>";
   }
 }

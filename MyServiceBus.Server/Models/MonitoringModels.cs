@@ -53,10 +53,11 @@ namespace MyServiceBus.Server.Models
         public IEnumerable<long> CachedPages { get; set; }
         
         public IEnumerable<int> MessagesPerSecond { get; set; }
+        public IEnumerable<int> HandlingDuration { get; set; }
 
         public static TopicMonitoringModel Create(MyTopic topic, IReadOnlyList<MyServiceBusTcpContext> connections)
         {
-            return new TopicMonitoringModel
+            return new ()
             {
                 Id = topic.TopicId,
                 Size = topic.MessagesCount,
@@ -66,7 +67,8 @@ namespace MyServiceBus.Server.Models
                 MessageId = topic.MessageId.Value,
                 Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
                 CachedPages = topic.MessagesContentCache.Pages,
-                MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId)
+                MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId),
+                HandlingDuration = ServiceLocator.MessageHandlingDuration.GetRecordsPerSecond(topic.TopicId),
             };
         }
     }

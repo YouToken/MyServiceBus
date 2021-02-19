@@ -67,11 +67,16 @@ namespace MyServiceBus.Server
         public static MyServerTcpSocket<IServiceBusTcpContract> TcpServer { get; internal set; }
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
         
-        public static readonly MessagesPerSecondByTopic MessagesPerSecondByTopic = new ();
+        public static MessagesPerSecondByTopic MessagesPerSecondByTopic { get; private set; }
+        
+        public static MessageHandlingDuration MessageHandlingDuration { get; private set; }
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
 
         public static void Init(IServiceProvider serviceProvider)
         {
+            MessageHandlingDuration = serviceProvider.GetRequiredService<MessageHandlingDuration>();
+            MessagesPerSecondByTopic = serviceProvider.GetRequiredService<MessagesPerSecondByTopic>();
+            
             TopicsManagement = serviceProvider.GetRequiredService<TopicsManagement>();
             TopicsList = serviceProvider.GetRequiredService<TopicsList>();
             

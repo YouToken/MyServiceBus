@@ -19,6 +19,7 @@ interface ITopicInfo {
   publishers: number[];
   cachedPages: number[];
   messagesPerSecond: number[];
+  handlingDuration: number[];
 }
 
 interface IConsumer {

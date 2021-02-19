@@ -96,14 +96,21 @@ namespace MyServiceBus.Domains.Topics
             return newMessages;
         }
 
-        public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok)
+        public (TopicQueue queue, TimeSpan durationPerMessage) ConfirmDelivery(string queueName, long confirmationId, bool ok)
         {
             var queue = _topicQueueList.GetQueue(queueName);
 
             var subscriber = queue.QueueSubscribersList.TryGetSubscriber(confirmationId);
 
             if (subscriber == null)
-                return queue;
+                return (queue, default);
+
+
+            var duration = DateTime.UtcNow - subscriber.OnDeliveryStart;
+
+            duration = subscriber.MessagesOnDelivery.Count == 0
+                ? default
+                : duration / subscriber.MessagesOnDelivery.Count;
             
             queue.LockAndGetWriteAccess(writeAccess =>
             {
@@ -116,7 +123,7 @@ namespace MyServiceBus.Domains.Topics
             _topicQueueList.CalcMinMessageId();
             _metricCollector.TopicQueueSize(TopicId, _topicQueueList.GetMessagesCount());
 
-            return queue;
+            return (queue, duration);
         }
 
         public long GetQueueMessagesCount(string queueName)
