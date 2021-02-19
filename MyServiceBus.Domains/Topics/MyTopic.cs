@@ -40,13 +40,15 @@ namespace MyServiceBus.Domains.Topics
         private int _requestsPerSecond;
         public int RequestsPerSecond { get; private set; }
 
-        internal void Timer()
+        internal void KickMetricsTimer()
         {
             MessagesPerSecond = _messagePerSecond;
             _messagePerSecond = 0;
 
             RequestsPerSecond = _requestsPerSecond;
             _requestsPerSecond = 0;
+
+            _topicQueueList.KickMetricsTimer();
         }
 
         public IReadOnlyList<TopicQueue> GetQueues()
@@ -110,7 +112,7 @@ namespace MyServiceBus.Domains.Topics
 
             duration = subscriber.MessagesOnDelivery.Count == 0
                 ? default
-                : duration / subscriber.MessagesOnDelivery.Count;
+                : duration;
             
             queue.LockAndGetWriteAccess(writeAccess =>
             {

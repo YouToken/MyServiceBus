@@ -108,16 +108,23 @@ namespace MyServiceBus.Server
             TimerGarbageCollector.Register("Long pooling subscribers GarbageCollect",
                 _myServiceBusBackgroundExecutor.ExecuteAsync);
             
+            TimerGarbageCollector.Register("Sessions",
+                _myServiceBusBackgroundExecutor.ExecuteAsync);
+            
             TimerPersistent.Register("Long pooling subscribers Persist",
-                _myServiceBusBackgroundExecutor.PersistAsync);
+                ()=>
+                {
+                    SessionsList.Timer(DateTime.UtcNow);
+                    return new ValueTask();
+                });
 
-            TimerStatistic.Register("Topics timer", () =>
+            TimerStatistic.Register("Metrics timer", () =>
             {
                 foreach (var myTopic in TopicsList.Get())
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);
 
-                TopicsList.Timer();
-                SessionsList.Timer(DateTime.UtcNow);
+                TopicsList.KickMetricsTimer();
+                ;
                 return new ValueTask();
             });
 

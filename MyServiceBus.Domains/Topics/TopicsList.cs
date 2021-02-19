@@ -66,12 +66,12 @@ namespace MyServiceBus.Domains.Topics
                 : null;
         }
 
-        public void Timer()
+        public void KickMetricsTimer()
         {
             var topics = _topicsAsList;
 
             foreach (var topic in topics)
-                topic.Timer();
+                topic.KickMetricsTimer();
         }
 
         public void Restore(IEnumerable<ITopicPersistence> topics)

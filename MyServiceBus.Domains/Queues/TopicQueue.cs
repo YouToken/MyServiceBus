@@ -36,6 +36,9 @@ namespace MyServiceBus.Domains.Queues
         private readonly Dictionary<long, int> _attempts = new();
 
         private readonly MetricList<int> _executionDuration = new ();
+        
+        private long _executedAmount = 0;
+        private TimeSpan _executionDuraton = default;
 
         public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges)
         {
@@ -139,10 +142,20 @@ namespace MyServiceBus.Domains.Queues
                 _queue.Enqueue(message.MessageId);
         }
 
+
+
+        private void UpdateLastAmount(int amount, TimeSpan executionDuration)
+        {
+            _executedAmount += amount;
+            _executionDuraton += executionDuration;
+
+        }
+
         void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {
-            if (executionDuration != default)
-                _executionDuration.PutData((int)executionDuration.TotalMilliseconds);
+            UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+
+
             foreach (var (message, _) in subscriber.MessagesOnDelivery)
                 _leasedQueue.Remove(message.MessageId);
             
@@ -151,8 +164,7 @@ namespace MyServiceBus.Domains.Queues
 
         void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {
-            if (executionDuration != default)
-                _executionDuration.PutData((int)executionDuration.TotalMilliseconds);
+            UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
             
             DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
             subscriber.SetToUnLeased();
@@ -279,10 +291,24 @@ namespace MyServiceBus.Domains.Queues
 
         public IReadOnlyList<int> GetExecutionDuration()
         {
-            lock (_topicLock)
+            lock (_executionDuration)
             {
                 return _executionDuration.GetItems();
             }
+        }
+
+        public void KickMetricsTimer()
+        {
+            lock (_executionDuration)
+            {
+                if (_executedAmount == 0)
+                    return;
+                
+                var amount = _executionDuraton / _executedAmount;
+                _executionDuration.PutData((int)amount.TotalMilliseconds);
+                _executedAmount = 0;
+            }
+            
         }
     }
 }

@@ -129,5 +129,12 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
+        public void KickMetricsTimer()
+        {
+            foreach (var topicQueue in _queuesAsReadOnlyList)
+            {
+                topicQueue.KickMetricsTimer();
+            }
+        }
     }
 }
