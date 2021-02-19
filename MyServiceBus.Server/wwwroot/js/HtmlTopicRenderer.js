@@ -20,7 +20,6 @@ var HtmlTopicRenderer = /** @class */ (function () {
         return (v / 1000).toFixed(3) + "sec";
     };
     HtmlTopicRenderer.renderTableData = function (r, c) {
-        var _this = this;
         var itm = "";
         for (var _i = 0, r_1 = r; _i < r_1.length; _i++) {
             var el = r_1[_i];
@@ -37,9 +36,6 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     "</div><div>" +
                     this.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
                     "</div>" +
-                    "<hr/><div>Handling duration per msg:</div>" +
-                    this.renderGraph(el.handlingDuration, function (v) { return _this.toDuration(v); }) +
-                    "</td>" +
                     "<td>" +
                     el.size +
                     "</td>" +
@@ -75,6 +71,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
         return result;
     };
     HtmlTopicRenderer.renderQueues = function (c) {
+        var _this = this;
         var itm = "";
         for (var _i = 0, c_1 = c; _i < c_1.length; _i++) {
             var el = c_1[_i];
@@ -116,7 +113,9 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     readSlicesBadge +
                     "<span> </span>" +
                     leasedSlicesBadge +
-                    "</p><hr/></div>";
+                    "</p>" +
+                    this.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) +
+                    "<hr/></div>";
         }
         return itm;
     };

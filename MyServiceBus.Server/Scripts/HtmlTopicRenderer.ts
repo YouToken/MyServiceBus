@@ -39,9 +39,6 @@ class HtmlTopicRenderer {
         "</div><div>" +
         this.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
         "</div>" +
-          "<hr/><div>Handling duration per msg:</div>" +
-          this.renderGraph(el.handlingDuration, v => this.toDuration(v)) +
-          "</td>" +
         "<td>" +
         el.size +
         "</td>" +
@@ -134,7 +131,9 @@ class HtmlTopicRenderer {
         readSlicesBadge +
         "<span> </span>" +
         leasedSlicesBadge +
-        "</p><hr/></div>";
+        "</p>" +
+          this.renderGraph(el.executionDuration, v => this.toDuration(v))+
+          "<hr/></div>";
     }
 
     return itm;

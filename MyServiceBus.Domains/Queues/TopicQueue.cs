@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions.QueueIndex;
+using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
@@ -15,9 +16,9 @@ namespace MyServiceBus.Domains.Queues
         (long messageId, int attemptNo) DequeAndLease();
         void EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages);
 
-        void ConfirmDelivery(TheQueueSubscriber subscriber);
+        void ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration);
 
-        void ConfirmNotDelivery(TheQueueSubscriber subscriber);
+        void ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration);
 
         void CancelDelivery(TheQueueSubscriber leasedSubscriber);
 
@@ -33,6 +34,8 @@ namespace MyServiceBus.Domains.Queues
         private readonly object _topicLock = new();
 
         private readonly Dictionary<long, int> _attempts = new();
+
+        private readonly MetricList<int> _executionDuration = new ();
 
         public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges)
         {
@@ -136,16 +139,21 @@ namespace MyServiceBus.Domains.Queues
                 _queue.Enqueue(message.MessageId);
         }
 
-        void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber)
+        void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {
+            if (executionDuration != default)
+                _executionDuration.PutData((int)executionDuration.TotalMilliseconds);
             foreach (var (message, _) in subscriber.MessagesOnDelivery)
                 _leasedQueue.Remove(message.MessageId);
             
             subscriber.SetToUnLeased();
         }
 
-        void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber)
+        void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {
+            if (executionDuration != default)
+                _executionDuration.PutData((int)executionDuration.TotalMilliseconds);
+            
             DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
             subscriber.SetToUnLeased();
         }
@@ -266,6 +274,14 @@ namespace MyServiceBus.Domains.Queues
                         $"Queue has: {subscribersCount}. You can rewind the queue only if it has 0 subscribers");
 
                 _queue.SetMinMessageId(minId, maxId);
+            }
+        }
+
+        public IReadOnlyList<int> GetExecutionDuration()
+        {
+            lock (_topicLock)
+            {
+                return _executionDuration.GetItems();
             }
         }
     }

@@ -69,12 +69,10 @@ namespace MyServiceBus.Server
         
         public static MessagesPerSecondByTopic MessagesPerSecondByTopic { get; private set; }
         
-        public static MessageHandlingDuration MessageHandlingDuration { get; private set; }
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
 
         public static void Init(IServiceProvider serviceProvider)
         {
-            MessageHandlingDuration = serviceProvider.GetRequiredService<MessageHandlingDuration>();
             MessagesPerSecondByTopic = serviceProvider.GetRequiredService<MessagesPerSecondByTopic>();
             
             TopicsManagement = serviceProvider.GetRequiredService<TopicsManagement>();

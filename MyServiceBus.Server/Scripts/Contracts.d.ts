@@ -19,7 +19,6 @@ interface ITopicInfo {
   publishers: number[];
   cachedPages: number[];
   messagesPerSecond: number[];
-  handlingDuration: number[];
 }
 
 interface IConsumer {
@@ -30,6 +29,7 @@ interface IConsumer {
   deleteOnDisconnect: boolean;
   leasedSlices: IQueueIndex[];
   readySlices: IQueueIndex[];
+  executionDuration: number[];
 }
 
 interface IUnknownConnection {

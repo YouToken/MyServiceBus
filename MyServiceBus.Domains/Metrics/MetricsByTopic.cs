@@ -5,36 +5,36 @@ using System.Threading;
 
 namespace MyServiceBus.Domains.Metrics
 {
+    public class MetricList<T>
+    {
+        private readonly Queue<T> _items = new ();
 
+        private IReadOnlyList<T> _asList;
+
+        public void PutData(T amount)
+        {
+            _items.Enqueue(amount);
+
+            while (_items.Count > 120)
+            {
+                _items.Dequeue(); 
+            }
+
+            _asList = null;
+        }
+
+        public IReadOnlyList<T> GetItems()
+        {
+            return _asList ??= _items.ToList();
+        }
+    }
 
     public class MetricsByTopic<T>
     {
         
-        public class TopicMetricList
-        {
-            private readonly Queue<T> _items = new ();
 
-            private IReadOnlyList<T> _asList;
-
-            public void PutData(T amount)
-            {
-                _items.Enqueue(amount);
-
-                while (_items.Count > 120)
-                {
-                    _items.Dequeue(); 
-                }
-
-                _asList = null;
-            }
-
-            public IReadOnlyList<T> GetItems()
-            {
-                return _asList ??= _items.ToList();
-            }
-        }
         
-        private readonly Dictionary<string, TopicMetricList> _messagesPerSeconds = new ();
+        private readonly Dictionary<string, MetricList<T>> _messagesPerSeconds = new ();
 
         private readonly ReaderWriterLockSlim _lockSlim = new ();
 
@@ -49,7 +49,7 @@ namespace MyServiceBus.Domains.Metrics
                     return;
                 }
 
-                list = new TopicMetricList();
+                list = new MetricList<T>();
                 _messagesPerSeconds.Add(topicId, list);
                 list.PutData(amount);
             }

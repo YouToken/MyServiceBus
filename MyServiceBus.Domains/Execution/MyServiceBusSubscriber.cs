@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
@@ -11,14 +10,12 @@ namespace MyServiceBus.Domains.Execution
     {
         private readonly MyServiceBusDeliveryHandler _myServiceBusDeliveryHandler;
         private readonly TopicsList _topicsList;
-        private readonly MessageHandlingDuration _messageHandlingDuration;
 
-        public MyServiceBusSubscriber(MyServiceBusDeliveryHandler myServiceBusDeliveryHandler, TopicsList topicsList, 
-            MessageHandlingDuration messageHandlingDuration)
+        public MyServiceBusSubscriber(MyServiceBusDeliveryHandler myServiceBusDeliveryHandler, 
+            TopicsList topicsList)
         {
             _myServiceBusDeliveryHandler = myServiceBusDeliveryHandler;
             _topicsList = topicsList;
-            _messageHandlingDuration = messageHandlingDuration;
         }
 
         public async ValueTask<TopicQueue> SubscribeToQueueAsync(TopicQueue topicQueue, IMyServiceBusSession session)
@@ -30,11 +27,7 @@ namespace MyServiceBus.Domains.Execution
 
         public ValueTask ConfirmDeliveryAsync(MyTopic topic, string queueName, long confirmationId, bool ok)
         {
-            var (topicQueue, handleDuration) = topic.ConfirmDelivery(queueName, confirmationId, ok);
-
-            if (handleDuration != default)
-                _messageHandlingDuration.PutData(topic.TopicId, (int)handleDuration.TotalMilliseconds);
-            
+            var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, ok);
             return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
         }
         

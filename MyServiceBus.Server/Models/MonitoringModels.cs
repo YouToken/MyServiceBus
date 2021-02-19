@@ -35,6 +35,8 @@ namespace MyServiceBus.Server.Models
         
         public IEnumerable<QueueSlice> LeasedSlices { get; set; }
         
+        public IEnumerable<int> ExecutionDuration { get; set; }
+        
     }
 
     public class TopicMonitoringModel
@@ -53,7 +55,6 @@ namespace MyServiceBus.Server.Models
         public IEnumerable<long> CachedPages { get; set; }
         
         public IEnumerable<int> MessagesPerSecond { get; set; }
-        public IEnumerable<int> HandlingDuration { get; set; }
 
         public static TopicMonitoringModel Create(MyTopic topic, IReadOnlyList<MyServiceBusTcpContext> connections)
         {
@@ -68,7 +69,6 @@ namespace MyServiceBus.Server.Models
                 Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
                 CachedPages = topic.MessagesContentCache.Pages,
                 MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId),
-                HandlingDuration = ServiceLocator.MessageHandlingDuration.GetRecordsPerSecond(topic.TopicId),
             };
         }
     }
@@ -207,7 +207,8 @@ namespace MyServiceBus.Server.Models
                     Connections = topicQueue.QueueSubscribersList.GetCount(),
                     QueueSize = topicQueue.GetMessagesCount(),
                     LeasedSlices = intervals.leased.Select(QueueSlice.Create),
-                    ReadySlices = intervals.queues.Select(QueueSlice.Create)
+                    ReadySlices = intervals.queues.Select(QueueSlice.Create),
+                    ExecutionDuration = topicQueue.GetExecutionDuration()
                 };
             }
         }

@@ -32,7 +32,6 @@ namespace MyServiceBus.Domains
 
             sc.AddSingleton<Log>();
 
-            sc.AddSingleton<MessageHandlingDuration>();
             sc.AddSingleton<MessagesPerSecondByTopic>();
         }
         
