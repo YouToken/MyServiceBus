@@ -59,7 +59,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public bool HasCacheLoaded(in long pageId)
         {
-            _lockSlim.ExitReadLock();
+            _lockSlim.EnterReadLock();
             try
             {
                 return _messages.ContainsKey(pageId);
