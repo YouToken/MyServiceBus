@@ -101,8 +101,8 @@ var HtmlTopicRenderer = /** @class */ (function () {
             }
             leasedSlicesBadge += "</span>";
             itm += '<table style="width:100%"><tr><td style="width: 100%">' +
-                "<div>" + sizeBadge + el.queueId + connectsBadge + "</div>" +
-                deleteOnDisconnectBadge +
+                "<div>" + el.queueId + "<span> </span>" + sizeBadge + "<span> </span>" + deleteOnDisconnectBadge + "</div>" +
+                connectsBadge +
                 "<span> </span>" +
                 readSlicesBadge +
                 "<span> </span>" +
