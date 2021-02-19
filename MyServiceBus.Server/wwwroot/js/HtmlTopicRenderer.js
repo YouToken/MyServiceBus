@@ -38,7 +38,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     this.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
                     "</div>" +
                     "<hr/><div>Handling duration per msg:</div>" +
-                    this.renderGraph(el.messagesPerSecond, function (v) { return _this.toDuration(v); }) +
+                    this.renderGraph(el.handlingDuration, function (v) { return _this.toDuration(v); }) +
                     "</td>" +
                     "<td>" +
                     el.size +

@@ -40,7 +40,7 @@ class HtmlTopicRenderer {
         this.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
         "</div>" +
           "<hr/><div>Handling duration per msg:</div>" +
-          this.renderGraph(el.messagesPerSecond, v => this.toDuration(v)) +
+          this.renderGraph(el.handlingDuration, v => this.toDuration(v)) +
           "</td>" +
         "<td>" +
         el.size +
