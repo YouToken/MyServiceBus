@@ -15,9 +15,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
             "</table>");
     };
     HtmlTopicRenderer.toDuration = function (v) {
-        if (v < 1000)
-            return v + "ms";
-        return (v / 1000).toFixed(3) + "sec";
+        return (v / 1000).toFixed(3) + "ms";
     };
     HtmlTopicRenderer.renderTableData = function (r, c) {
         var itm = "";
