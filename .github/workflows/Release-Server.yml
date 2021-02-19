@@ -15,15 +15,15 @@ jobs:
       with:
         dotnet-version: 5.0.100
     - name: Build
-      run: dotnet build --configuration Release
-    - name: Test
-      run: dotnet test --configuration Release 
-
-    - name: Publish Server
       run: |
         ver=${GITHUB_REF#refs/tags/Server-}
         res=$(echo $ver | sed 's/-rc/./g')  
-        dotnet publish --no-build ./MyServiceBus.Server/MyServiceBus.Server.csproj --output ./publish-api --configuration Release /p:AssemblyVersion=$res
+        dotnet build --configuration Release /p:AssemblyVersion=$res
+    - name: Test
+      run: dotnet test --no-build --configuration Release 
+
+    - name: Publish Server
+      run: dotnet publish --no-build ./MyServiceBus.Server/MyServiceBus.Server.csproj --output ./publish-api --configuration Release 
 
     - name: ls
       run: ls ./publish-api
