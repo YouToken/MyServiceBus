@@ -20,7 +20,10 @@ jobs:
       run: dotnet test --configuration Release 
 
     - name: Publish Server
-      run: dotnet publish --no-build ./MyServiceBus.Server/MyServiceBus.Server.csproj --output ./publish-api --configuration Release /p:AssemblyVersion=${GITHUB_REF#refs/tags/Server-}
+      run: |
+        ver=${GITHUB_REF#refs/tags/Server-}
+        res=$(echo $ver | sed 's/-rc/./g')  
+        dotnet publish --no-build ./MyServiceBus.Server/MyServiceBus.Server.csproj --output ./publish-api --configuration Release /p:AssemblyVersion=$res
 
     - name: ls
       run: ls ./publish-api
