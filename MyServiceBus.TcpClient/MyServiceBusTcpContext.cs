@@ -131,68 +131,74 @@ namespace MyServiceBus.TcpClient
         }
 
 
-        private async ValueTask CallbackAsPackageAsync(NewMessageContract newMsg,
+        private void CallbackAsPackage(NewMessageContract newMsg,
             Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
         {
 
-            try
-            {
-                await callback(newMsg.Data);
-                SendMessageConfirmation(newMsg);
-            }
-            catch (Exception e)
-            {
-                SendMessageReject(newMsg);
-
-                WriteLog(
-                    $"Bulk Messages Reject [{newMsg.Data[0]}-{newMsg.Data[^1]}]. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}");
-                WriteLog(e);
-
-                _packetExceptionHandler?.Invoke(e);
-            }
-        }
-
-
-        private async ValueTask CallbackOneByOneAsync(NewMessageContract newMsg,
-            Func<IMyServiceBusMessage, ValueTask> callback)
-        {
-            
-            foreach (var msg in newMsg.Data)
+            Task.Run(async () =>
             {
                 try
                 {
-                    await callback(msg);
+                    await callback(newMsg.Data);
+                    SendMessageConfirmation(newMsg);
                 }
                 catch (Exception e)
                 {
                     SendMessageReject(newMsg);
 
                     WriteLog(
-                        $"Message Reject. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}, MessageId: {msg.Id}; AttemptNo: {msg.AttemptNo}");
+                        $"Bulk Messages Reject [{newMsg.Data[0]}-{newMsg.Data[^1]}]. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}");
                     WriteLog(e);
-                    
+
                     _packetExceptionHandler?.Invoke(e);
-                    return;
+                }
+            });
+        }
+
+
+        private void CallbackOneByOne(NewMessageContract newMsg,
+            Func<IMyServiceBusMessage, ValueTask> callback)
+        {
+
+            Task.Run(async () =>
+            {
+                foreach (var msg in newMsg.Data)
+                {
+                    try
+                    {
+                        await callback(msg);
+                    }
+                    catch (Exception e)
+                    {
+                        SendMessageReject(newMsg);
+
+                        WriteLog(
+                            $"Message Reject. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}, MessageId: {msg.Id}; AttemptNo: {msg.AttemptNo}");
+                        WriteLog(e);
+
+                        _packetExceptionHandler?.Invoke(e);
+                        return;
+                    }
+
                 }
 
-            }
+                SendMessageConfirmation(newMsg);
+            });
 
-            SendMessageConfirmation(newMsg); 
         }
 
 
         private ValueTask NewMessageAsync(NewMessageContract newMsg)
         {
-            
             var id = GetId(newMsg.TopicId, newMsg.QueueId);
 
             var subscriber = _subscribers[id];
 
             if (subscriber.CallbackAsAPackage != null)
-                return CallbackAsPackageAsync(newMsg, subscriber.CallbackAsAPackage);
+                CallbackAsPackage(newMsg, subscriber.CallbackAsAPackage);
 
             if (subscriber.CallbackAsOneMessage != null)
-                return CallbackOneByOneAsync(newMsg, subscriber.CallbackAsOneMessage);
+                CallbackOneByOne(newMsg, subscriber.CallbackAsOneMessage);
 
             return new ValueTask();
         }
