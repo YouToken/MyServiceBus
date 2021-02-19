@@ -78,7 +78,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
             var deleteOnDisconnectBadge = el.deleteOnDisconnect
                 ? '<span class="badge badge-success">auto-delete</span>'
                 : '<span class="badge badge-warning">permanent</span>';
-            var badge = el.connections == 0
+            var connectsBadge = el.connections == 0
                 ? '<span class="badge badge-danger">Connects:' +
                     el.connections +
                     "</span>"
@@ -100,24 +100,16 @@ var HtmlTopicRenderer = /** @class */ (function () {
                 leasedSlicesBadge += c_3.from + "-" + c_3.to + "; ";
             }
             leasedSlicesBadge += "</span>";
-            itm +=
-                "<div>" +
-                    el.queueId +
-                    "<p><span> </span>" +
-                    badge +
-                    "<span> </span>" +
-                    sizeBadge +
-                    "<span> </span>" +
-                    deleteOnDisconnectBadge +
-                    "<span> </span>" +
-                    readSlicesBadge +
-                    "<span> </span>" +
-                    leasedSlicesBadge +
-                    "</p>" +
-                    this.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) +
-                    "<hr/></div>";
+            itm += '<table style="width:100%"><tr><td style="width: 100%">' +
+                "<div>" + sizeBadge + el.queueId + connectsBadge + "</div>" +
+                deleteOnDisconnectBadge +
+                "<span> </span>" +
+                readSlicesBadge +
+                "<span> </span>" +
+                leasedSlicesBadge +
+                "</td><td>" + this.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) + "</td></tr></table>";
         }
-        return itm;
+        return itm + "</table>";
     };
     HtmlTopicRenderer.renderGraph = function (c, showValue) {
         var max = Utils.getMax(c);
