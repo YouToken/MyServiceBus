@@ -88,7 +88,7 @@ class HtmlTopicRenderer {
         ? '<span class="badge badge-success">auto-delete</span>'
         : '<span class="badge badge-warning">permanent</span>';
 
-      let badge =
+      let connectsBadge =
         el.connections == 0
           ? '<span class="badge badge-danger">Connects:' +
             el.connections +
@@ -118,25 +118,17 @@ class HtmlTopicRenderer {
 
       leasedSlicesBadge += "</span>";
 
-      itm +=
-        "<div>" +
-        el.queueId +
-        "<p><span> </span>" +
-        badge +
-        "<span> </span>" +
-        sizeBadge +
-        "<span> </span>" +
+      itm += '<table style="width:100%"><tr><td style="width: 100%">'+
+        "<div>"+sizeBadge+el.queueId + connectsBadge +"</div>"+
         deleteOnDisconnectBadge +
         "<span> </span>" +
         readSlicesBadge +
         "<span> </span>" +
         leasedSlicesBadge +
-        "</p>" +
-          this.renderGraph(el.executionDuration, v => this.toDuration(v))+
-          "<hr/></div>";
+        "</td><td>"+this.renderGraph(el.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
     }
 
-    return itm;
+    return itm+"</table>";
   }
 
   private static renderGraph(c: number[], showValue: (v:number)=>string) {
