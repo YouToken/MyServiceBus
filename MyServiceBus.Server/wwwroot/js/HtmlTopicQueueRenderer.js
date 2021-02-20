@@ -9,17 +9,24 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
         }
         return result;
     };
-    HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
-        var topicQueueId = topicId + '-' + queue.id;
+    HtmlTopicQueueRenderer.renderTopicFirstLine = function (queue) {
         var connectionsBadge = queue.connections > 0
             ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections)
             : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections);
         var queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
-        var sizeBadge = HtmlCommonRenderer.renderBadgeWithId('size-' + topicQueueId, 'success', "Size:-");
+        var sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:" + queue.size);
+        return connectionsBadge + ' ' + queueTypeBadge + ' ' + sizeBadge;
+    };
+    HtmlTopicQueueRenderer.renderTopicSecondLine = function (queue) {
+        return HtmlCommonRenderer.renderBadge("primary", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
+    };
+    HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
+        var topicQueueId = topicId + '-' + queue.id;
         return '<table style="width: 100%"><tr>' +
-            '<td style="width: 100%">' + queue.id + ' ' + connectionsBadge + ' ' + queueTypeBadge + ' ' + sizeBadge + '<div id="info-' + topicQueueId + '"></div></td>' +
+            '<td style="width: 100%">' + queue.id + ' <div id="queue1-' + topicQueueId + '">' + this.renderTopicFirstLine(queue) + '</div>' +
+            '<div id="queue2-' + topicQueueId + '">' + this.renderTopicSecondLine(queue) + '</div></td>' +
             '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duration</div><div id="queue-duration-graph-' + topicQueueId + '"></div></td>' +
             '</tr></table>';
     };

@@ -27,7 +27,11 @@ namespace MyServiceBus.Server.Hubs
         
         public bool DeleteOnDisconnect { get; set; }
         
+        public long Size { get; set; }
+        
         public int Connections { get; set; }
+        
+        public IEnumerable<QueueSliceHubModel> Ready { get; set; }
 
         public static TopicQueueHubModel Create(TopicQueue topicQueue)
         {
@@ -36,6 +40,8 @@ namespace MyServiceBus.Server.Hubs
                 Id = topicQueue.QueueId,
                 Connections = topicQueue.SubscribersList.GetCount(),
                 DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
+                Size = topicQueue.GetMessagesCount(),
+                Ready = topicQueue.GetReadyQueueSnapshot().Select(QueueSliceHubModel.Create)
             };
         }
     }
@@ -97,15 +103,18 @@ namespace MyServiceBus.Server.Hubs
         public int MsgPerSec { get; set; }
         public int ReqPerSec { get; set; }
         public IEnumerable<long> Pages { get; set; }
+        
+        public IEnumerable<TopicQueueHubModel> Queues { get; set; }
 
         public static TopicMetricsHubModel Create(MyTopic topic)
         {
-            return new TopicMetricsHubModel
+            return new ()
             {
                 Id = topic.TopicId,
                 Pages = topic.MessagesContentCache.Pages,
                 MsgPerSec = topic.MessagesPerSecond,
-                ReqPerSec = topic.RequestsPerSecond
+                ReqPerSec = topic.RequestsPerSecond,
+                Queues = topic.GetQueues().Select(TopicQueueHubModel.Create)
             };
         }
     

@@ -12,7 +12,9 @@ interface IInitSignalRContract{
 interface ITopicQueueSignalRContract{
   id: string,
   connections: number,
+  size:number,
   deleteOnDisconnect: boolean
+  ready: IQueueIndex[]
 }
 
 interface ISubscriberSignalrRContract{
@@ -104,4 +106,6 @@ interface ITopicMetricsSignalRContract{
   msgPerSec:number,
   reqPerSec:number,
   pages: number[],
+  
+  queues: ITopicQueueSignalRContract[]
 }

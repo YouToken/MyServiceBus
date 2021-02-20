@@ -90,6 +90,18 @@ class Main{
                 if (el)
                     el.innerHTML = HtmlTopicRenderer.renderCachedPages(metric.pages)
                 
+                for (let queue of metric.queues){
+                    let topicQueueId = metric.id+'-'+queue.id;
+
+                    el = document.getElementById('queue1-'+topicQueueId);
+                    if (el)
+                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicFirstLine(queue);
+
+                    el = document.getElementById('queue2-'+topicQueueId);
+                    if (el)
+                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicSecondLine(queue);
+                }
+                
             }
             
         });

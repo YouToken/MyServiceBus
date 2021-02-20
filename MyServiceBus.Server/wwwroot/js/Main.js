@@ -62,6 +62,16 @@ var Main = /** @class */ (function () {
                 el = document.getElementById('cached-pages-' + metric.id);
                 if (el)
                     el.innerHTML = HtmlTopicRenderer.renderCachedPages(metric.pages);
+                for (var _a = 0, _b = metric.queues; _a < _b.length; _a++) {
+                    var queue = _b[_a];
+                    var topicQueueId = metric.id + '-' + queue.id;
+                    el = document.getElementById('queue1-' + topicQueueId);
+                    if (el)
+                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicFirstLine(queue);
+                    el = document.getElementById('queue2-' + topicQueueId);
+                    if (el)
+                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicSecondLine(queue);
+                }
             }
         });
     };
