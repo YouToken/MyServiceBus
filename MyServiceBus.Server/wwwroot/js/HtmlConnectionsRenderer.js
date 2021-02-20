@@ -95,13 +95,18 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             var topic = _a[_i];
             topics += HtmlCommonRenderer.renderBadge('secondary', topic) + " ";
         }
+        var queues = "";
+        for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
+            var queue = _c[_b];
+            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) + " ";
+        }
         return '<tr><td>' + conn.id + '</td>' +
             '<td style="font-size: 10px">' +
             HtmlCommonRenderer.renderClientName(conn.name) +
             '<div>Ip:' + conn.ip + '</div>' +
             '</td>' +
             '<td>' + topics + '</td>' +
-            '<td></td>' +
+            '<td>' + queues + '</td>' +
             '</tr>';
     };
     HtmlConnectionsRenderer.renderTopicsConnections = function (connections) {
@@ -114,6 +119,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                 result[topic] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';
             }
         }
+        console.log(result);
         for (var _a = 0, _b = Object.keys(result); _a < _b.length; _a++) {
             var topic = _b[_a];
             var el = document.getElementById('topic-connections-' + topic);
