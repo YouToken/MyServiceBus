@@ -8,11 +8,6 @@ using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Execution
 {
-    internal enum FillPageIterationResult
-    {
-        Finished, LoadPage
-    }
-    
     
     public class MyServiceBusDeliveryHandler
     {
@@ -71,62 +66,45 @@ namespace MyServiceBus.Domains.Execution
         private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
 
-            long messageId = -1;
 
-
-            while (true)
+            foreach (var nextMessage in topicQueue.DequeNextMessage())
             {
 
-                var nextAction = topicQueue.LockAndGetWriteAccess(topicDequeue =>
+                if (nextMessage.messageId < 0)
+                    return;
+
+                var (myMessage, pageIsLoaded) =
+                    topicQueue.Topic.MessagesContentCache.TryGetMessage(nextMessage.messageId);
+
+                if (!pageIsLoaded)
+                    await LoadPageAsync(topicQueue.Topic.MessagesContentCache, nextMessage.messageId);
+
+                if (myMessage == null)
                 {
-                    do
-                    {
-                        var nextMessage = topicDequeue.DequeAndLease();
-                        messageId = nextMessage.messageId;
+                    _log.AddLog(LogLevel.Warning, topicQueue,
+                        $"Message #{nextMessage.messageId} with AttemptNo:{nextMessage.attemptNo} is not found. Skipping it...");
+                    continue;
+                }
 
-                        if (messageId < 0)
-                            return FillPageIterationResult.Finished;
+                subscriber.AddMessage(myMessage, nextMessage.attemptNo);
 
-                        var (myMessage, pageIsLoaded) = topicQueue.Topic.MessagesContentCache.TryGetMessage(messageId);
 
-                        
-                        if (!pageIsLoaded)
-                            return FillPageIterationResult.LoadPage;
-                        
+                if (subscriber.Session.Disconnected)
+                {
+                    _log.AddLog(LogLevel.Warning, topicQueue,
+                        $"Disconnected while we were Filling package with Messages for the Session: {subscriber.Session.SubscriberId}");
+                    return;
+                }
 
-                        if (myMessage == null)
-                        {
-                            _log.AddLog(LogLevel.Warning, topicQueue,
-                                $"Message #{messageId} with AttemptNo:{nextMessage.attemptNo} is not found. Skipping it...");
-                            continue;
-                        }
-
-                        subscriber.AddMessage(myMessage, nextMessage.attemptNo);
-
-                        if (subscriber.Session.Disconnected)
-                        {
-                            _log.AddLog(LogLevel.Warning, topicQueue,
-                                $"Disconnected while we were Filling package with Messages for the Session: {subscriber.Session.SubscriberId}");
-                            return FillPageIterationResult.Finished;
-                        }
-
-                    } while (subscriber.MessagesSize < _myServiceBusSettings.MaxDeliveryPackageSize);
-
-                    return FillPageIterationResult.Finished;
-                });
-
-                if (nextAction == FillPageIterationResult.Finished)
-                    break;
-
-                if (nextAction == FillPageIterationResult.LoadPage)
-                    await LoadPageAsync(topicQueue.Topic.MessagesContentCache, messageId);
+                if (subscriber.MessagesSize < _myServiceBusSettings.MaxDeliveryPackageSize)
+                    return;
             }
 
         }
 
         public async ValueTask SendMessagesAsync(TopicQueue topicQueue)
         {
-            var leasedSubscriber = topicQueue.QueueSubscribersList.LeaseSubscriber();
+            var leasedSubscriber = topicQueue.SubscribersList.LeaseSubscriber();
             
             if (leasedSubscriber == null)
                 return;
@@ -139,17 +117,14 @@ namespace MyServiceBus.Domains.Execution
             {
                 if (leasedSubscriber.MessagesSize > 0)
                 {
-                    topicQueue.LockAndGetWriteAccess(writeAccess =>
-                    {
-                        writeAccess.CancelDelivery(leasedSubscriber);    
-                    });
+                    topicQueue.CancelDelivery(leasedSubscriber);
                 }
                 _log.AddLog(LogLevel.Error, topicQueue, ex.Message);
                 Console.WriteLine(ex);
             }
             finally
             {
-                topicQueue.QueueSubscribersList.UnLease(leasedSubscriber);
+                topicQueue.SubscribersList.UnLease(leasedSubscriber);
             }
         }
 

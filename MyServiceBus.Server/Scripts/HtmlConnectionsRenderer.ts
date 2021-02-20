@@ -29,9 +29,12 @@ class HtmlConnectionsRenderer {
 
       let queues = "";
 
+
       if (el.queues)
         for (let queue of el.queues) {
-          queues += '<div><span class="badge badge-secondary">' + queue + "</span><div>";
+
+          let leasedQueue = ' <span class="badge badge-warning">QReady:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased)+'</span>';
+          queues += '<div><span class="badge badge-secondary">' + queue.id +leasedQueue+ '</span><div>';
         }
 
       itm +=
@@ -48,7 +51,7 @@ class HtmlConnectionsRenderer {
         el.publishPacketsPerSecond +
         "</div>" +
         "<div><b>Sub:</b>" +
-        el.publishPacketsPerSecond +
+        el.subscribePacketsPerSecond +
         "</div>" +
         "<div><b>Total:</b>" +
         el.packetsPerSecondInternal +

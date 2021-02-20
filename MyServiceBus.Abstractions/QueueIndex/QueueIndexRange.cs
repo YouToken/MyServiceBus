@@ -18,6 +18,11 @@ namespace MyServiceBus.Abstractions.QueueIndex
             FromId = fromId;
             ToId = toId;
         }
+        public QueueIndexRange(IQueueIndexRange src)
+        {
+            FromId = src.FromId;
+            ToId = src.ToId;
+        }
         
         public QueueIndexRange(long startMessageId)
         {

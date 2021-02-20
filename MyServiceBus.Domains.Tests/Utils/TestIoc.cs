@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
+using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.Tests.GrpcMocks;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Persistence.Grpc;
@@ -65,7 +66,7 @@ namespace MyServiceBus.Domains.Tests.Utils
         {
             var topic = ioc.GetRequiredService<TopicsList>().Get(topicId);
             var queue = topic.GetQueue(queueId);
-            return (int)queue.GetLeasedMessagesCount();
+            return queue.GetLeasedMessagesCount();
         }
 
 

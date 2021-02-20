@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using MyServiceBus.TcpClient;
 
@@ -84,10 +83,7 @@ namespace MyServiceBus.TcpClientTest
             myServiceBusTcpClient.Start();
             //         myServiceBusTcpClien2.Start();
 
-            var messages = new List<byte[]>();
-    
-            messages.Add(new byte[] { 0 });
-  
+            var messages = new List<byte[]> {new byte[] {0}};
 
             var asArray = messages.ToArray();
 

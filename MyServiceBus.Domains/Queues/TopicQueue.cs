@@ -11,51 +11,46 @@ using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Queues
 {
-    public interface ITopicQueueWriteAccess
+
+    public class TopicQueue 
     {
-        (long messageId, int attemptNo) DequeAndLease();
-        void EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages);
+        private class ExecutionMonitoring
+        {
+            public long ExecutedAmount { get; private set; }
+            public TimeSpan ExecutionDuration { get; private set; }
+            
+            internal void UpdateLastAmount(int amount, TimeSpan executionDuration)
+            {
+                ExecutedAmount += amount;
+                ExecutionDuration += executionDuration;
+            }
 
-        void ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration);
-
-        void ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration);
-
-        void CancelDelivery(TheQueueSubscriber leasedSubscriber);
-
-    }
-
-    public class TopicQueue : ITopicQueueWriteAccess
-    {
+            internal void Reset()
+            {
+                ExecutedAmount = 0;
+                ExecutionDuration = TimeSpan.Zero;
+            }
+        }
 
         private readonly QueueWithIntervals _queue;
-
-        private readonly QueueWithIntervals _leasedQueue;
 
         private readonly object _topicLock = new();
 
         private readonly Dictionary<long, int> _attempts = new();
 
         private readonly MetricList<int> _executionDuration = new ();
+
+        private readonly ExecutionMonitoring _executionMonitoring = new ();
         
-        private long _executedAmount = 0;
-        private TimeSpan _executionDuraton = default;
+        public QueueSubscribersList SubscribersList { get; }
 
         public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges)
         {
             Topic = topic;
             QueueId = queueId;
             DeleteOnDisconnect = deleteOnDisconnect;
-
-            long messageId = 0;
-
-            foreach (var range in ranges)
-            {
-                messageId = range.ToId;
-                _queue = new QueueWithIntervals(range.FromId, range.ToId);
-            }
-
-            _leasedQueue = new QueueWithIntervals(messageId);
-            QueueSubscribersList = new QueueSubscribersList(this, _topicLock);
+            _queue = new QueueWithIntervals(ranges);
+            SubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
         public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, long messageId)
@@ -64,59 +59,49 @@ namespace MyServiceBus.Domains.Queues
             QueueId = queueId;
             DeleteOnDisconnect = deleteOnDisconnect;
             _queue = new QueueWithIntervals(messageId);
-            _leasedQueue = new QueueWithIntervals(messageId);
-            QueueSubscribersList = new QueueSubscribersList(this, _topicLock);
+            SubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
         public MyTopic Topic { get; }
         public string QueueId { get; }
-
         public bool DeleteOnDisconnect { get; }
-
-        public (IReadOnlyList<IQueueIndexRange> queues, IReadOnlyList<IQueueIndexRange> leased) GetQueueIntervals()
+        public IReadOnlyList<IQueueIndexRange> GetReadyQueueSnapshot()
         {
             lock (_topicLock)
             {
-                return (_queue.GetSnapshot(), _leasedQueue.GetSnapshot());
+                return _queue.GetSnapshot();
             }
         }
 
-        public void LockAndGetWriteAccess(Action<ITopicQueueWriteAccess> callback)
+        public IReadOnlyList<IQueueIndexRange> GetLeasedQueueSnapshot(IMyServiceBusSession session)
         {
             lock (_topicLock)
             {
-                callback(this);
+                var subscriber = SubscribersList.TryGetSubscriber(session);
+                return subscriber == null ? Array.Empty<IQueueIndexRange>() : subscriber.LeasedQueue.GetSnapshot();
             }
         }
         
-        public T LockAndGetWriteAccess<T>(Func<ITopicQueueWriteAccess, T> callback)
+
+        public IEnumerable<(long messageId, int attemptNo)> DequeNextMessage()
         {
             lock (_topicLock)
             {
-                return callback(this);
+                var result = _queue.Dequeue();
+
+                while (result>-1)
+                {
+                    var attemptNo = 1;
+                    _attempts.TryGetValue(attemptNo, out attemptNo);
+
+                   yield return (result, attemptNo);
+                   
+                   result = _queue.Dequeue();
+                }
             }
+   
         }
 
-
-        (long messageId, int attemptNo) ITopicQueueWriteAccess.DequeAndLease()
-        {
-            var result = _queue.Dequeue();
-            if (result >= 0)
-                _leasedQueue.Enqueue(result);
-
-            var attemptNo = 1;
-            _attempts.TryGetValue(attemptNo, out attemptNo);
-
-            return (result, attemptNo);
-        }
-        
-        private void NotDelivered(MessageContentGrpcModel message, int attemptNo)
-        {
-            _queue.Enqueue(message.MessageId);
-
-            if (!_attempts.TryAdd(message.MessageId, attemptNo))
-                _attempts[message.MessageId] = attemptNo;
-        }
 
 
         private void DisposeNotDeliveredMessages(
@@ -124,57 +109,50 @@ namespace MyServiceBus.Domains.Queues
         {
             foreach (var (message, attemptNo) in messages)
             {
-                _leasedQueue.Remove(message.MessageId);
-                NotDelivered(message, attemptNo + incrementAttemptNo);
+                _queue.Enqueue(message.MessageId);
+
+                if (!_attempts.TryAdd(message.MessageId, attemptNo))
+                    _attempts[message.MessageId] = attemptNo + incrementAttemptNo;
             }
         }
-        
-        
-        void ITopicQueueWriteAccess. CancelDelivery(TheQueueSubscriber leasedSubscriber)
-        {
-            DisposeNotDeliveredMessages(leasedSubscriber.MessagesCollector, 0);
-            leasedSubscriber.SetToUnLeased();
-        }
-
-        void ITopicQueueWriteAccess.EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages)
-        {
-            foreach (var message in messages)
-                _queue.Enqueue(message.MessageId);
-        }
 
 
-
-        private void UpdateLastAmount(int amount, TimeSpan executionDuration)
-        {
-            _executedAmount += amount;
-            _executionDuraton += executionDuration;
-
-        }
-
-        void ITopicQueueWriteAccess.ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
-        {
-            UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
-
-
-            foreach (var (message, _) in subscriber.MessagesOnDelivery)
-                _leasedQueue.Remove(message.MessageId);
-            
-            subscriber.SetToUnLeased();
-        }
-
-        void ITopicQueueWriteAccess.ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
-        {
-            UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
-            
-            DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
-            subscriber.SetToUnLeased();
-        }
-
-        public long GetLeasedMessagesCount()
+        public void CancelDelivery(TheQueueSubscriber leasedSubscriber)
         {
             lock (_topicLock)
             {
-                return _leasedQueue.Count;
+                DisposeNotDeliveredMessages(leasedSubscriber.MessagesCollector, 0);
+                leasedSubscriber.SetToUnLeased();
+            }
+        }
+
+        public void EnqueueMessages(IEnumerable<MessageContentGrpcModel> messages)
+        {
+            lock (_topicLock)
+            {
+                foreach (var message in messages)
+                    _queue.Enqueue(message.MessageId);       
+            }
+        }
+
+
+        public void ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
+        {
+            lock (_topicLock)
+            {
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+                subscriber.SetToUnLeased(); 
+            }
+        }
+
+        public void ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
+        {
+            lock (_topicLock)
+            {
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+
+                DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
+                subscriber.SetToUnLeased();
             }
         }
 
@@ -188,34 +166,36 @@ namespace MyServiceBus.Domains.Queues
 
         public IQueueSnapshot GetSnapshot()
         {
-            return new QueueSnapshot
-            {
-                QueueId = QueueId,
-                RangesData = _queue.GetSnapshot()
-            };
-        }
-
-
-        public long GetMinId()
-        {
-
             lock (_topicLock)
             {
-                var minFromQueue = _queue.GetMinId();
-                var minFromLeasedQueue = _leasedQueue.GetMinId();
-
-                return minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
-
+                return new QueueSnapshot
+                {
+                    QueueId = QueueId,
+                    RangesData = _queue.GetSnapshot()
+                };
+                
             }
         }
 
-        public QueueSubscribersList QueueSubscribersList { get; }
+        public long GetMinId()
+        {
+            lock (_topicLock)
+            {
+                var minFromLeasedQueue = this.GetMinMessageId();
+                var minFromQueue = _queue.GetMinId();
+                
+                if (minFromLeasedQueue<0)
+                    return _queue.GetMinId();
+
+                return minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
+            }
+        }
 
 
         public async ValueTask<bool> DisconnectedAsync(IMyServiceBusSession session)
         {
             
-            var theSubscriber = QueueSubscribersList.Unsubscribe(session);
+            var theSubscriber = SubscribersList.Unsubscribe(session);
             
             if (theSubscriber == null)
                 return false;
@@ -255,19 +235,6 @@ namespace MyServiceBus.Domains.Queues
                     }
 
                 result.Append("]");
-
-                result.Append("Leased:[");
-                if (_leasedQueue.Count == 0)
-                {
-                    result.Append("Empty");
-                }
-                else
-                    foreach (var snapshot in _leasedQueue.GetSnapshot())
-                    {
-                        result.Append(snapshot.FromId + " - " + snapshot.ToId + ";");
-                    }
-
-                result.Append("]");
             }
 
 
@@ -279,7 +246,7 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_topicLock)
             {
-                var subscribersCount = QueueSubscribersList.GetCount();
+                var subscribersCount = SubscribersList.GetCount();
 
                 if (subscribersCount > 0)
                     throw new Exception(
@@ -301,15 +268,15 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_executionDuration)
             {
-                if (_executedAmount == 0)
+                if (_executionMonitoring.ExecutedAmount == 0)
                     return;
-                
-                var amount = _executionDuraton / _executedAmount;
-                _executionDuration.PutData((int) (amount.TotalMilliseconds*1000));
-                _executedAmount = 0;
-                _executionDuraton = TimeSpan.Zero;
+
+                var amount = _executionMonitoring.ExecutionDuration / _executionMonitoring.ExecutedAmount;
+                _executionDuration.PutData((int)(amount.TotalMilliseconds * 1000));
+
+                _executionMonitoring.Reset();
             }
-            
         }
+        
     }
 }

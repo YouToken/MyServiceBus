@@ -1,4 +1,5 @@
 using System;
+using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.Tests.Utils;
 using NUnit.Framework;
 

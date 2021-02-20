@@ -3,6 +3,7 @@
     "outputFileName": "wwwroot/js/sb.min.js",
     "inputFiles": [
       "wwwroot/js/Utils.js",
+      "wwwroot/js/HtmlCommonRenderer.js",
       "wwwroot/js/HtmlConnectionsRenderer.js",
       "wwwroot/js/HtmlQueueToPersistRenderer.js",
       "wwwroot/js/HtmlTopicRenderer.js",

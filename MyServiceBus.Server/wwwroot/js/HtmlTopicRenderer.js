@@ -32,7 +32,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     "<hr/><div>Cached:</div><div>" +
                     this.renderCachedPages(el) +
                     "</div><div>" +
-                    this.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
+                    HtmlCommonRenderer.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
                     "</div>" +
                     "<td>" +
                     el.size +
@@ -86,55 +86,18 @@ var HtmlTopicRenderer = /** @class */ (function () {
             var sizeBadge = el.queueSize < 1000
                 ? '<span class="badge badge-success">size:' + el.queueSize + "</span>"
                 : '<span class="badge badge-danger">size:' + el.queueSize + "</span>";
-            var readSlicesBadge = '<span class="badge badge-success">QReady:';
-            for (var _a = 0, _b = el.readySlices; _a < _b.length; _a++) {
-                var c_2 = _b[_a];
-                readSlicesBadge += c_2.from + "-" + c_2.to + "; ";
-            }
-            readSlicesBadge += "</span>";
-            var leasedSlicesBadge = '<span class="badge badge-warning">QLeased:';
-            for (var _c = 0, _d = el.leasedSlices; _c < _d.length; _c++) {
-                var c_3 = _d[_c];
-                leasedSlicesBadge += c_3.from + "-" + c_3.to + "; ";
-            }
-            leasedSlicesBadge += "</span>";
+            var readSlicesBadge = '<span class="badge badge-success">QReady:' + HtmlCommonRenderer.RenderQueueSlices(el.readySlices) + '</span>';
+            var leasedAmount = '<span class="badge badge-warning">Leased:' + el.leasedAmount + '</span>';
             itm += '<table style="width:100%"><tr><td style="width: 100%">' +
                 "<div>" + el.queueId + "<span> </span>" + sizeBadge + "<span> </span>" + deleteOnDisconnectBadge + "</div>" +
                 connectsBadge +
                 "<span> </span>" +
                 readSlicesBadge +
                 "<span> </span>" +
-                leasedSlicesBadge +
-                "</td><td>" + this.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) + "</td></tr></table>";
+                leasedAmount +
+                "</td><td>" + HtmlCommonRenderer.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) + "</td></tr></table>";
         }
         return itm;
-    };
-    HtmlTopicRenderer.renderGraph = function (c, showValue) {
-        var max = Utils.getMax(c);
-        var w = 50;
-        var coef = max == 0 ? 0 : w / max;
-        var result = '<svg width="240" height="' +
-            w +
-            '"> <rect width="240" height="' +
-            w +
-            '" style="fill:none;stroke-width:;stroke:black" />';
-        var i = 0;
-        for (var _i = 0, c_4 = c; _i < c_4.length; _i++) {
-            var m = c_4[_i];
-            var y = w - m * coef;
-            result +=
-                '<line x1="' +
-                    i +
-                    '" y1="' +
-                    w +
-                    '" x2="' +
-                    i +
-                    '" y2="' +
-                    y +
-                    '" style="stroke:lightblue;stroke-width:2" />';
-            i += 2;
-        }
-        return result + '<text x="0" y="15" fill="red">' + showValue(max) + "</text></svg>";
     };
     return HtmlTopicRenderer;
 }());

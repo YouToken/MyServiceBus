@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Persistence.Grpc;
 
@@ -26,6 +27,8 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public IMyServiceBusSession Session { get; }
 
+        public readonly QueueWithIntervals LeasedQueue = new (0);
+
         public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> MessagesOnDelivery { get; private set; }
         public DateTime OnDeliveryStart { get; private set; }
         internal void SetOnDeliveryAndSendMessages()
@@ -46,6 +49,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 throw new Exception($"Can not add message when Status is: {Status}. Status must Be Leased");
             
             MessagesCollector.Add((messageContent, attemptNo));
+            LeasedQueue.Enqueue(messageContent.MessageId);
             MessagesSize += messageContent.Data.Length;
         }
         
@@ -71,7 +75,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         {
             MessagesCollector = null;
             MessagesOnDelivery = Array.Empty<(MessageContentGrpcModel message, int attemptNo)>();
-            
+            LeasedQueue.Reset();
             if (MessagesSize == 0)
                 return;
             MessagesSize = 0;

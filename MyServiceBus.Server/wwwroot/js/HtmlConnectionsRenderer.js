@@ -29,7 +29,8 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             if (el.queues)
                 for (var _c = 0, _d = el.queues; _c < _d.length; _c++) {
                     var queue = _d[_c];
-                    queues += '<div><span class="badge badge-secondary">' + queue + "</span><div>";
+                    var leasedQueue = ' <span class="badge badge-warning">QReady:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased) + '</span>';
+                    queues += '<div><span class="badge badge-secondary">' + queue.id + leasedQueue + '</span><div>';
                 }
             itm +=
                 "<tr>" +
@@ -45,7 +46,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                     el.publishPacketsPerSecond +
                     "</div>" +
                     "<div><b>Sub:</b>" +
-                    el.publishPacketsPerSecond +
+                    el.subscribePacketsPerSecond +
                     "</div>" +
                     "<div><b>Total:</b>" +
                     el.packetsPerSecondInternal +

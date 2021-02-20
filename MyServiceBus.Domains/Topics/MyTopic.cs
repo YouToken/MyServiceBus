@@ -102,11 +102,10 @@ namespace MyServiceBus.Domains.Topics
         {
             var queue = _topicQueueList.GetQueue(queueName);
 
-            var subscriber = queue.QueueSubscribersList.TryGetSubscriber(confirmationId);
+            var subscriber = queue.SubscribersList.TryGetSubscriber(confirmationId);
 
             if (subscriber == null)
                 return queue;
-
 
             var duration = DateTime.UtcNow - subscriber.OnDeliveryStart;
 
@@ -114,14 +113,11 @@ namespace MyServiceBus.Domains.Topics
                 ? default
                 : duration;
             
-            queue.LockAndGetWriteAccess(writeAccess =>
-            {
-                if (ok)
-                    writeAccess.ConfirmDelivery(subscriber, duration);
-                else
-                    writeAccess.ConfirmNotDelivery(subscriber, duration);  
-            });
-
+            if (ok)
+                queue.ConfirmDelivery(subscriber, duration);
+            else
+                queue.ConfirmNotDelivery(subscriber, duration);  
+ 
             _topicQueueList.CalcMinMessageId();
             _metricCollector.TopicQueueSize(TopicId, _topicQueueList.GetMessagesCount());
 

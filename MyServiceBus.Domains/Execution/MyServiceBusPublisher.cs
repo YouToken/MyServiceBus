@@ -61,10 +61,7 @@ namespace MyServiceBus.Domains.Execution
             }
 
             foreach (var topicQueue in topic.GetQueues())
-                topicQueue.LockAndGetWriteAccess(writer =>
-                {
-                    writer.EnqueueMessages(addedMessages);
-                });
+                topicQueue.EnqueueMessages(addedMessages);
     
 
             await _myServiceBusDeliveryHandler.SendMessagesAsync(topic);

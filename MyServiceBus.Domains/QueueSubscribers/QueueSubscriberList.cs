@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,12 @@ namespace MyServiceBus.Domains.QueueSubscribers
 {
 
 
-    public class QueueSubscribersList
+    public interface IReadSubscribersAccess
+    {
+        IEnumerable<TheQueueSubscriber> GetSubscribers();
+    }
+
+    public class QueueSubscribersList : IReadSubscribersAccess
     {
         private readonly TopicQueue _topicQueue;
         
@@ -50,10 +56,8 @@ namespace MyServiceBus.Domains.QueueSubscribers
                     _subscribersByDeliveryId.Remove(removedItem.ConfirmationId);
                     return removedItem;
                 }
-
                 return null;
             }
-
         }
 
         public TheQueueSubscriber LeaseSubscriber()
@@ -85,6 +89,16 @@ namespace MyServiceBus.Domains.QueueSubscribers
             }
         }
 
+        public TheQueueSubscriber TryGetSubscriber(IMyServiceBusSession session)
+        {
+            lock (_lockObject)
+            {
+                return _subscribers.TryGetValue(session.SubscriberId, out var subscriber) 
+                    ? subscriber 
+                    : null;
+            }
+        }
+
         public TheQueueSubscriber TryGetSubscriber(long confirmationId)
         {
             lock (_lockObject)
@@ -104,6 +118,18 @@ namespace MyServiceBus.Domains.QueueSubscribers
             }
         }
 
+        public T GetReadAccess<T>(Func<IReadSubscribersAccess, T> callback)
+        {
+            lock (_lockObject)
+            {
+                return callback(this);
+            }   
+        }
+        
+        IEnumerable<TheQueueSubscriber> IReadSubscribersAccess.GetSubscribers()
+        {
+            return _subscribers.Values;
+        }
     }
 
 }

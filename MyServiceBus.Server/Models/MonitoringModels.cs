@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
+using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Tcp;
@@ -16,7 +17,7 @@ namespace MyServiceBus.Server.Models
 
         public static QueueSlice Create(IQueueIndexRange src)
         {
-            return new QueueSlice
+            return new ()
             {
                 From = src.FromId,
                 To = src.ToId
@@ -30,13 +31,9 @@ namespace MyServiceBus.Server.Models
         public bool DeleteOnDisconnect { get; set; }
         public int Connections { get; set; }
         public long QueueSize { get; set; }
-        
         public IEnumerable<QueueSlice> ReadySlices { get; set; }
-        
-        public IEnumerable<QueueSlice> LeasedSlices { get; set; }
-        
+        public long LeasedAmount { get; set; }
         public IEnumerable<int> ExecutionDuration { get; set; }
-        
     }
 
     public class TopicMonitoringModel
@@ -44,16 +41,11 @@ namespace MyServiceBus.Server.Models
         public string Id { get; set; }
         public int MsgPerSec { get; set; }
         public int RequestsPerSec { get; set; }
-        
         public long Size { get; set; }
-        
         public long MessageId { get; set; }
         public IEnumerable<ConsumerModel> Consumers { get; set; }
-        
         public IEnumerable<long> Publishers { get; set; }
-        
         public IEnumerable<long> CachedPages { get; set; }
-        
         public IEnumerable<int> MessagesPerSecond { get; set; }
 
         public static TopicMonitoringModel Create(MyTopic topic, IReadOnlyList<MyServiceBusTcpContext> connections)
@@ -77,7 +69,6 @@ namespace MyServiceBus.Server.Models
     {
         public long Id { get; set; }
         public string Ip { get; set; }
-        
         public string ConnectedTimeStamp { get; set; }
         public long SentBytes { get; set; }
         public string LastSendDuration { get; set; }
@@ -89,7 +80,7 @@ namespace MyServiceBus.Server.Models
         {
             var now = DateTime.UtcNow;
             Id = context.Id;
-            Ip = context.TcpClient.Client.RemoteEndPoint.ToString();
+            Ip = context.TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknown";
             ConnectedTimeStamp = (now - context.SocketStatistic.ConnectionTime).FormatTimeStamp();
             SentBytes = context.SocketStatistic.Sent;
             SentBytes = context.SocketStatistic.Sent;
@@ -124,6 +115,13 @@ namespace MyServiceBus.Server.Models
 
     }
 
+
+    public class ConnectionQueueInfoModel
+    {
+        public string Id { get; set; }
+        public IEnumerable<QueueSlice> Leased { get; set; }
+    }
+
     public class ConnectionModel : UnknownConnectionModel
     {
         public string Name { get; set; }
@@ -134,16 +132,20 @@ namespace MyServiceBus.Server.Models
         public int SubscribePacketsPerSecond { get; set; }
         public int PacketsPerSecondInternal { get; set; }
         public IEnumerable<string> Topics { get; set; }
-        
-        public IEnumerable<string> Queues { get; set; }
+        public IEnumerable<ConnectionQueueInfoModel> Queues { get; set; }
 
         public new static ConnectionModel Create(MyServiceBusTcpContext context)
         {
+            
             var result = new ConnectionModel
             {
                 Name = context.ContextName,
                 Topics = context.Session.GetTopicsToPublish(),
-                Queues = context.Session.GetQueueSubscribers().Select(itm => itm.Topic.TopicId+">>>"+itm.QueueId),
+                Queues = context.Session.GetQueueSubscribers().Select(topicQueue => new ConnectionQueueInfoModel
+                {
+                    Id = topicQueue.Topic.TopicId+">>>"+topicQueue.QueueId,
+                    Leased = topicQueue.GetLeasedQueueSnapshot(context).Select(QueueSlice.Create)
+                }),
                 PublishPacketsPerSecond = context.Session.PublishPacketsPerSecond,
                 SubscribePacketsPerSecond = context.Session.SubscribePacketsInternal,
                 PacketsPerSecondInternal = context.Session.PacketsPerSecond,
@@ -159,9 +161,13 @@ namespace MyServiceBus.Server.Models
         {
             var result = new ConnectionModel
             {
-                Name = session.SessionType+"-"+session.Name,
+                Name = session.SessionType + "-" + session.Name,
                 Topics = session.GetTopicsToPublish(),
-                Queues = session.GetQueueSubscribers().Select(itm => itm.Topic.TopicId+">>>"+itm.QueueId),
+                Queues = session.GetQueueSubscribers().Select(itm => new ConnectionQueueInfoModel
+                {
+                    Id = itm.Topic.TopicId + ">>>" + itm.QueueId,
+                    Leased = Array.Empty<QueueSlice>()
+                }),
                 PublishPacketsPerSecond = session.PublishPacketsPerSecond,
                 SubscribePacketsPerSecond = session.SubscribePacketsInternal,
                 PacketsPerSecondInternal = session.PacketsPerSecond,
@@ -196,21 +202,16 @@ namespace MyServiceBus.Server.Models
     {
         public static IEnumerable<ConsumerModel> GetConsumers(this MyTopic topic)
         {
-            foreach (var topicQueue in topic.GetQueues())
+            return topic.GetQueues().Select(topicQueue => new ConsumerModel
             {
-                var intervals = topicQueue.GetQueueIntervals();
-                
-                yield return new ConsumerModel
-                {
-                    QueueId = topicQueue.QueueId,
-                    DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
-                    Connections = topicQueue.QueueSubscribersList.GetCount(),
-                    QueueSize = topicQueue.GetMessagesCount(),
-                    LeasedSlices = intervals.leased.Select(QueueSlice.Create),
-                    ReadySlices = intervals.queues.Select(QueueSlice.Create),
-                    ExecutionDuration = topicQueue.GetExecutionDuration()
-                };
-            }
+                QueueId = topicQueue.QueueId,
+                DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
+                Connections = topicQueue.SubscribersList.GetCount(),
+                QueueSize = topicQueue.GetMessagesCount(),
+                LeasedAmount = topicQueue.GetLeasedMessagesCount(),
+                ReadySlices = topicQueue.GetReadyQueueSnapshot().Select(QueueSlice.Create),
+                ExecutionDuration = topicQueue.GetExecutionDuration()
+            });
         }
     }
 }

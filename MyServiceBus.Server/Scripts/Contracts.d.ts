@@ -27,7 +27,7 @@ interface IConsumer {
   connections: number;
   queueSize: number;
   deleteOnDisconnect: boolean;
-  leasedSlices: IQueueIndex[];
+  leasedAmount: number;
   readySlices: IQueueIndex[];
   executionDuration: number[];
 }
@@ -43,6 +43,12 @@ interface IUnknownConnection {
   lastSendDuration : string;
 }
 
+
+interface IConnectionQueueInfo{
+  id: string,
+  leased: IQueueIndex[]
+}
+
 interface IConnection extends IUnknownConnection {
   name: string;
   publishPacketsPerSecond: number;
@@ -50,7 +56,7 @@ interface IConnection extends IUnknownConnection {
   packetsPerSecondInternal: number;
   protocolVersion: number;
   topics: string[];
-  queues: string[];
+  queues: IConnectionQueueInfo[];
 }
 
 interface IQueueIndex {

@@ -6,12 +6,13 @@ namespace MyServiceBus.Abstractions.QueueIndex
 {
     public class QueueWithIntervals
     {
-        public QueueWithIntervals(long from, long to)
+        public QueueWithIntervals(IEnumerable<IQueueIndexRange> ranges)
         {
-            _ranges.Add(new QueueIndexRange(from, to));
+            foreach (var queueIndexRange in ranges)
+                _ranges.Add(new QueueIndexRange(queueIndexRange));
         }
         
-        public QueueWithIntervals(long messageId)
+        public QueueWithIntervals(long messageId = 0)
         {
             _ranges.Add(new QueueIndexRange(messageId));
         }
@@ -160,6 +161,15 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
             _ranges[0].FromId = fromId;
             _ranges[0].ToId = toId;
+        }
+
+        public void Reset()
+        {
+            while (_ranges.Count>1)
+                _ranges.RemoveAt(_ranges.Count - 1);
+
+            _ranges[0].FromId = 0;
+            _ranges[0].ToId = -1;
         }
     }
 }

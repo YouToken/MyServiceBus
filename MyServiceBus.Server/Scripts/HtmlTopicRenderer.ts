@@ -35,7 +35,7 @@ class HtmlTopicRenderer {
         "<hr/><div>Cached:</div><div>" +
         this.renderCachedPages(el) +
         "</div><div>" +
-        this.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
+          HtmlCommonRenderer.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
         "</div>" +
         "<td>" +
         el.size +
@@ -100,21 +100,9 @@ class HtmlTopicRenderer {
           ? '<span class="badge badge-success">size:' + el.queueSize + "</span>"
           : '<span class="badge badge-danger">size:' + el.queueSize + "</span>";
 
-      let readSlicesBadge = '<span class="badge badge-success">QReady:';
+      let readSlicesBadge = '<span class="badge badge-success">QReady:'+HtmlCommonRenderer.RenderQueueSlices(el.readySlices)+'</span>';
 
-      for (let c of el.readySlices) {
-        readSlicesBadge += c.from + "-" + c.to + "; ";
-      }
-
-      readSlicesBadge += "</span>";
-
-      let leasedSlicesBadge = '<span class="badge badge-warning">QLeased:';
-
-      for (let c of el.leasedSlices) {
-        leasedSlicesBadge += c.from + "-" + c.to + "; ";
-      }
-
-      leasedSlicesBadge += "</span>";
+      let leasedAmount = '<span class="badge badge-warning">Leased:'+el.leasedAmount+'</span>';
 
       itm += '<table style="width:100%"><tr><td style="width: 100%">'+
         "<div>"+el.queueId+"<span> </span>" +sizeBadge + "<span> </span>" +deleteOnDisconnectBadge +"</div>"+
@@ -122,44 +110,12 @@ class HtmlTopicRenderer {
         "<span> </span>" +
         readSlicesBadge +
         "<span> </span>" +
-        leasedSlicesBadge +
-        "</td><td>"+this.renderGraph(el.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
+        leasedAmount +
+        "</td><td>"+HtmlCommonRenderer.renderGraph(el.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
     }
 
     return itm;
   }
 
-  private static renderGraph(c: number[], showValue: (v:number)=>string) {
-    const max = Utils.getMax(c);
 
-    const w = 50;
-
-    let coef = max == 0 ? 0 : w / max;
-
-    let result =
-      '<svg width="240" height="' +
-      w +
-      '"> <rect width="240" height="' +
-      w +
-      '" style="fill:none;stroke-width:;stroke:black" />';
-
-    let i = 0;
-    for (let m of c) {
-      let y = w - m * coef;
-
-      result +=
-        '<line x1="' +
-        i +
-        '" y1="' +
-        w +
-        '" x2="' +
-        i +
-        '" y2="' +
-        y +
-        '" style="stroke:lightblue;stroke-width:2" />';
-      i += 2;
-    }
-
-    return result + '<text x="0" y="15" fill="red">' + showValue(max) + "</text></svg>";
-  }
 }
