@@ -108,7 +108,7 @@ class HtmlConnectionsRenderer {
     
     let queues = "";
     for (let queue of conn.queues){
-      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+" ";
+      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+"<hr/>";
     }
     
     return '<tr><td>' + conn.id + '</td>' +
@@ -127,7 +127,8 @@ class HtmlConnectionsRenderer {
     let result = {};
     
     for (let conn of connections){
-      for (let topic in conn.topics){
+      for (let topic of conn.topics){
+        
         if (!result[topic])
           result[topic] = "";
         

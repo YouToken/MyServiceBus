@@ -26,7 +26,6 @@ var Main = /** @class */ (function () {
             for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                 var topicId = _a[_i];
                 var queueData = data[topicId];
-                console.log(queueData);
                 var el = document.getElementById("topic-queues-" + topicId);
                 if (el)
                     el.innerHTML = HtmlTopicQueueRenderer.renderTopicQueues(topicId, queueData);
@@ -64,7 +63,6 @@ var Main = /** @class */ (function () {
         if (!this.signalRConnection) {
             this.initSignalR();
         }
-        console.log("Connection state: " + this.signalRConnection.connection.connectionState);
         if (this.signalRConnection.connection.connectionState != 1) {
             this.signalRConnection.start().then(function () {
                 _this.connected = true;

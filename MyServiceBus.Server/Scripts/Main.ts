@@ -43,7 +43,6 @@ class Main{
         this.signalRConnection.on("queues", (data:any)=>{
             for (let topicId of Object.keys(data)){
                 let queueData:ITopicQueueSignalRContract[]  = data[topicId]
-                console.log(queueData);
                 let el = document.getElementById("topic-queues-"+topicId);
                 if (el)
                     el.innerHTML = HtmlTopicQueueRenderer.renderTopicQueues(topicId, queueData);
@@ -90,8 +89,6 @@ class Main{
         if (!this.signalRConnection){
             this.initSignalR();
         }
-        
-        console.log("Connection state: "+this.signalRConnection.connection.connectionState);
         
         if (this.signalRConnection.connection.connectionState != 1){
             this.signalRConnection.start().then(()=>{

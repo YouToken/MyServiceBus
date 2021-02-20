@@ -98,7 +98,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var queues = "";
         for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
             var queue = _c[_b];
-            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) + " ";
+            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) + "<hr/>";
         }
         return '<tr><td>' + conn.id + '</td>' +
             '<td style="font-size: 10px">' +
@@ -113,15 +113,16 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var result = {};
         for (var _i = 0, connections_2 = connections; _i < connections_2.length; _i++) {
             var conn = connections_2[_i];
-            for (var topic in conn.topics) {
+            for (var _a = 0, _b = conn.topics; _a < _b.length; _a++) {
+                var topic = _b[_a];
                 if (!result[topic])
                     result[topic] = "";
                 result[topic] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';
             }
         }
         console.log(result);
-        for (var _a = 0, _b = Object.keys(result); _a < _b.length; _a++) {
-            var topic = _b[_a];
+        for (var _c = 0, _d = Object.keys(result); _c < _d.length; _c++) {
+            var topic = _d[_c];
             var el = document.getElementById('topic-connections-' + topic);
             if (el)
                 el.innerHTML = result[topic];
