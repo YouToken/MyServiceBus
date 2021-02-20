@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Tcp;
-using MyServiceBus.TcpContracts;
-using MyTcpSockets;
+
 
 namespace MyServiceBus.Server.Hubs
 {
@@ -20,22 +18,25 @@ namespace MyServiceBus.Server.Hubs
             };
         }
 
-        private static readonly Dictionary<string, string> NoQueuesInConnection = new ();
-
         
         internal static TcpConnectionHubModel ToTcpConnectionHubModel(this MyServiceBusTcpContext tcpContext)
         {
-            return new TcpConnectionHubModel
+            return new ()
             {
                 Id = tcpContext.Id.ToString(),
                 Name = tcpContext.ContextName,
                 Ip = tcpContext.TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknown",
+                Connected = (DateTime.UtcNow - tcpContext.SocketStatistic.ConnectionTime).ToString(),
+                Recv = (DateTime.UtcNow - tcpContext.SocketStatistic.LastReceiveTime).ToString(),
+                ReadBytes = tcpContext.SocketStatistic.Received,
+                SentBytes = tcpContext.SocketStatistic.Sent,
+                ProtocolVersion = tcpContext.Session?.ProtocolVersion ?? 0,
                 Topics =  tcpContext.Session == null 
                     ? Array.Empty<string>() 
                     : tcpContext.Session.GetTopicsToPublish(),
                 Queues = tcpContext.Session == null 
                     ? Array.Empty<TcpConnectionSubscribeHubModel>() 
-                    : tcpContext.Session.GetQueueSubscribers().Select(TcpConnectionSubscribeHubModel.Create)
+                    : tcpContext.Session.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))
 
             };
         }

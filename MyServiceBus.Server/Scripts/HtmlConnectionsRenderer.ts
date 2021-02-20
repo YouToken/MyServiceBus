@@ -108,13 +108,19 @@ class HtmlConnectionsRenderer {
     
     let queues = "";
     for (let queue of conn.queues){
-      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+"<hr/>";
+      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+
+          HtmlCommonRenderer.renderBadge('warning', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+
+          "<hr/>";
     }
     
     return '<tr><td>' + conn.id + '</td>' +
         '<td style="font-size: 10px">' +
         HtmlCommonRenderer.renderClientName(conn.name)+
-        '<div>Ip:' + conn.ip + '</div>' +
+        '<div><b>Ip</b>:' + conn.ip + '</div>' +
+        '<div><b>Connected</b>:' + conn.connected + '</div>' +
+        '<div><b>Last incoming:</b>:' + conn.recv + '</div>' +
+        '<div><b>Read bytes:</b>:' + conn.readBytes + '</div>' +
+        '<div><b>Sent bytes:</b>:' + conn.sentBytes + '</div>' +
         '</td>' +
         '<td>'+topics+'</td>'+
         '<td>'+queues+'</td>'+
@@ -135,8 +141,6 @@ class HtmlConnectionsRenderer {
         result[topic] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';
       }
     }
-    
-    console.log(result);
     
     for (let topic of Object.keys(result)){
       let el = document.getElementById('topic-connections-'+topic);

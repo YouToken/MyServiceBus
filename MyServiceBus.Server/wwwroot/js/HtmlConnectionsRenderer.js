@@ -98,12 +98,18 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var queues = "";
         for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
             var queue = _c[_b];
-            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) + "<hr/>";
+            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) +
+                HtmlCommonRenderer.renderBadge('warning', 'Leased:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased)) +
+                "<hr/>";
         }
         return '<tr><td>' + conn.id + '</td>' +
             '<td style="font-size: 10px">' +
             HtmlCommonRenderer.renderClientName(conn.name) +
-            '<div>Ip:' + conn.ip + '</div>' +
+            '<div><b>Ip</b>:' + conn.ip + '</div>' +
+            '<div><b>Connected</b>:' + conn.connected + '</div>' +
+            '<div><b>Last incoming:</b>:' + conn.recv + '</div>' +
+            '<div><b>Read bytes:</b>:' + conn.readBytes + '</div>' +
+            '<div><b>Sent bytes:</b>:' + conn.sentBytes + '</div>' +
             '</td>' +
             '<td>' + topics + '</td>' +
             '<td>' + queues + '</td>' +
@@ -120,7 +126,6 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                 result[topic] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';
             }
         }
-        console.log(result);
         for (var _c = 0, _d = Object.keys(result); _c < _d.length; _c++) {
             var topic = _d[_c];
             var el = document.getElementById('topic-connections-' + topic);

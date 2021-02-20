@@ -17,7 +17,8 @@ interface ITopicQueueSignalRContract{
 
 interface ISubscriberSignalrRContract{
   topicId :string,
-  queueId:string
+  queueId:string,
+  leased: IQueueIndex[]
 }
 
 interface IConnectionSignalRContract{
@@ -25,7 +26,12 @@ interface IConnectionSignalRContract{
   name: string;
   ip:string;
   topics: string[];
-  queues: ISubscriberSignalrRContract[]
+  queues: ISubscriberSignalrRContract[],
+  connected: string,
+  recv:string,
+  readBytes:number,
+  sentBytes:number,
+  protocolVersion:number
 }
 
 
