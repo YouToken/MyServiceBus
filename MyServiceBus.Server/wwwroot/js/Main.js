@@ -70,25 +70,9 @@ var Main = /** @class */ (function () {
                 for (var _a = 0, _b = metric.queues; _a < _b.length; _a++) {
                     var queue = _b[_a];
                     var topicQueueId = metric.id + '-' + queue.id;
-                    el = document.getElementById('size-' + topicQueueId);
-                    if (el) {
-                        var oldVal = el.innerHTML;
-                        var newVal = queue.size.toFixed(0);
-                        el.innerHTML = newVal;
-                        if (newVal != oldVal) {
-                            if (queue.size > 0) {
-                                el.classList.remove('badge-danger');
-                                el.classList.add('badge-primary');
-                            }
-                            else {
-                                el.classList.remove('badge-primary');
-                                el.classList.add('badge-danger');
-                            }
-                        }
-                    }
-                    el = document.getElementById('queue2-' + topicQueueId);
+                    el = document.getElementById('queue-info-' + topicQueueId);
                     if (el)
-                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicSecondLine(queue);
+                        el.innerHTML = HtmlTopicQueueRenderer.renderQueueLine(queue);
                 }
             }
         });
