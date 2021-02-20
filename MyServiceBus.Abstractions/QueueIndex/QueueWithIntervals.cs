@@ -163,7 +163,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
             _ranges[0].ToId = toId;
         }
 
-        public void Reset()
+        public void Clear()
         {
             while (_ranges.Count>1)
                 _ranges.RemoveAt(0);

@@ -109,6 +109,7 @@ namespace MyServiceBus.Domains.Queues
         {
             foreach (var (message, attemptNo) in messages)
             {
+                // Make it not through Message By Messages - but though merge of to IntervalQueues to increase performance
                 _queue.Enqueue(message.MessageId);
 
                 if (!_attempts.TryAdd(message.MessageId, attemptNo))

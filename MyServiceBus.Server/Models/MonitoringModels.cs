@@ -87,6 +87,7 @@ namespace MyServiceBus.Server.Models
             ReceivedBytes = context.SocketStatistic.Received;
             SentTimeStamp = (now - context.SocketStatistic.LastSendTime).FormatTimeStamp();
             ReceiveTimeStamp = (now - context.SocketStatistic.LastReceiveTime).FormatTimeStamp();
+            //ToDo - Check if there is a meaning after new TCPSocket Library update
             LastSendDuration = context.SocketStatistic.LastSendToSocketDuration.FormatTimeStamp();
         }
         

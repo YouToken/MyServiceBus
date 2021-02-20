@@ -75,7 +75,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         {
             MessagesCollector = null;
             MessagesOnDelivery = Array.Empty<(MessageContentGrpcModel message, int attemptNo)>();
-            LeasedQueue.Reset();
+            LeasedQueue.Clear();
             if (MessagesSize == 0)
                 return;
             MessagesSize = 0;
