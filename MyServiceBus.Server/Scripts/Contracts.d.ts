@@ -98,3 +98,10 @@ interface IQueueIndex {
   from: number;
   to: number;
 }
+
+interface ITopicMetricsSignalRContract{
+  id:string,
+  msgPerSec:number,
+  reqPerSec:number,
+  pages: number[],
+}

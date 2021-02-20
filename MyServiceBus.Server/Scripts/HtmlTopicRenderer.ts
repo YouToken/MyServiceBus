@@ -1,70 +1,7 @@
 class HtmlTopicRenderer {
-  public static renderTable(r: ITopicInfo[], c: IConnection[]): string {
-    return (
-      '<table class="table table-striped">' +
-      "<tr>" +
-      " <th>Topic</th>" +
-      "<th>Size</th>" +
-      "<th>Topic connections</th>" +
-      "<th>Queue</th>" +
-      "</tr>" +
-      "<tbody>" +
-      this.renderTableData(r, c) +
-      "</tbody>" +
-      "</table>"
-    );
-  }
-  
 
 
-  public static renderTableData(r: ITopicInfo[], c: IConnection[]): string {
-    let itm = "";
-
-    for (let el of r)
-      itm +=
-        "<tr><td><b>" +
-        el.id +
-        "</b><div>Msg/sec: " +
-       // el.msgPerSec +
-        "</div><div>Req/sec: " +
-       // el.requestsPerSec +
-        "</div>" +
-        "<hr/><div>Cached:</div><div>" +
-      //  this.renderCachedPages(el) +
-        "</div><div>" +
-       //   HtmlCommonRenderer.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
-        "</div>" +
-        "<td>" +
-        el.size +
-        "</td>" +
-        "<td>" +
-        this.renderTopicConnections(el, c) +
-        "</td>" +
-        "<td>" +
-          HtmlTopicQueueRenderer.renderQueues(el.consumers) +
-        "</td>" +
-        "</tr>";
-
-    return itm;
-  }
-
-  private static renderTopicConnections(
-    t: ITopicInfo,
-    c: IConnection[]
-  ): string {
-    let itm = "";
-
-    for (let pubId of t.publishers) {
-      let con = Utils.findConnection(c, pubId);
-
-      if (con) itm += "<div>" + Utils.renderName(con.name) + con.ip + "</div>";
-    }
-
-    return itm;
-  }
-
-
-  private static renderCachedPages(pages: number[]) {
+  public static renderCachedPages(pages: number[]) {
     let result = "";
 
     for (let id of pages) {
@@ -90,7 +27,7 @@ class HtmlTopicRenderer {
           '<hr/>' +
           '<div style="font-size: 12px">Cached pages:</div>' +
           '<div id="cached-pages-'+topic.id+'">'+this.renderCachedPages(topic.pages)+'</div>' +
-          '<div id="topic-metrics-'+topic.id+'"></div>' +
+          '<div id="topic-performance-graph-'+topic.id+'"></div>' +
           '</td>' +
           
           '<td id="topic-connections-'+topic.id+'"></td>' +
@@ -98,6 +35,12 @@ class HtmlTopicRenderer {
     }
     
     return result;
+  }
+  
+  public static renderRequestsPerSecond(data:ITopicMetricsSignalRContract):string{
+    
+    return '<div>Msg/sec'+data.msgPerSec+'</div>'+
+        '<div>Req/sec'+data.reqPerSec+'</div>';
   }
 
 

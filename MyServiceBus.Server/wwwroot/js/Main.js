@@ -31,20 +31,20 @@ var Main = /** @class */ (function () {
                     el.innerHTML = HtmlTopicQueueRenderer.renderTopicQueues(topicId, queueData);
             }
         });
-        this.signalRConnection.on("topic-metrics", function (data) {
+        this.signalRConnection.on("topic-performance-graph", function (data) {
             for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                 var topicId = _a[_i];
                 var metrixData = data[topicId];
-                var el = document.getElementById("topic-metrics-" + topicId);
+                var el = document.getElementById("topic-performance-graph-" + topicId);
                 if (el)
                     el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return v.toString(); });
             }
         });
-        this.signalRConnection.on("queue-metrics", function (data) {
+        this.signalRConnection.on("queue-duration-graph", function (data) {
             for (var _i = 0, _a = Object.keys(data); _i < _a.length; _i++) {
                 var topicId = _a[_i];
                 var metrixData = data[topicId];
-                var el = document.getElementById("metrix-" + topicId);
+                var el = document.getElementById("queue-duration-graph-" + topicId);
                 if (el)
                     el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return HtmlCommonRenderer.toDuration(v); });
             }
@@ -52,6 +52,17 @@ var Main = /** @class */ (function () {
         this.signalRConnection.on('connections', function (data) {
             _this.getConnectionsBody().innerHTML = HtmlConnectionsRenderer.renderConnections(data);
             HtmlConnectionsRenderer.renderTopicsConnections(data);
+        });
+        this.signalRConnection.on("topic-metrics", function (data) {
+            for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+                var metric = data_1[_i];
+                var el = document.getElementById('statistic-' + metric.id);
+                if (el)
+                    el.innerHTML = HtmlTopicRenderer.renderRequestsPerSecond(metric);
+                el = document.getElementById('cached-pages-' + metric.id);
+                if (el)
+                    el.innerHTML = HtmlTopicRenderer.renderCachedPages(metric.pages);
+            }
         });
     };
     Main.timerTick = function () {

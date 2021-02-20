@@ -39,7 +39,8 @@ namespace MyServiceBus.Server.Hubs
             await connection.SendQueuesAsync();
             
             await connection.SendTopicMetricsAsync();
-            await connection.SendQueueMetricsAsync();
+            await connection.SendTopicGraphAsync();
+            await connection.SendQueueGraphAsync();
             await connection.SendConnectionsAsync();
         } 
         

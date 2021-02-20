@@ -50,21 +50,21 @@ class Main{
             
         })
         
-        this.signalRConnection.on("topic-metrics", (data:any)=>{
+        this.signalRConnection.on("topic-performance-graph", (data:any)=>{
             for (let topicId of Object.keys(data)){
                 let metrixData:number[]  = data[topicId]
        
-                let el = document.getElementById("topic-metrics-"+topicId);
+                let el = document.getElementById("topic-performance-graph-"+topicId);
                 if (el)
                     el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => v.toString());
             }
         });
 
-        this.signalRConnection.on("queue-metrics", (data:any)=>{
+        this.signalRConnection.on("queue-duration-graph", (data:any)=>{
             for (let topicId of Object.keys(data)){
                 let metrixData:number[]  = data[topicId]
 
-                let el = document.getElementById("metrix-"+topicId);
+                let el = document.getElementById("queue-duration-graph-"+topicId);
                 if (el)
                     el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => HtmlCommonRenderer.toDuration(v));
             }
@@ -75,6 +75,23 @@ class Main{
             this.getConnectionsBody().innerHTML = HtmlConnectionsRenderer.renderConnections(data);
             
             HtmlConnectionsRenderer.renderTopicsConnections(data);
+        });
+        
+        
+        this.signalRConnection.on("topic-metrics", (data:ITopicMetricsSignalRContract[])=>{
+            
+            for (let metric of data){
+                
+                let el = document.getElementById('statistic-'+metric.id);
+                if (el)
+                    el.innerHTML = HtmlTopicRenderer.renderRequestsPerSecond(metric);
+                
+                el = document.getElementById('cached-pages-'+metric.id);
+                if (el)
+                    el.innerHTML = HtmlTopicRenderer.renderCachedPages(metric.pages)
+                
+            }
+            
         });
     }
     

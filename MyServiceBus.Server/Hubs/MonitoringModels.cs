@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Models;
 
 namespace MyServiceBus.Server.Hubs
@@ -16,9 +17,7 @@ namespace MyServiceBus.Server.Hubs
         public string Id { get; set; }
         
         public IEnumerable<long> Pages { get; set; }
-        
-        
-        public IEnumerable<TopicHubModel> Queues { get; set; }
+
     }
 
 
@@ -92,5 +91,24 @@ namespace MyServiceBus.Server.Hubs
     }
     
 
+    public class TopicMetricsHubModel
+    {
+        public string Id { get; set; }
+        public int MsgPerSec { get; set; }
+        public int ReqPerSec { get; set; }
+        public IEnumerable<long> Pages { get; set; }
+
+        public static TopicMetricsHubModel Create(MyTopic topic)
+        {
+            return new TopicMetricsHubModel
+            {
+                Id = topic.TopicId,
+                Pages = topic.MessagesContentCache.Pages,
+                MsgPerSec = topic.MessagesPerSecond,
+                ReqPerSec = topic.RequestsPerSecond
+            };
+        }
+    
+    }
 
 }

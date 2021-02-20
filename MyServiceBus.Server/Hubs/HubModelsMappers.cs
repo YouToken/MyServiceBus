@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Server.Models;
 using MyServiceBus.Server.Tcp;
 
 
@@ -26,8 +27,8 @@ namespace MyServiceBus.Server.Hubs
                 Id = tcpContext.Id.ToString(),
                 Name = tcpContext.ContextName,
                 Ip = tcpContext.TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknown",
-                Connected = (DateTime.UtcNow - tcpContext.SocketStatistic.ConnectionTime).ToString(),
-                Recv = (DateTime.UtcNow - tcpContext.SocketStatistic.LastReceiveTime).ToString(),
+                Connected = (DateTime.UtcNow - tcpContext.SocketStatistic.ConnectionTime).FormatTimeStamp(),
+                Recv = (DateTime.UtcNow - tcpContext.SocketStatistic.LastReceiveTime).FormatTimeStamp(),
                 ReadBytes = tcpContext.SocketStatistic.Received,
                 SentBytes = tcpContext.SocketStatistic.Sent,
                 ProtocolVersion = tcpContext.Session?.ProtocolVersion ?? 0,

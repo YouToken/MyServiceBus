@@ -55,8 +55,9 @@ class HtmlCommonRenderer{
     }
     
     
+    
     public static getMainLayout():string{
-        return this.getTopicsTable()+this.getTcpConnectionsDataTable();
+        return this.getTopicsTable()+this.getTcpConnectionsDataTable()+'<div id="persistent-queue"></div>';
     }
     
     public static renderBadge(badgeType:string,  content:string):string{
@@ -78,7 +79,7 @@ class HtmlCommonRenderer{
         if (name.length == 1)
             return '<div>'+name+'</div>';
         
-        return '<div>'+names[0]+'</div><div>'+names[1]+'</div>'
+        return '<div><b>'+names[0]+'</b></div><div>'+names[1]+'</div>'
     }
     
 

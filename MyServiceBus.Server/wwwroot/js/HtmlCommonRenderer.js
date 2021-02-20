@@ -47,7 +47,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
             '</table>';
     };
     HtmlCommonRenderer.getMainLayout = function () {
-        return this.getTopicsTable() + this.getTcpConnectionsDataTable();
+        return this.getTopicsTable() + this.getTcpConnectionsDataTable() + '<div id="persistent-queue"></div>';
     };
     HtmlCommonRenderer.renderBadge = function (badgeType, content) {
         return '<span class="badge badge-' + badgeType + '">' + content + '</span>';
@@ -62,7 +62,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
         var names = name.split(';');
         if (name.length == 1)
             return '<div>' + name + '</div>';
-        return '<div>' + names[0] + '</div><div>' + names[1] + '</div>';
+        return '<div><b>' + names[0] + '</b></div><div>' + names[1] + '</div>';
     };
     return HtmlCommonRenderer;
 }());

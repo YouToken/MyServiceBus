@@ -69,17 +69,17 @@ namespace MyServiceBus.Server.Hubs
         }
 
 
-        public static Task SendTopicMetricsAsync(this MonitoringConnection connection)
+        public static Task SendTopicGraphAsync(this MonitoringConnection connection)
         {
             
             var contract = ServiceLocator.TopicsList.Get()
                 .ToDictionary(topic => topic.TopicId, 
                     topic => ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
 
-            return connection.ClientProxy.SendAsync("topic-metrics", contract);
+            return connection.ClientProxy.SendAsync("topic-performance-graph", contract);
         }
 
-        public static Task SendQueueMetricsAsync(this MonitoringConnection connection)
+        public static Task SendQueueGraphAsync(this MonitoringConnection connection)
         {
             var contract = new Dictionary<string, IReadOnlyList<int>>();
 
@@ -91,13 +91,21 @@ namespace MyServiceBus.Server.Hubs
                 }
             }
             
-            return connection.ClientProxy.SendAsync("queue-metrics", contract);
+            return connection.ClientProxy.SendAsync("queue-duration-graph", contract);
         }
 
         public static Task SendConnectionsAsync(this MonitoringConnection connection)
         {
             var connections = ServiceLocator.TcpServer.GetConnections().Cast<MyServiceBusTcpContext>();
             return connection.ClientProxy.SendAsync("connections", connections.Select(conn => conn.ToTcpConnectionHubModel()));
+        }
+
+
+        public static Task SendTopicMetricsAsync(this MonitoringConnection connection)
+        {
+            var contract = ServiceLocator.TopicsList.Get().Select(TopicMetricsHubModel.Create);
+            return connection.ClientProxy.SendAsync("topic-metrics", contract);
+
         }
 
     }
