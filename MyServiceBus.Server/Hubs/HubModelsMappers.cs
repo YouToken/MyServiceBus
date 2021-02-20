@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.TcpContracts;
@@ -18,17 +19,24 @@ namespace MyServiceBus.Server.Hubs
                 Pages = topic.MessagesContentCache.Pages
             };
         }
+
+        private static readonly Dictionary<string, string> NoQueuesInConnection = new ();
+
         
         internal static TcpConnectionHubModel ToTcpConnectionHubModel(this MyServiceBusTcpContext tcpContext)
         {
-            return new ()
+            return new TcpConnectionHubModel
             {
                 Id = tcpContext.Id.ToString(),
                 Name = tcpContext.ContextName,
                 Ip = tcpContext.TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknown",
-                Topics = tcpContext.Session == null 
+                Topics =  tcpContext.Session == null 
                     ? Array.Empty<string>() 
-                    : tcpContext.Session.GetTopicsToPublish()
+                    : tcpContext.Session.GetTopicsToPublish(),
+                Queues = tcpContext.Session == null 
+                    ? Array.Empty<TcpConnectionSubscribeHubModel>() 
+                    : tcpContext.Session.GetQueueSubscribers().Select(TcpConnectionSubscribeHubModel.Create)
+
             };
         }
     }

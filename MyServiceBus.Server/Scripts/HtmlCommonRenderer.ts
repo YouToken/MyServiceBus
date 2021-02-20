@@ -78,6 +78,6 @@ class HtmlCommonRenderer{
         if (name.length == 1)
             return '<div>'+name+'</div>';
         
-        return '<div>'+names[0]+'</div><div>'+names[0]+'</div>'
+        return '<div>'+names[0]+'</div><div>'+names[1]+'</div>'
     }
 }

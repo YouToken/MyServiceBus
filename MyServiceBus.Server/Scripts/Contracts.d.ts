@@ -15,12 +15,17 @@ interface ITopicQueueSignalRContract{
   deleteOnDisconnect: boolean
 }
 
+interface ISubscriberSignalrRContract{
+  topicId :string,
+  queueId:string
+}
 
 interface IConnectionSignalRContract{
   id: string;
   name: string;
   ip:string;
   topics: string[];
+  queues: ISubscriberSignalrRContract[]
 }
 
 

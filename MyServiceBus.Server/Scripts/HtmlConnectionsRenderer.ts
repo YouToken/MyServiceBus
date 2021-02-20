@@ -106,6 +106,10 @@ class HtmlConnectionsRenderer {
       topics += HtmlCommonRenderer.renderBadge('secondary', topic)+" ";
     }
     
+    let queues = "";
+    for (let queue of conn.queues){
+      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+" ";
+    }
     
     return '<tr><td>' + conn.id + '</td>' +
         '<td style="font-size: 10px">' +
@@ -113,7 +117,7 @@ class HtmlConnectionsRenderer {
         '<div>Ip:' + conn.ip + '</div>' +
         '</td>' +
         '<td>'+topics+'</td>'+
-        '<td></td>'+
+        '<td>'+queues+'</td>'+
         '</tr>';
   }
   
@@ -130,6 +134,8 @@ class HtmlConnectionsRenderer {
         result[topic] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';
       }
     }
+    
+    console.log(result);
     
     for (let topic of Object.keys(result)){
       let el = document.getElementById('topic-connections-'+topic);
