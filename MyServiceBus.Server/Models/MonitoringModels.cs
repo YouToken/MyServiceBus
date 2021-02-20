@@ -215,4 +215,11 @@ namespace MyServiceBus.Server.Models
             });
         }
     }
+
+
+    public class SnapshotsContract
+    {
+        public int TopicSnapshotId { get; set; }
+        public int TcpConnections { get; set; }
+    }
 }

@@ -41,4 +41,21 @@ class HtmlCommonRenderer{
         
         return result;
     }
+    
+    private static getTopicsTable():string{
+        return '<table class="table table-striped">' +
+            '<tr><th>Topic</th><th>Topic connections</th><th>Queues</th><tbody id="topicData"></tbody></tr>'+
+            '</table>'
+    }
+
+    private static getTcpConnectionsDataTable():string{
+        return '<table class="table table-striped">' +
+            '<tr><th>Id</th><th>Info</th><th>Topics</th><th>Queues</th><tbody id="tcpConnections"></tbody></tr>'+
+            '</table>'
+    }
+    
+    
+    public static getMainLayout():string{
+        return this.getTopicsTable()+this.getTcpConnectionsDataTable();
+    }
 }

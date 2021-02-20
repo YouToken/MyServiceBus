@@ -1,3 +1,16 @@
+
+interface IMonitoringSnapshotsContract{
+  topicSnapshotId : number,
+  tcpConnections : number
+}
+
+
+interface IDataSnapshot<TData>{
+  snapshotId:number;
+  data:TData;
+}
+
+
 interface IMonitoringInfo {
   topics: ITopicInfo[];
   connections: IConnection[];
@@ -10,18 +23,23 @@ interface IPersistInfo {
   count: number;
 }
 
-interface ITopicInfo {
-  id: string;
-  msgPerSec: number;
-  requestsPerSec: number;
-  size: number;
-  consumers: IConsumer[];
-  publishers: number[];
+interface ITopicStatistic{
   cachedPages: number[];
   messagesPerSecond: number[];
+  msgPerSec: number;
+  requestsPerSec: number;
 }
 
-interface IConsumer {
+interface ITopicInfo {
+  id: string;
+
+  size: number;
+  consumers: ITopicQueue[];
+  publishers: number[];
+
+}
+
+interface ITopicQueue {
   queueId: string;
   persistence: number;
   connections: number;

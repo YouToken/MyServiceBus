@@ -10,16 +10,19 @@ class Main{
     
     public static request():void {
 
-        if (!this.bodyElement)
+        if (!this.bodyElement){
             this.bodyElement = document.getElementsByTagName("BODY")[0];
+            this.bodyElement.innerHTML = HtmlCommonRenderer.getMainLayout();
+        }
+            
         
         if (this.requesting)
             return;
 
         this.requesting = true;
 
-        $.ajax({url: '/Monitoring'})
-            .then((r: IMonitoringInfo) => {
+        $.ajax({url: '/Monitoring/Snapshots'})
+            .then((r: IMonitoringSnapshotsContract) => {
                 
                 this.requesting = false;
 

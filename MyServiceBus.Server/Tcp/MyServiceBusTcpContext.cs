@@ -98,6 +98,7 @@ namespace MyServiceBus.Server.Tcp
                 TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknownIP", DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion, SessionType.Tcp);
 
             SetContextName(greetingContract.Name);
+            ServiceLocator.TcpConnectionsSnapshotId++;
             return new ValueTask();
 
         }
@@ -133,6 +134,7 @@ namespace MyServiceBus.Server.Tcp
         {
 
             Console.WriteLine("Connected: " + TcpClient.Client.RemoteEndPoint);
+            ServiceLocator.TcpConnectionsSnapshotId++;
             return new ValueTask();
         }
 
@@ -141,6 +143,7 @@ namespace MyServiceBus.Server.Tcp
             Session?.Disconnect();
 
             Console.WriteLine("Disconnected: " + ContextName);
+            ServiceLocator.TcpConnectionsSnapshotId++;
             return ServiceLocator.Subscriber.DisconnectSubscriberAsync(this);
 
         }

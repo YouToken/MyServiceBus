@@ -72,6 +72,17 @@ namespace MyServiceBus.Server.Controllers
 
             return result;
         }
+
+        [HttpGet("/Monitoring/Snapshots")]
+        public SnapshotsContract Snapshots()
+        {
+            return new ()
+            {
+                TopicSnapshotId = ServiceLocator.TopicsList.SnapshotId,
+                TcpConnections = ServiceLocator.TcpConnectionsSnapshotId
+            };
+        }
+        
     }
     
 }

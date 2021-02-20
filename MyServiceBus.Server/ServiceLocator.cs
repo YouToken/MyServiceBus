@@ -18,6 +18,10 @@ namespace MyServiceBus.Server
 {
     public static class ServiceLocator
     {
+sdfsdf
+        public static int TcpConnectionsSnapshotId { get; set; }
+        
+        
         static ServiceLocator()
         {
             StartedAt = DateTime.UtcNow;
@@ -66,9 +70,7 @@ namespace MyServiceBus.Server
         private static MyServiceBusBackgroundExecutor _myServiceBusBackgroundExecutor;
         public static MyServerTcpSocket<IServiceBusTcpContract> TcpServer { get; internal set; }
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
-        
         public static MessagesPerSecondByTopic MessagesPerSecondByTopic { get; private set; }
-        
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
 
         public static void Init(IServiceProvider serviceProvider)

@@ -14,9 +14,6 @@ var HtmlTopicRenderer = /** @class */ (function () {
             "</tbody>" +
             "</table>");
     };
-    HtmlTopicRenderer.toDuration = function (v) {
-        return (v / 1000).toFixed(3) + "ms";
-    };
     HtmlTopicRenderer.renderTableData = function (r, c) {
         var itm = "";
         for (var _i = 0, r_1 = r; _i < r_1.length; _i++) {
@@ -41,7 +38,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     this.renderTopicConnections(el, c) +
                     "</td>" +
                     "<td>" +
-                    this.renderQueues(el.consumers) +
+                    TopicQueueRenderer.renderQueues(el.consumers) +
                     "</td>" +
                     "</tr>";
         }
@@ -67,37 +64,6 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     "</span>";
         }
         return result;
-    };
-    HtmlTopicRenderer.renderQueues = function (c) {
-        var _this = this;
-        var itm = "";
-        for (var _i = 0, c_1 = c; _i < c_1.length; _i++) {
-            var el = c_1[_i];
-            var deleteOnDisconnectBadge = el.deleteOnDisconnect
-                ? '<span class="badge badge-success">auto-delete</span>'
-                : '<span class="badge badge-warning">permanent</span>';
-            var connectsBadge = el.connections == 0
-                ? '<span class="badge badge-danger">Connects:' +
-                    el.connections +
-                    "</span>"
-                : '<span class="badge badge-primary">Connects:' +
-                    el.connections +
-                    "</span>";
-            var sizeBadge = el.queueSize < 1000
-                ? '<span class="badge badge-success">size:' + el.queueSize + "</span>"
-                : '<span class="badge badge-danger">size:' + el.queueSize + "</span>";
-            var readSlicesBadge = '<span class="badge badge-success">QReady:' + HtmlCommonRenderer.RenderQueueSlices(el.readySlices) + '</span>';
-            var leasedAmount = '<span class="badge badge-warning">Leased:' + el.leasedAmount + '</span>';
-            itm += '<table style="width:100%"><tr><td style="width: 100%">' +
-                "<div>" + el.queueId + "<span> </span>" + sizeBadge + "<span> </span>" + deleteOnDisconnectBadge + "</div>" +
-                connectsBadge +
-                "<span> </span>" +
-                readSlicesBadge +
-                "<span> </span>" +
-                leasedAmount +
-                "</td><td>" + HtmlCommonRenderer.renderGraph(el.executionDuration, function (v) { return _this.toDuration(v); }) + "</td></tr></table>";
-        }
-        return itm;
     };
     return HtmlTopicRenderer;
 }());

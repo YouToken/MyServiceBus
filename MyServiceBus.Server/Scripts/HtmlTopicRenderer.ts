@@ -15,10 +15,7 @@ class HtmlTopicRenderer {
     );
   }
   
-  private static toDuration(v:number):string {
 
-    return (v / 1000).toFixed(3) + "ms";
-  }
 
   public static renderTableData(r: ITopicInfo[], c: IConnection[]): string {
     let itm = "";
@@ -44,7 +41,7 @@ class HtmlTopicRenderer {
         this.renderTopicConnections(el, c) +
         "</td>" +
         "<td>" +
-        this.renderQueues(el.consumers) +
+          TopicQueueRenderer.renderQueues(el.consumers) +
         "</td>" +
         "</tr>";
 
@@ -79,43 +76,6 @@ class HtmlTopicRenderer {
     return result;
   }
 
-  private static renderQueues(c: IConsumer[]): string {
-    let itm = "";
-    for (let el of c) {
-      let deleteOnDisconnectBadge = el.deleteOnDisconnect
-        ? '<span class="badge badge-success">auto-delete</span>'
-        : '<span class="badge badge-warning">permanent</span>';
-
-      let connectsBadge =
-        el.connections == 0
-          ? '<span class="badge badge-danger">Connects:' +
-            el.connections +
-            "</span>"
-          : '<span class="badge badge-primary">Connects:' +
-            el.connections +
-            "</span>";
-
-      let sizeBadge =
-        el.queueSize < 1000
-          ? '<span class="badge badge-success">size:' + el.queueSize + "</span>"
-          : '<span class="badge badge-danger">size:' + el.queueSize + "</span>";
-
-      let readSlicesBadge = '<span class="badge badge-success">QReady:'+HtmlCommonRenderer.RenderQueueSlices(el.readySlices)+'</span>';
-
-      let leasedAmount = '<span class="badge badge-warning">Leased:'+el.leasedAmount+'</span>';
-
-      itm += '<table style="width:100%"><tr><td style="width: 100%">'+
-        "<div>"+el.queueId+"<span> </span>" +sizeBadge + "<span> </span>" +deleteOnDisconnectBadge +"</div>"+
-         connectsBadge +
-        "<span> </span>" +
-        readSlicesBadge +
-        "<span> </span>" +
-        leasedAmount +
-        "</td><td>"+HtmlCommonRenderer.renderGraph(el.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
-    }
-
-    return itm;
-  }
 
 
 }

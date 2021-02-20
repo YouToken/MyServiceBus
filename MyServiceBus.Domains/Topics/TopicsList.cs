@@ -14,6 +14,7 @@ namespace MyServiceBus.Domains.Topics
         
         private readonly object _lockObject = new ();
 
+        public int SnapshotId { get; private set; } = -1;
 
         public TopicsList(IMetricCollector metricCollector)
         {
@@ -47,6 +48,7 @@ namespace MyServiceBus.Domains.Topics
                 var newTopics = new Dictionary<string, MyTopic>(_topics) {{topicId, newTopic}};
                 _topics = newTopics;
                 _topicsAsList = _topics.Values.ToList();
+                SnapshotId++;
                 
                 return _topics[topicId];
             }
@@ -84,6 +86,7 @@ namespace MyServiceBus.Domains.Topics
                     Console.WriteLine("Restoring topic: "+topicPersistence.TopicId);
                     topic.Init(topicPersistence.QueueSnapshots);
                 }
+                SnapshotId++;
             }
         }
         
