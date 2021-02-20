@@ -52,15 +52,17 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
         return result;
     };
     HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
+        var topicQueueId = topicId + '-' + queue.id;
         var connectionsBadge = queue.connections > 0
             ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections)
             : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections);
         var queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
+        var sizeBadge = HtmlCommonRenderer.renderBadgeWithId('size-' + topicQueueId, 'success', "Size:-");
         return '<table style="width: 100%"><tr>' +
-            '<td style="width: 100%">' + queue.id + ' ' + connectionsBadge + ' ' + queueTypeBadge + '</td>' +
-            '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duratin</div><div id="metrix-' + topicId + '-' + queue.id + '"></div></td>' +
+            '<td style="width: 100%">' + queue.id + ' ' + connectionsBadge + ' ' + queueTypeBadge + ' ' + sizeBadge + '<div id="info-' + topicQueueId + '"></div></td>' +
+            '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duration</div><div id="metrix-' + topicQueueId + '"></div></td>' +
             '</tr></table>';
     };
     return HtmlTopicQueueRenderer;

@@ -2,10 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
-using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Tcp;
-using MyServiceBus.TcpContracts;
-using MyTcpSockets;
 
 namespace MyServiceBus.Server.Hubs
 {
@@ -21,46 +18,72 @@ namespace MyServiceBus.Server.Hubs
             return clientProxy.SendAsync("init", initModel);
         }
 
-        public static Task SendTopicsAsync(this IClientProxy clientProxy, IEnumerable<MyTopic> topics)
+        public static ValueTask SendTopicsAsync(this MonitoringConnection connection)
         {
-            return clientProxy.SendAsync("topics", topics.Select(itm => itm.ToTopicHubModel()).OrderBy(itm => itm.Id));
+            var snapshot = ServiceLocator.TopicsList.GetWithSnapshotId();
+
+            lock (connection.LockObject)
+            {
+                if (snapshot.snapshotId == connection.TopicsSnapshotId)
+                    return new ValueTask();
+
+                connection.TopicsSnapshotId = snapshot.snapshotId;
+                connection.TopicContexts.Clear();
+
+                foreach (var myTopic in snapshot.topics)
+                    connection.TopicContexts.Add(myTopic.TopicId, MonitoringConnectionTopicContext.Create(myTopic));
+            }
+
+            var task = connection.ClientProxy.SendAsync("topics", snapshot.topics.Select(itm => itm.ToTopicHubModel()).OrderBy(itm => itm.Id));
+            return new ValueTask(task);
         }
 
-
-        public static Task SendQueuesAsync(this IClientProxy clientProxy, IEnumerable<MyTopic> topics)
+        public static ValueTask SendQueuesAsync(this MonitoringConnection connection)
         {
-            var contract = new Dictionary<string, List<TopicQueueHubModel>>();
+            Dictionary<string, List<TopicQueueHubModel>> contract = null;
 
-            foreach (var topic in topics)
+            lock (connection.LockObject)
             {
-                contract.Add(topic.TopicId, new List<TopicQueueHubModel>());
-
-                foreach (var topicQueue in topic.GetQueues())
+                foreach (var topicCtx in connection.TopicContexts.Values)
                 {
-                    contract[topic.TopicId].Add(TopicQueueHubModel.Create(topicQueue));
+                    var snapshot = topicCtx.Topic.GetQueuesWithSnapshotId();
+                    
+                    if (topicCtx.QueuesSnapshotId == snapshot.snapshotId)
+                        continue;
+
+                    topicCtx.QueuesSnapshotId = snapshot.snapshotId;
+
+                    contract ??= new Dictionary<string, List<TopicQueueHubModel>>();
+                    contract.Add(topicCtx.Topic.TopicId, new List<TopicQueueHubModel>());
+
+                    foreach (var topicQueue in topicCtx.Topic.GetQueues())
+                    {
+                        contract[topicCtx.Topic.TopicId].Add(TopicQueueHubModel.Create(topicQueue));
+                    }
                 }
             }
-            return clientProxy.SendAsync("queues", contract);
+ 
+            return contract != null 
+                ? new ValueTask(connection.ClientProxy.SendAsync("queues", contract)) 
+                : new ValueTask();
         }
 
 
-        public static Task SendTopicMetricsAsync(this IClientProxy clientProxy, IEnumerable<MyTopic> topics)
+        public static Task SendTopicMetricsAsync(this MonitoringConnection connection)
         {
             
-            var contract = new Dictionary<string, IReadOnlyList<int>>();
+            var contract = ServiceLocator.TopicsList.Get()
+                .ToDictionary(topic => topic.TopicId, 
+                    topic => ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
 
-            foreach (var topic in topics)
-                contract.Add(topic.TopicId, ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
-            
-            return clientProxy.SendAsync("topic-metrics", contract);
+            return connection.ClientProxy.SendAsync("topic-metrics", contract);
         }
 
-
-        public static Task SendQueueMetricsAsync(this IClientProxy clientProxy, IEnumerable<MyTopic> topics)
+        public static Task SendQueueMetricsAsync(this MonitoringConnection connection)
         {
             var contract = new Dictionary<string, IReadOnlyList<int>>();
 
-            foreach (var topic in topics)
+            foreach (var topic in ServiceLocator.TopicsList.Get())
             {
                 foreach (var topicQueue in topic.GetQueues())
                 {
@@ -68,12 +91,12 @@ namespace MyServiceBus.Server.Hubs
                 }
             }
             
-            return clientProxy.SendAsync("queue-metrics", contract);
+            return connection.ClientProxy.SendAsync("queue-metrics", contract);
         }
 
         public static Task SendConnectionsAsync(this MonitoringConnection connection)
         {
-            var connections = ServiceLocator.TcpServer.GetConnections();
+            var connections = ServiceLocator.TcpServer.GetConnections().Cast<MyServiceBusTcpContext>();
             return connection.ClientProxy.SendAsync("connections", connections.Select(conn => conn.ToTcpConnectionHubModel()));
         }
 

@@ -15,15 +15,12 @@ interface ITopicQueueSignalRContract{
   deleteOnDisconnect: boolean
 }
 
-interface IDataSnapshot<TData>{
-  snapshotId:number;
-  data:TData;
-}
-
 
 interface IConnectionSignalRContract{
   id: string;
+  name: string;
   ip:string;
+  topics: string[];
 }
 
 

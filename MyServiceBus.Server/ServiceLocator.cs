@@ -128,10 +128,7 @@ namespace MyServiceBus.Server
                 foreach (var myTopic in TopicsList.Get())
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);
 
-                MonitoringHub.BroadCasMetrics();
-
-
-                return new ValueTask();
+                return new ValueTask(MonitoringHub.BroadCasMetricsAsync());
             });
 
             TimerGarbageCollector.Start();

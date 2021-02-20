@@ -90,8 +90,16 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         return result;
     };
     HtmlConnectionsRenderer.renderConnection = function (conn) {
+        var topics = "";
+        for (var _i = 0, _a = conn.topics; _i < _a.length; _i++) {
+            var topic = _a[_i];
+            topics += HtmlCommonRenderer.renderBadge('secondary', topic) + " ";
+        }
         return '<tr><td>' + conn.id + '</td>' +
-            '<td>Ip:' + conn.ip + '</td>' +
+            '<td style="font-size: 8px">' +
+            '<div>' + conn.name + '</div>Ip:' + conn.ip + '</td>' +
+            '<td>' + topics + '</td>' +
+            '<td></td>' +
             '</tr>';
     };
     return HtmlConnectionsRenderer;

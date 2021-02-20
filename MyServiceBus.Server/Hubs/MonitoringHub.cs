@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 
@@ -10,27 +11,44 @@ namespace MyServiceBus.Server.Hubs
         private static readonly MonitoringConnectionsList Connections =
             new ();
 
-        public static void BroadCasMetrics()
+        public static async Task BroadCasMetricsAsync()
         {
             var connections = Connections.GetAll();
 
-            var topics = ServiceLocator.TopicsList.Get();
 
             foreach (var connection in connections)
-                connection.ClientProxy.SendTopicMetricsAsync(topics);
+            {
+                try
+                {
+                    await SyncConnection(connection);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
             
-            foreach (var connection in connections)
-                connection.ClientProxy.SendQueueMetricsAsync(topics);
         } 
 
+        private static async Task SyncConnection(MonitoringConnection connection)
+        {
+            await connection.ClientProxy.SendInitAsync();
 
+            await connection.SendTopicsAsync();
+            
+            await connection.SendQueuesAsync();
+            
+            await connection.SendTopicMetricsAsync();
+            await connection.SendQueueMetricsAsync();
+            await connection.SendConnectionsAsync();
+        } 
         
         public override async Task OnConnectedAsync()
         {
             var newConnection = new MonitoringConnection(Context.ConnectionId, Clients.Caller);
             Connections.Add(newConnection);
             Console.WriteLine("Monitoring Connection: "+Context.ConnectionId);
-            await InitConnectionAsync(newConnection);
+            await SyncConnection(newConnection);
             await base.OnConnectedAsync();
         }
 
@@ -41,17 +59,9 @@ namespace MyServiceBus.Server.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
+        
 
-        private async Task InitConnectionAsync(MonitoringConnection connection)
-        {
-            await connection.ClientProxy.SendInitAsync();
 
-            var topics = ServiceLocator.TopicsList.Get();
-            await connection.ClientProxy.SendTopicsAsync(topics);
-            await connection.ClientProxy.SendQueuesAsync(topics);
-            await connection.ClientProxy.SendTopicMetricsAsync(topics);
-            await connection.ClientProxy.SendQueueMetricsAsync(topics);
-            await connection.SendConnectionsAsync();
-        } 
+
     }
 }

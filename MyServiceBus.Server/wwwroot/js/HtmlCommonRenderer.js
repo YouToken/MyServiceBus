@@ -52,6 +52,9 @@ var HtmlCommonRenderer = /** @class */ (function () {
     HtmlCommonRenderer.renderBadge = function (badgeType, content) {
         return '<span class="badge badge-' + badgeType + '">' + content + '</span>';
     };
+    HtmlCommonRenderer.renderBadgeWithId = function (id, badgeType, content) {
+        return '<span id="' + id + '" class="badge badge-' + badgeType + '">' + content + '</span>';
+    };
     HtmlCommonRenderer.toDuration = function (v) {
         return (v / 1000).toFixed(3) + "ms";
     };

@@ -99,8 +99,18 @@ class HtmlConnectionsRenderer {
   
   
   private static renderConnection(conn: IConnectionSignalRContract):string {
+    
+    let topics = "";
+    
+    for (let topic of conn.topics){
+      topics += HtmlCommonRenderer.renderBadge('secondary', topic)+" ";
+    }
+    
     return '<tr><td>' + conn.id + '</td>' +
-        '<td>Ip:' + conn.ip + '</td>' +
+        '<td style="font-size: 8px">' +
+        '<div>'+conn.name+'</div>Ip:' + conn.ip + '</td>' +
+        '<td>'+topics+'</td>'+
+        '<td></td>'+
         '</tr>';
   }
 }

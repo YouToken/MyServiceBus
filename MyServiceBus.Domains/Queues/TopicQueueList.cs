@@ -14,7 +14,7 @@ namespace MyServiceBus.Domains.Queues
         private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
 
-        public int SnapshotId { get; private set; } = -1;
+        public int SnapshotId { get; private set; }
                 
         public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges)
         {
@@ -23,8 +23,10 @@ namespace MyServiceBus.Domains.Queues
                 var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges);
                 _topicQueues.Add(queueName, queue);
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
-
+                SnapshotId++;
+                
                 CalcMinMessageId();
+                
             }
         }
         
@@ -40,9 +42,10 @@ namespace MyServiceBus.Domains.Queues
                 if (!added)
                     return value;
 
-                SnapshotId++;
+
                 _topicQueues = newDictionary;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
+                SnapshotId++;
 
                 return value;
             }
@@ -60,11 +63,12 @@ namespace MyServiceBus.Domains.Queues
                 if (!newDictionary.removed) 
                     return;
 
-                SnapshotId++;
+
                 
                 _topicQueues = newDictionary.result;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
-
+                SnapshotId++;
+                
             }
         }
 
@@ -72,6 +76,15 @@ namespace MyServiceBus.Domains.Queues
         public IReadOnlyList<TopicQueue> GetQueues()
         {
             return _queuesAsReadOnlyList;
+        }
+        
+        public (IReadOnlyList<TopicQueue> queues, int snapshotId) GetQueuesWithSnapshotId()
+        {
+            lock (_lockObject)
+            {
+                return (_queuesAsReadOnlyList, SnapshotId);    
+            }
+            
         }
 
         public long MinMessageId { get; private set; }

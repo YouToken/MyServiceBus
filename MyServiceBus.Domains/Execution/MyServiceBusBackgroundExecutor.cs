@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;

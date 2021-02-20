@@ -18,6 +18,7 @@ namespace MyServiceBus.Domains.Topics
         
         public MessagesContentCache MessagesContentCache { get; }
         
+        
         public override string ToString()
         {
             return "Topic: " + TopicId;
@@ -54,6 +55,11 @@ namespace MyServiceBus.Domains.Topics
         public IReadOnlyList<TopicQueue> GetQueues()
         {
             return _topicQueueList.GetQueues();
+        }
+        
+        public (IReadOnlyList<TopicQueue> queues, int snapshotId) GetQueuesWithSnapshotId()
+        {
+            return _topicQueueList.GetQueuesWithSnapshotId();
         }
 
         public long MessagesCount => _topicQueueList.GetMessagesCount();

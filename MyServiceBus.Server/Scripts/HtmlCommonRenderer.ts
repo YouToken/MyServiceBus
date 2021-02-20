@@ -63,6 +63,10 @@ class HtmlCommonRenderer{
         return '<span class="badge badge-'+badgeType+'">'+content+'</span>'
     }
 
+    public static renderBadgeWithId(id:string, badgeType:string,  content:string):string{
+        return '<span id="'+id+'" class="badge badge-'+badgeType+'">'+content+'</span>'
+    }
+
 
     public static toDuration(v:number):string {
         return (v / 1000).toFixed(3) + "ms";

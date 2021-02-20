@@ -13,6 +13,9 @@ namespace MyServiceBus.Server.Hubs
         public string Id { get; set; }
         
         public IEnumerable<long> Pages { get; set; }
+        
+        
+        public IEnumerable<TopicHubModel> Queues { get; set; }
     }
 
 
@@ -39,7 +42,25 @@ namespace MyServiceBus.Server.Hubs
     public class TcpConnectionHubModel
     {
         public string Id { get; set; }
+        public string Name { get; set; }
         public string Ip { get; set; }
+        
+        public IEnumerable<string> Topics { get; set; }
+    }
+    
+    
+    public class TopicConnectionHubModel
+    {
+        public string Name { get; set; }
+        public string Ip { get; set; }
+    }
+    
+    
+    public class TopicAndQueueMonitoringDataHubModel
+    {
+        public string Id { get; set; }
+        public IEnumerable<long> Pages { get; set; }
+        public IEnumerable<TopicConnectionHubModel> TopicConnections { get; set; }
     }
 
 

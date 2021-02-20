@@ -12,9 +12,10 @@ namespace MyServiceBus.Domains.Topics
         private Dictionary<string, MyTopic> _topics = new ();
         private IReadOnlyList<MyTopic> _topicsAsList = new List<MyTopic>();
         
+        
         private readonly object _lockObject = new ();
 
-        public int SnapshotId { get; private set; } = -1;
+        public int SnapshotId { get; private set; }
 
         public TopicsList(IMetricCollector metricCollector)
         {
@@ -24,6 +25,14 @@ namespace MyServiceBus.Domains.Topics
         public IReadOnlyList<MyTopic> Get()
         {
             return _topicsAsList;
+        }
+        
+        public (IReadOnlyList<MyTopic> topics, int snapshotId) GetWithSnapshotId()
+        {
+            lock (_lockObject)
+            {
+                return (_topicsAsList, SnapshotId); 
+            }
         }
         
         public MyTopic Get(string topicId)

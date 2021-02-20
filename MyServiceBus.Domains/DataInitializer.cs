@@ -33,6 +33,7 @@ namespace MyServiceBus.Domains
             var persistentProcessor = serviceProvider.GetRequiredService<MessageContentPersistentProcessor>();
 
             var tasks = new List<Task>();
+            
             foreach (var topic in topicsList.Get())
             {
                 var activePages = topic.GetActiveMessagePages();

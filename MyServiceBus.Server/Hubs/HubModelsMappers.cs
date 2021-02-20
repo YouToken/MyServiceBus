@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Server.Tcp;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -16,14 +19,17 @@ namespace MyServiceBus.Server.Hubs
             };
         }
         
-        internal static TcpConnectionHubModel ToTcpConnectionHubModel(this TcpContext<IServiceBusTcpContract> tcpContext)
+        internal static TcpConnectionHubModel ToTcpConnectionHubModel(this MyServiceBusTcpContext tcpContext)
         {
             return new ()
             {
                 Id = tcpContext.Id.ToString(),
+                Name = tcpContext.ContextName,
                 Ip = tcpContext.TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknown",
+                Topics = tcpContext.Session == null 
+                    ? Array.Empty<string>() 
+                    : tcpContext.Session.GetTopicsToPublish()
             };
-
         }
     }
 }
