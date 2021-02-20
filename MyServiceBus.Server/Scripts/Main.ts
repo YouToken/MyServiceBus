@@ -98,9 +98,26 @@ class Main{
                 for (let queue of metric.queues){
                     let topicQueueId = metric.id+'-'+queue.id;
 
-                    el = document.getElementById('queue1-'+topicQueueId);
-                    if (el)
-                        el.innerHTML = HtmlTopicQueueRenderer.renderTopicFirstLine(queue);
+                    el = document.getElementById('size-'+topicQueueId);
+                    if (el){
+                        let oldVal = el.innerHTML;
+                        let newVal = queue.size.toFixed(0);
+                        el.innerHTML = newVal;
+                        
+                        if (newVal != oldVal){
+                            if (queue.size>0){
+                                el.classList.remove('badge-danger');
+                                el.classList.add('badge-primary');
+                     
+                            }
+                            else{
+                                el.classList.remove('badge-primary');
+                                el.classList.add('badge-danger');
+                            }
+                        }
+                        
+                    }
+                        
 
                     el = document.getElementById('queue2-'+topicQueueId);
                     if (el)
