@@ -35,6 +35,11 @@ var Utils = /** @class */ (function () {
             return (b / this.mb).toFixed(3) + "Mb";
         return (b / this.gb).toFixed(3) + "Gb";
     };
+    Utils.queueIsEmpty = function (slices) {
+        if (slices.length > 1)
+            return false;
+        return slices[0].from > slices[0].to;
+    };
     Utils.mb = 1024 * 1024;
     Utils.gb = 1024 * 1024 * 1024;
     return Utils;

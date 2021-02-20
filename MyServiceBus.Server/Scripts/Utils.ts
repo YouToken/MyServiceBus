@@ -39,4 +39,11 @@ class Utils {
 
     return (b / this.gb).toFixed(3) + "Gb";
   }
+
+  public static queueIsEmpty(slices:IQueueIndex[]):boolean{
+    if (slices.length>1)
+      return false;
+
+    return slices[0].from > slices[0].to;
+  }
 }

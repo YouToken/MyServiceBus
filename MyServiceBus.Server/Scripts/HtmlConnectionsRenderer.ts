@@ -103,13 +103,13 @@ class HtmlConnectionsRenderer {
     let topics = "";
     
     for (let topic of conn.topics){
-      topics += HtmlCommonRenderer.renderBadge('secondary', topic)+" ";
+      topics += HtmlCommonRenderer.renderBadge('secondary', topic)+"<br/>";
     }
     
     let queues = "";
     for (let queue of conn.queues){
       queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+
-          HtmlCommonRenderer.renderBadge('warning', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+
+          HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) ? 'warning' : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+
           "<hr/>";
     }
     
@@ -119,8 +119,8 @@ class HtmlConnectionsRenderer {
         '<div><b>Ip</b>:' + conn.ip + '</div>' +
         '<div><b>Connected</b>:' + conn.connected + '</div>' +
         '<div><b>Last incoming:</b>:' + conn.recv + '</div>' +
-        '<div><b>Read bytes:</b>:' + conn.readBytes + '</div>' +
-        '<div><b>Sent bytes:</b>:' + conn.sentBytes + '</div>' +
+        '<div><b>Read bytes:</b>:' + Utils.renderBytes(conn.readBytes)  + '</div>' +
+        '<div><b>Sent bytes:</b>:' + Utils.renderBytes(conn.sentBytes) + '</div>' +
         '</td>' +
         '<td>'+topics+'</td>'+
         '<td>'+queues+'</td>'+
