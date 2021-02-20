@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using MyTcpSockets;
 using MyTcpSockets.Extensions;
 
@@ -28,29 +29,7 @@ namespace MyServiceBus.TcpContracts
             foreach (var (key, value) in packetVersions.GetPackets())
                 _packetVersions.Add(key, value);  
         }
-        
-        public async IAsyncEnumerable<IServiceBusTcpContract> DeserializeAsync(TcpDataReader reader, [EnumeratorCancellation] CancellationToken ct)
-        {
-            
-            var command = await reader.ReadByteAsync(ct);
 
-            var instance = DataContractsMapper.ResolveDataContact(command);
-
-            var packetVersion = GetPacketVersion(command);
-            
-            await instance.DeserializeAsync(reader, _protocolVersion, packetVersion, ct);
-
-            if (instance is GreetingContract greetingContract)
-            {
-                Console.WriteLine($"Greeting: {greetingContract.Name}; ProtocolVersion: "+greetingContract.ProtocolVersion);
-                _protocolVersion = greetingContract.ProtocolVersion;
-            }
-
-            if (instance is PacketVersionsContract packetVersions)
-                HandlePacketVersions(packetVersions);
-            
-            yield return instance;
-        }
 
         public int BufferSize { get; } = 1024 * 16;
 
@@ -74,8 +53,29 @@ namespace MyServiceBus.TcpContracts
             return mem.ToArray();
         }
 
+        public async ValueTask<IServiceBusTcpContract> DeserializeAsync(ITcpDataReader reader, CancellationToken ct)
+        {
 
+            var command = await reader.ReadAndCommitByteAsync(ct);
 
+            var instance = DataContractsMapper.ResolveDataContact(command);
+
+            var packetVersion = GetPacketVersion(command);
+
+            await instance.DeserializeAsync(reader, _protocolVersion, packetVersion, ct);
+
+            if (instance is GreetingContract greetingContract)
+            {
+                Console.WriteLine($"Greeting: {greetingContract.Name}; ProtocolVersion: " +
+                                  greetingContract.ProtocolVersion);
+                _protocolVersion = greetingContract.ProtocolVersion;
+            }
+
+            if (instance is PacketVersionsContract packetVersions)
+                HandlePacketVersions(packetVersions);
+
+            return instance;
+        }
     }
     
 }

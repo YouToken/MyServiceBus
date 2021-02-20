@@ -1,6 +1,6 @@
-using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using MyTcpSockets.Extensions;
 using NUnit.Framework;
 
@@ -24,7 +24,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void TestPing()
+        public async Task TestPing()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -33,29 +33,22 @@ namespace MyServiceBus.TcpContracts.Tests
             var pingContract = new PingContract();
 
             var rawData = serializer.Serialize(pingContract);
-
-            var memStream = new MemoryStream(rawData.ToArray())
-            {
-                Position = 0
-            };
-
             
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            var dataReader = new TcpDataReader(2048, 2048);
+            dataReader.NewPackage(rawData);
 
             var ct = new CancellationTokenSource();
 
             var result
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(typeof(PingContract) == result.GetType());
         }
 
         
         [Test]
-        public void TestPong()
+        public async Task TestPong()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -65,24 +58,20 @@ namespace MyServiceBus.TcpContracts.Tests
 
             var rawData = serializer.Serialize(inContract);
 
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
-            
+            var dataReader = new TcpDataReader(2048, 2048);
+            dataReader.NewPackage(rawData);
             
             var ct = new CancellationTokenSource();
             
             var result
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(inContract.GetType() == result.GetType());   
         }
 
         [Test]
-        public void TestGreeting()
+        public async Task TestGreeting()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -92,26 +81,22 @@ namespace MyServiceBus.TcpContracts.Tests
                 Name = "MyName"
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
             
             var ct = new CancellationTokenSource();
             
             var result
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
             TestValues(inContract, result);
         }
 
         [Test]
-        public void TestPublishContract()
+        public async Task TestPublishContract()
         {
             var serializer = new MyServiceBusTcpSerializer();
 
@@ -123,20 +108,14 @@ namespace MyServiceBus.TcpContracts.Tests
                 ImmediatePersist = 1
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray())
-            {
-                Position = 0
-            };
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
 
             var ct = new CancellationTokenSource();
             
             var res 
-                = serializer.DeserializeAsync(dataReader, ct.Token).AsTestResult();
+                = await serializer.DeserializeAsync(dataReader, ct.Token);
            
            
            var result = (PublishContract) res;
@@ -157,7 +136,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void TestPublishResponseContract()
+        public async Task TestPublishResponseContract()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -167,20 +146,15 @@ namespace MyServiceBus.TcpContracts.Tests
                 RequestId = 66
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
             
             var ct = new CancellationTokenSource();
             
             var result
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
             TestValues(inContract, result);
@@ -188,7 +162,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void TestSubscribeContract()
+        public async Task TestSubscribeContract()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -201,26 +175,22 @@ namespace MyServiceBus.TcpContracts.Tests
                 DeleteOnDisconnect = true
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
 
             var ct = new CancellationTokenSource();
             
             var result 
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
             TestValues(inContract, result);
         }
 
         [Test]
-        public void TestSubscribeResponseContract()
+        public async Task TestSubscribeResponseContract()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -233,19 +203,15 @@ namespace MyServiceBus.TcpContracts.Tests
 
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
 
             var ct = new CancellationTokenSource();
             
             var result 
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             Assert.IsTrue(inContract.GetType() == result.GetType());
             TestValues(inContract, result);
@@ -254,7 +220,7 @@ namespace MyServiceBus.TcpContracts.Tests
 
 
         [Test]
-        public void TestNewMessageContract()
+        public async Task TestNewMessageContract()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -280,18 +246,14 @@ namespace MyServiceBus.TcpContracts.Tests
                 }
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());
+            dataReader.NewPackage(rawData);
 
             var ct = new CancellationTokenSource();
             
-            var res = serializer
-                .DeserializeAsync(dataReader, ct.Token)
-                .AsTestResult();
+            var res = await serializer
+                .DeserializeAsync(dataReader, ct.Token);
             
             var result = (NewMessageContract) res;
             Assert.AreEqual(inContract.TopicId, result.TopicId);
@@ -309,7 +271,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void TestNewMessageConfirmationContract()
+        public async Task TestNewMessageConfirmationContract()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -322,18 +284,14 @@ namespace MyServiceBus.TcpContracts.Tests
                 ConfirmationId = 555
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());            
+            dataReader.NewPackage(rawData);        
 
             var ct = new CancellationTokenSource();
             
             var res
-                = serializer.DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer.DeserializeAsync(dataReader, ct.Token);
 
              var result = (NewMessageConfirmationContract) res;
              Assert.AreEqual(inContract.TopicId, result.TopicId);
@@ -343,7 +301,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void TestCreateTopicIfNotExists()
+        public async Task TestCreateTopicIfNotExists()
         {
 
             var serializer = new MyServiceBusTcpSerializer();
@@ -355,19 +313,15 @@ namespace MyServiceBus.TcpContracts.Tests
                 MaxMessagesInCache = 243432
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());              
+            dataReader.NewPackage(rawData);             
 
             var ct = new CancellationTokenSource();
             
             var res
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             var result = (CreateTopicIfNotExistsContract) res;
             Assert.AreEqual(inContract.TopicId, result.TopicId);
@@ -375,7 +329,7 @@ namespace MyServiceBus.TcpContracts.Tests
         }
 
         [Test]
-        public void SendConfirmationsPacket()
+        public async Task SendConfirmationsPacket()
         {
             var serializer = new MyServiceBusTcpSerializer();
 
@@ -388,19 +342,15 @@ namespace MyServiceBus.TcpContracts.Tests
                 NotOk = new []{new MessagesInterval{FromId = 10, ToId = 10}, new MessagesInterval{FromId = 15, ToId = 16} },
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());             
+            dataReader.NewPackage(rawData);           
             
             var ct = new CancellationTokenSource();
             
             var res
-                = serializer
-                    .DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer
+                    .DeserializeAsync(dataReader, ct.Token);
 
             var result = (MessagesConfirmationContract) res;
             Assert.AreEqual(inContract.TopicId, result.TopicId);
@@ -417,7 +367,7 @@ namespace MyServiceBus.TcpContracts.Tests
         
         
         [Test]
-        public void TestPacketsVersionsContract()
+        public async Task TestPacketsVersionsContract()
         {
             var serializer = new MyServiceBusTcpSerializer();
             var deserializer = new MyServiceBusTcpSerializer();
@@ -426,18 +376,14 @@ namespace MyServiceBus.TcpContracts.Tests
             inContract.SetPacketVersion(CommandType.Publish, 1);
             inContract.SetPacketVersion(CommandType.NewMessage, 2);
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());            
+            dataReader.NewPackage(rawData);        
 
             var ct = new CancellationTokenSource();
             
             var res
-                = deserializer.DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await deserializer.DeserializeAsync(dataReader, ct.Token);
 
             var result = (PacketVersionsContract) res;
             var inPackets = inContract.GetPackets().ToDictionary(itm => itm.Key);
@@ -454,7 +400,7 @@ namespace MyServiceBus.TcpContracts.Tests
         
         
         [Test]
-        public void TestRejectConnectionContract()
+        public async Task TestRejectConnectionContract()
         {
             var serializer = new MyServiceBusTcpSerializer();
 
@@ -463,18 +409,14 @@ namespace MyServiceBus.TcpContracts.Tests
                 Message = "MyMessage"
             };
 
+            var dataReader = new TcpDataReader(2048, 2048);
             var rawData = serializer.Serialize(inContract);
-
-            var memStream = new MemoryStream(rawData.ToArray()) {Position = 0};
-            
-            var dataReader = new TcpDataReader();
-            dataReader.NewPackage(memStream.ToArray());            
+            dataReader.NewPackage(rawData);          
 
             var ct = new CancellationTokenSource();
             
             var res
-                = serializer.DeserializeAsync(dataReader, ct.Token)
-                    .AsTestResult();
+                = await serializer.DeserializeAsync(dataReader, ct.Token);
 
             var result = (RejectConnectionContract) res;
             Assert.AreEqual(inContract.Message, result.Message);

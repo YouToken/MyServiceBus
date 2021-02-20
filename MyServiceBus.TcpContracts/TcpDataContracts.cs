@@ -18,7 +18,7 @@ namespace MyServiceBus.TcpContracts
     public interface IServiceBusTcpContract
     {
         void Serialize(Stream stream, int protocolVersion, int packetVersion);
-        ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct);
+        ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct);
     }
 
     public class PingContract : IServiceBusTcpContract
@@ -30,7 +30,8 @@ namespace MyServiceBus.TcpContracts
         {
         }
 
-        public ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+
+        public ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             return new ValueTask(); 
         }
@@ -45,7 +46,7 @@ namespace MyServiceBus.TcpContracts
          
         }
 
-        public ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             return new ValueTask(); 
         }
@@ -63,7 +64,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteInt(ProtocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             Name = await dataReader.ReadPascalStringAsync(ct);
             ProtocolVersion = await dataReader.ReadIntAsync(ct);
@@ -87,12 +88,12 @@ namespace MyServiceBus.TcpContracts
             stream.WriteByte(ImmediatePersist);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             RequestId = await dataReader.ReadLongAsync(protocolVersion, ct);
             Data = await dataReader.ReadListOfByteArrayAsync(ct);
-            ImmediatePersist = await dataReader.ReadByteAsync(ct);
+            ImmediatePersist = await dataReader.ReadAndCommitByteAsync(ct);
         }
     }    
     
@@ -106,7 +107,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(RequestId, protocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
 
             RequestId = await dataReader.ReadLongAsync(protocolVersion, ct);
@@ -126,11 +127,11 @@ namespace MyServiceBus.TcpContracts
             stream.WriteByte(DeleteOnDisconnect ? (byte)1 : (byte)0);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
-            DeleteOnDisconnect = await dataReader.ReadByteAsync(ct) == 1;
+            DeleteOnDisconnect = await dataReader.ReadAndCommitByteAsync(ct) == 1;
         }
     }    
     
@@ -145,7 +146,7 @@ namespace MyServiceBus.TcpContracts
             stream.WritePascalString(QueueId);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
@@ -184,7 +185,7 @@ namespace MyServiceBus.TcpContracts
                 }
             }
 
-            public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+            public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
             {
                 if (packetVersion == 0)
                 {
@@ -221,7 +222,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteArrayOfItems(Data, protocolVersion, packetVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
@@ -246,7 +247,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(ConfirmationId, protocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
@@ -266,7 +267,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(MaxMessagesInCache, protocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             MaxMessagesInCache = await dataReader.ReadLongAsync(protocolVersion, ct);
@@ -284,7 +285,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(ToId, protocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             FromId = await dataReader.ReadLongAsync(protocolVersion, ct);
             ToId = await dataReader.ReadLongAsync(protocolVersion, ct);
@@ -307,7 +308,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteArrayOfItems(NotOk, protocolVersion, packetVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
@@ -331,7 +332,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(ConfirmationId, protocolVersion);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
@@ -367,13 +368,13 @@ namespace MyServiceBus.TcpContracts
            }
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
-            var count = await dataReader.ReadByteAsync(ct);
+            var count = await dataReader.ReadAndCommitByteAsync(ct);
 
             for (byte i = 0; i < count; i++)
             {
-                var key = await dataReader.ReadByteAsync(ct);
+                var key = await dataReader.ReadAndCommitByteAsync(ct);
                 var value = await dataReader.ReadIntAsync(ct);
                 _versions.Add(key, value);
             }
@@ -394,7 +395,7 @@ namespace MyServiceBus.TcpContracts
             stream.WritePascalString(Message);
         }
 
-        public async ValueTask DeserializeAsync(TcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             Message = await dataReader.ReadPascalStringAsync(ct);
         }

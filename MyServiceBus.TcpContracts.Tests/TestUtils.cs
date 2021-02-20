@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyTcpSockets.Extensions;
 
 namespace MyServiceBus.TcpContracts.Tests
 {
@@ -22,10 +24,13 @@ namespace MyServiceBus.TcpContracts.Tests
         {
             return src.AsReadOnlyListAsync().Result;
         }
-
-        public static T AsTestResult<T>(this IAsyncEnumerable<T> src)
+        
+        public static void NewPackage(this TcpDataReader tcpDataReader, ReadOnlyMemory<byte> data)
         {
-            return src.AsReadOnlyListAsync().Result.First();
+            var buf = tcpDataReader.AllocateBufferToWrite();
+            data.CopyTo(buf);
+            tcpDataReader.CommitWrittenData(data.Length);
+
         }
         
         

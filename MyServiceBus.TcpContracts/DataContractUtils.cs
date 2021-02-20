@@ -21,7 +21,7 @@ namespace MyServiceBus.TcpContracts
             stream.WriteLong(value);
         }
         
-        public static async ValueTask<long> ReadLongAsync(this TcpDataReader dataReader, long protocolVersion, CancellationToken ct)
+        public static async ValueTask<long> ReadLongAsync(this ITcpDataReader dataReader, long protocolVersion, CancellationToken ct)
         {
             if (protocolVersion < 2)
                 return await dataReader.ReadIntAsync(ct);
@@ -40,7 +40,7 @@ namespace MyServiceBus.TcpContracts
                 item.Serialize(stream, protocolVersion, packetVersion);
         }
         
-        public static async Task<IReadOnlyList<T>> ReadArrayOfItemsAsync<T>(this TcpDataReader reader,  int protocolVersion, int packetVersion, CancellationToken ct) 
+        public static async Task<IReadOnlyList<T>> ReadArrayOfItemsAsync<T>(this ITcpDataReader reader,  int protocolVersion, int packetVersion, CancellationToken ct) 
             where T:IServiceBusTcpContract, new()
         {
             var len = await reader.ReadIntAsync(ct);
@@ -67,7 +67,7 @@ namespace MyServiceBus.TcpContracts
             }
         }
 
-        public static async ValueTask<IReadOnlyList<byte[]>> ReadListOfByteArrayAsync(this TcpDataReader reader, CancellationToken ct)
+        public static async ValueTask<IReadOnlyList<byte[]>> ReadListOfByteArrayAsync(this ITcpDataReader reader, CancellationToken ct)
         {
 
             var dataLen = await reader.ReadIntAsync(ct);
@@ -76,7 +76,7 @@ namespace MyServiceBus.TcpContracts
             for (var i = 0; i < dataLen; i++)
             {
                 var data = await reader.ReadByteArrayAsync(ct);
-                result.Add(data.ToArray());
+                result.Add(data);
             }
 
             return result;

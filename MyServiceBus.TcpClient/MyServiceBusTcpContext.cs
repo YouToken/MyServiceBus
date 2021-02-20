@@ -121,7 +121,7 @@ namespace MyServiceBus.TcpClient
                 DeleteOnDisconnect = deleteOnDisconnect
             };
             
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
 
         
@@ -212,7 +212,7 @@ namespace MyServiceBus.TcpClient
                 ConfirmationId = messages.ConfirmationId
             };
             
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
         
         private void SendMessageReject(NewMessageContract messages)
@@ -224,7 +224,7 @@ namespace MyServiceBus.TcpClient
                 ConfirmationId = messages.ConfirmationId
             };
             
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
         
         
@@ -261,7 +261,7 @@ namespace MyServiceBus.TcpClient
                 ProtocolVersion = ProtocolVersion
             };
 
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
 
 
@@ -269,7 +269,7 @@ namespace MyServiceBus.TcpClient
         {
             var packetVersions = new PacketVersionsContract();
             packetVersions.SetPacketVersion(CommandType.NewMessage, 1);
-            SendPacketAsync(packetVersions);
+            SendDataToSocket(packetVersions);
         }
 
         private void SetCreateTopicIfNotExistsOnConnect(string topicId, int maxCachedSize)
@@ -280,7 +280,7 @@ namespace MyServiceBus.TcpClient
                 MaxMessagesInCache = maxCachedSize
             };
 
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
 
 
@@ -383,7 +383,7 @@ namespace MyServiceBus.TcpClient
                 ImmediatePersist = 0
             };
                 
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
 
             state.SetOnRequest(requestId);
             
@@ -420,7 +420,7 @@ namespace MyServiceBus.TcpClient
 
             try
             {
-                await SendPacketAsync(contract);
+                SendDataToSocket(contract);
                 await task.Task.Task;
             }
             catch (Exception)

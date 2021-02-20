@@ -24,7 +24,9 @@ namespace MyServiceBus.Server.Tcp
                 return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
             
             Console.WriteLine($"There is a confirmation {confirmationId} for a topic {topicId} which is not found");
-            return DisconnectAsync();
+            Disconnect();
+
+            return new ValueTask();
         }
 
         private async ValueTask PublishAsync(PublishContract contract)
@@ -33,7 +35,7 @@ namespace MyServiceBus.Server.Tcp
             if (Session == null)
             {
                 Console.WriteLine($"Trying to publish to topic {contract.TopicId} with no active Session");
-                await DisconnectAsync();
+                Disconnect();
                 return;
             }
 
@@ -48,7 +50,7 @@ namespace MyServiceBus.Server.Tcp
             if (response != ExecutionResult.Ok)
             {
                 Console.WriteLine("Can not publish the message. Reason: " + response);
-                await DisconnectAsync();
+                Disconnect();
                 return;
             }
 
@@ -57,7 +59,7 @@ namespace MyServiceBus.Server.Tcp
                 RequestId = contract.RequestId
             };
 
-            await SendPacketAsync(resp);
+            SendDataToSocket(resp);
         }
 
         public MyServiceBusSession Session { get; private set; }
@@ -89,7 +91,7 @@ namespace MyServiceBus.Server.Tcp
             if (!AcceptedProtocolVersions.ContainsKey(greetingContract.ProtocolVersion))
             {
                 Console.WriteLine(greetingContract.Name + $" is attempting to connect with invalid protocol version {greetingContract.ProtocolVersion}. Acceptable versions are {GetAcceptedProtocolVersions()}");
-                return DisconnectAsync();
+                Disconnect();
             }
 
             Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
@@ -107,7 +109,7 @@ namespace MyServiceBus.Server.Tcp
             if (Session == null)
             {
                 Console.WriteLine($"Client with IP {TcpClient.Client.RemoteEndPoint} is trying to subscribe to topic {contract.TopicId} but it has not sent greeting message yet");
-                DisconnectAsync();
+                Disconnect();
                 return;
             }
 
@@ -116,7 +118,7 @@ namespace MyServiceBus.Server.Tcp
             if (topic == null)
             {
                 Console.WriteLine($"Client {Session.Name} is trying to subscribe to the topic {contract.TopicId} which does not exists");
-                DisconnectAsync();
+                Disconnect();
                 return;
             }
 
@@ -154,7 +156,8 @@ namespace MyServiceBus.Server.Tcp
                 switch (data)
                 {
                     case PingContract _:
-                        return SendPacketAsync(PongContract.Instance);
+                        SendDataToSocket(PongContract.Instance);
+                        return new ValueTask();
 
                     case SubscribeContract subscribeContract:
                         ExecuteSubscribe(subscribeContract);
@@ -226,7 +229,7 @@ namespace MyServiceBus.Server.Tcp
             };
 
             Session.SubscribePacketsInternal++;
-            SendPacketAsync(contract);
+            SendDataToSocket(contract);
         }
 
         private string _subscriberId;
