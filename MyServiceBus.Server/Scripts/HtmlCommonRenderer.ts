@@ -71,4 +71,13 @@ class HtmlCommonRenderer{
     public static toDuration(v:number):string {
         return (v / 1000).toFixed(3) + "ms";
     }
+    
+    public static renderClientName(name:string):string{
+        let names = name.split(';');
+        
+        if (name.length == 1)
+            return '<div>'+name+'</div>';
+        
+        return '<div>'+names[0]+'</div><div>'+names[0]+'</div>'
+    }
 }

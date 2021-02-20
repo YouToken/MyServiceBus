@@ -106,11 +106,37 @@ class HtmlConnectionsRenderer {
       topics += HtmlCommonRenderer.renderBadge('secondary', topic)+" ";
     }
     
+    
     return '<tr><td>' + conn.id + '</td>' +
-        '<td style="font-size: 8px">' +
-        '<div>'+conn.name+'</div>Ip:' + conn.ip + '</td>' +
+        '<td style="font-size: 10px">' +
+        HtmlCommonRenderer.renderClientName(conn.name)+
+        '<div>Ip:' + conn.ip + '</div>' +
+        '</td>' +
         '<td>'+topics+'</td>'+
         '<td></td>'+
         '</tr>';
+  }
+  
+  
+  public static renderTopicsConnections(connections:IConnectionSignalRContract[]){
+    
+    let result = {};
+    
+    for (let conn of connections){
+      for (let topic in conn.topics){
+        if (!result[topic])
+          result[topic] = "";
+        
+        result[topic] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';
+      }
+    }
+    
+    for (let topic of Object.keys(result)){
+      let el = document.getElementById('topic-connections-'+topic);
+      if (el)
+        el.innerHTML = result[topic];
+    }
+    
+    
   }
 }

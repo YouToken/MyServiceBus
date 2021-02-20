@@ -24,13 +24,6 @@ interface IConnectionSignalRContract{
 }
 
 
-interface IMonitoringInfo {
-  topics: ITopicInfo[];
-  connections: IConnection[];
-  tcpConnections: number;
-  queueToPersist: IPersistInfo[];
-}
-
 interface IPersistInfo {
   topicId: string;
   count: number;

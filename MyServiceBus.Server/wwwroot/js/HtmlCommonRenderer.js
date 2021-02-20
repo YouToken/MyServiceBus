@@ -58,6 +58,12 @@ var HtmlCommonRenderer = /** @class */ (function () {
     HtmlCommonRenderer.toDuration = function (v) {
         return (v / 1000).toFixed(3) + "ms";
     };
+    HtmlCommonRenderer.renderClientName = function (name) {
+        var names = name.split(';');
+        if (name.length == 1)
+            return '<div>' + name + '</div>';
+        return '<div>' + names[0] + '</div><div>' + names[0] + '</div>';
+    };
     return HtmlCommonRenderer;
 }());
 //# sourceMappingURL=HtmlCommonRenderer.js.map

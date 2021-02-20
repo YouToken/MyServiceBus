@@ -74,6 +74,8 @@ class Main{
         
         this.signalRConnection.on('connections', (data:IConnectionSignalRContract[])=>{
             this.getConnectionsBody().innerHTML = HtmlConnectionsRenderer.renderConnections(data);
+            
+            HtmlConnectionsRenderer.renderTopicsConnections(data);
         });
     }
     

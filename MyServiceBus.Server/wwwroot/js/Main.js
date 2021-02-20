@@ -52,6 +52,7 @@ var Main = /** @class */ (function () {
         });
         this.signalRConnection.on('connections', function (data) {
             _this.getConnectionsBody().innerHTML = HtmlConnectionsRenderer.renderConnections(data);
+            HtmlConnectionsRenderer.renderTopicsConnections(data);
         });
     };
     Main.timerTick = function () {
