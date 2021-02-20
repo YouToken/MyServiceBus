@@ -40,6 +40,14 @@ var Utils = /** @class */ (function () {
             return false;
         return slices[0].from > slices[0].to;
     };
+    Utils.getQueueSize = function (slices) {
+        var result = 0;
+        for (var _i = 0, slices_1 = slices; _i < slices_1.length; _i++) {
+            var slice = slices_1[_i];
+            result += slice.to - slice.from + 1;
+        }
+        return result;
+    };
     Utils.mb = 1024 * 1024;
     Utils.gb = 1024 * 1024 * 1024;
     return Utils;

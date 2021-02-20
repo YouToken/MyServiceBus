@@ -12,10 +12,13 @@ class HtmlTopicQueueRenderer{
     }
 
     public static renderTopicFirstLine(queue:ITopicQueueSignalRContract){
-        let connectionsBadge = queue.connections > 0
+        return  queue.connections > 0
             ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections)
             : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections);
-
+    }
+    
+    
+    public static renderTopicSecondLine(queue:ITopicQueueSignalRContract){
 
         let queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
@@ -23,13 +26,10 @@ class HtmlTopicQueueRenderer{
 
         let sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:"+queue.size)
         
-        return connectionsBadge+' '+queueTypeBadge+' '+sizeBadge;
-    }
-    
-    
-    public static renderTopicSecondLine(queue:ITopicQueueSignalRContract){
+        let queueSize = Utils.getQueueSize(queue.ready);
+        let queueBadge = HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
         
-        return HtmlCommonRenderer.renderBadge("primary", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
+        return queueBadge+' '+sizeBadge+' '+queueTypeBadge;
     }
     
     private static renderTopicQueue(topicId:string, queue:ITopicQueueSignalRContract):string{

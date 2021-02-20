@@ -42,6 +42,7 @@ namespace MyServiceBus.Server.Hubs
             await connection.SendTopicGraphAsync();
             await connection.SendQueueGraphAsync();
             await connection.SendConnectionsAsync();
+            await connection.SendPersistentQueueAsync();
         } 
         
         public override async Task OnConnectedAsync()

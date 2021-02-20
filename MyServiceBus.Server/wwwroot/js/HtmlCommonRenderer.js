@@ -47,7 +47,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
             '</table>';
     };
     HtmlCommonRenderer.getMainLayout = function () {
-        return this.getTopicsTable() + this.getTcpConnectionsDataTable() + '<div id="persistent-queue"></div>';
+        return this.getTopicsTable() + this.getTcpConnectionsDataTable() + '<h1>Messages to persist Amount:</h1><div id="persistent-queue"></div>';
     };
     HtmlCommonRenderer.renderBadge = function (badgeType, content) {
         return '<span class="badge badge-' + badgeType + '">' + content + '</span>';

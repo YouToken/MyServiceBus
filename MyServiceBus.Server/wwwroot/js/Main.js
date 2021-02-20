@@ -53,6 +53,11 @@ var Main = /** @class */ (function () {
             _this.getConnectionsBody().innerHTML = HtmlConnectionsRenderer.renderConnections(data);
             HtmlConnectionsRenderer.renderTopicsConnections(data);
         });
+        this.signalRConnection.on('persist-queue', function (data) {
+            var el = document.getElementById('persistent-queue');
+            if (el)
+                el.innerHTML = HtmlQueueToPersistRenderer.RenderQueueToPersistTable(data);
+        });
         this.signalRConnection.on("topic-metrics", function (data) {
             for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
                 var metric = data_1[_i];

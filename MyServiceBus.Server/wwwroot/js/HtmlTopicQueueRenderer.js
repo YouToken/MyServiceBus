@@ -10,17 +10,18 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
         return result;
     };
     HtmlTopicQueueRenderer.renderTopicFirstLine = function (queue) {
-        var connectionsBadge = queue.connections > 0
+        return queue.connections > 0
             ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections)
             : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections);
+    };
+    HtmlTopicQueueRenderer.renderTopicSecondLine = function (queue) {
         var queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
         var sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:" + queue.size);
-        return connectionsBadge + ' ' + queueTypeBadge + ' ' + sizeBadge;
-    };
-    HtmlTopicQueueRenderer.renderTopicSecondLine = function (queue) {
-        return HtmlCommonRenderer.renderBadge("primary", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
+        var queueSize = Utils.getQueueSize(queue.ready);
+        var queueBadge = HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
+        return queueBadge + ' ' + sizeBadge + ' ' + queueTypeBadge;
     };
     HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
         var topicQueueId = topicId + '-' + queue.id;

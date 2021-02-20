@@ -105,7 +105,19 @@ namespace MyServiceBus.Server.Hubs
         {
             var contract = ServiceLocator.TopicsList.Get().Select(TopicMetricsHubModel.Create);
             return connection.ClientProxy.SendAsync("topic-metrics", contract);
+        }
 
+
+        public static Task SendPersistentQueueAsync(this MonitoringConnection connection)
+        {
+            var contract = ServiceLocator.MessagesToPersistQueue.GetMessagesToPersistCount().Select(itm =>
+            new PersistentQueueHubModel
+            {
+                Id = itm.topic,
+                Size = itm.count
+            });
+
+            return connection.ClientProxy.SendAsync("persist-queue", contract);
         }
 
     }

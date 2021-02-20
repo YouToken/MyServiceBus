@@ -120,4 +120,10 @@ namespace MyServiceBus.Server.Hubs
     
     }
 
+    public class PersistentQueueHubModel
+    {
+        public string Id { get; set; }
+        public int Size { get; set; }
+    }
+
 }

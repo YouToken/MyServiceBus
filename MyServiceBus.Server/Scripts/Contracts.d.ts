@@ -38,36 +38,10 @@ interface IConnectionSignalRContract{
 
 
 interface IPersistInfo {
-  topicId: string;
-  count: number;
-}
-
-interface ITopicStatistic{
-  cachedPages: number[];
-  messagesPerSecond: number[];
-  msgPerSec: number;
-  requestsPerSec: number;
-}
-
-interface ITopicInfo {
   id: string;
-
   size: number;
-  consumers: ITopicQueue[];
-  publishers: number[];
-
 }
 
-interface ITopicQueue {
-  queueId: string;
-  persistence: number;
-  connections: number;
-  queueSize: number;
-  deleteOnDisconnect: boolean;
-  leasedAmount: number;
-  readySlices: IQueueIndex[];
-  executionDuration: number[];
-}
 
 interface IUnknownConnection {
   id: number;

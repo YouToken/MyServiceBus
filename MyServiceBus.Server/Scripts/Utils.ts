@@ -46,4 +46,12 @@ class Utils {
 
     return slices[0].from > slices[0].to;
   }
+  
+  public static getQueueSize(slices:IQueueIndex[]):number{
+    let result = 0;
+    for(let slice of slices){
+      result += slice.to - slice.from+1;
+    }
+    return result;
+  }
 }

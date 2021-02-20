@@ -77,6 +77,11 @@ class Main{
             HtmlConnectionsRenderer.renderTopicsConnections(data);
         });
         
+        this.signalRConnection.on('persist-queue', (data : IPersistInfo[])=>{
+          let el = document.getElementById('persistent-queue');
+          if (el)
+              el.innerHTML = HtmlQueueToPersistRenderer.RenderQueueToPersistTable(data);
+        });
         
         this.signalRConnection.on("topic-metrics", (data:ITopicMetricsSignalRContract[])=>{
             
