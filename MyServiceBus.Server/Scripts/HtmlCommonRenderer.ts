@@ -57,7 +57,7 @@ class HtmlCommonRenderer{
     
     
     public static getMainLayout():string{
-        return this.getTopicsTable()+this.getTcpConnectionsDataTable()+'<h1>Messages to persist Amount:</h1><div id="persistent-queue"></div>';
+        return this.getTopicsTable()+this.getTcpConnectionsDataTable()+'<div id="persistent-queue"></div>';
     }
     
     public static renderBadge(badgeType:string,  content:string):string{

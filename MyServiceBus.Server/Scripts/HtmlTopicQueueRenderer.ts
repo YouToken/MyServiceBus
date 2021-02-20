@@ -11,14 +11,18 @@ class HtmlTopicQueueRenderer{
         return result;
     }
 
-    public static renderTopicFirstLine(id:string, queue:ITopicQueueSignalRContract){
-        return  queue.connections > 0
-            ? HtmlCommonRenderer.renderBadgeWithId('size-'+id, 'primary', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections)
-            : HtmlCommonRenderer.renderBadgeWithId('size-'+id, 'danger', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections);
-    }
     
-    
-    public static renderTopicSecondLine(queue:ITopicQueueSignalRContract){
+    public static renderQueueLine(queue:ITopicQueueSignalRContract){
+
+        let connectionBadge = 
+            HtmlCommonRenderer.renderBadge(queue.connections > 0 ? 'primary' : 'danger', 
+                '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections);
+
+        
+        let queueSize = Utils.getQueueSize(queue.ready);
+        let queueBadge =  HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success",
+            HtmlCommonRenderer.RenderQueueSlices(queue.ready));
+
 
         let queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
@@ -26,10 +30,7 @@ class HtmlTopicQueueRenderer{
 
         let sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:"+queue.size)
         
-        let queueSize = Utils.getQueueSize(queue.ready);
-        let queueBadge = HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
-        
-        return queueBadge+' '+sizeBadge+' '+queueTypeBadge;
+        return connectionBadge+' '+sizeBadge+' '+queueTypeBadge+' '+queueBadge;
     }
     
     private static renderTopicQueue(topicId:string, queue:ITopicQueueSignalRContract):string{
@@ -37,8 +38,8 @@ class HtmlTopicQueueRenderer{
         let topicQueueId = topicId+'-'+queue.id;
         
         return '<table style="width: 100%"><tr>' +
-            '<td style="width: 100%">'+queue.id+' '+this.renderTopicFirstLine(topicQueueId, queue) +
-            '<div id="queue2-'+topicQueueId+'">'+this.renderTopicSecondLine(queue)+'</div></td>' +
+            '<td style="width: 100%">'+queue.id+' '+
+            '<span id="queue-info-'+topicQueueId+'">'+this.renderQueueLine(queue)+'</span></td>' +
             '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duration</div><div id="queue-duration-graph-'+topicQueueId+'"></div></td>' +
             '</tr></table>'
         
