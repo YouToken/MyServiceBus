@@ -36,6 +36,25 @@ var HtmlCommonRenderer = /** @class */ (function () {
         }
         return result;
     };
+    HtmlCommonRenderer.getTopicsTable = function () {
+        return '<table class="table table-striped">' +
+            '<tr><th>Topic</th><th>Topic connections</th><th>Queues</th><tbody id="topicTableBody"></tbody></tr>' +
+            '</table>';
+    };
+    HtmlCommonRenderer.getTcpConnectionsDataTable = function () {
+        return '<table class="table table-striped">' +
+            '<tr><th>Id</th><th>Info</th><th>Topics</th><th>Queues</th><tbody id="tcpConnections"></tbody></tr>' +
+            '</table>';
+    };
+    HtmlCommonRenderer.getMainLayout = function () {
+        return this.getTopicsTable() + this.getTcpConnectionsDataTable();
+    };
+    HtmlCommonRenderer.renderBadge = function (badgeType, content) {
+        return '<span class="badge badge-' + badgeType + '">' + content + '</span>';
+    };
+    HtmlCommonRenderer.toDuration = function (v) {
+        return (v / 1000).toFixed(3) + "ms";
+    };
     return HtmlCommonRenderer;
 }());
 //# sourceMappingURL=HtmlCommonRenderer.js.map

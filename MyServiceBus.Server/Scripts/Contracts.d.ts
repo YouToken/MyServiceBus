@@ -1,13 +1,29 @@
 
-interface IMonitoringSnapshotsContract{
-  topicSnapshotId : number,
-  tcpConnections : number
+interface ITopicSignalRContract{
+  id: string,
+  pages: number[],
 }
 
+
+interface IInitSignalRContract{
+  version: string;
+}
+
+interface ITopicQueueSignalRContract{
+  id: string,
+  connections: number,
+  deleteOnDisconnect: boolean
+}
 
 interface IDataSnapshot<TData>{
   snapshotId:number;
   data:TData;
+}
+
+
+interface IConnectionSignalRContract{
+  id: string;
+  ip:string;
 }
 
 

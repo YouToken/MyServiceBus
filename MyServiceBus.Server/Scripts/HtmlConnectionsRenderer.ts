@@ -87,4 +87,20 @@ class HtmlConnectionsRenderer {
 
     return itm;
   }
+  
+  
+  public static renderConnections(connections: IConnectionSignalRContract[]):string{
+    let result = "";
+    for (let connection of connections){
+      result += this.renderConnection(connection);
+    }
+    return result;
+  }
+  
+  
+  private static renderConnection(conn: IConnectionSignalRContract):string {
+    return '<tr><td>' + conn.id + '</td>' +
+        '<td>Ip:' + conn.ip + '</td>' +
+        '</tr>';
+  }
 }

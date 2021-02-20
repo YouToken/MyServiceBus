@@ -22,14 +22,14 @@ var HtmlTopicRenderer = /** @class */ (function () {
                 "<tr><td><b>" +
                     el.id +
                     "</b><div>Msg/sec: " +
-                    el.msgPerSec +
+                    // el.msgPerSec +
                     "</div><div>Req/sec: " +
-                    el.requestsPerSec +
+                    // el.requestsPerSec +
                     "</div>" +
                     "<hr/><div>Cached:</div><div>" +
-                    this.renderCachedPages(el) +
+                    //  this.renderCachedPages(el) +
                     "</div><div>" +
-                    HtmlCommonRenderer.renderGraph(el.messagesPerSecond, function (v) { return v.toFixed(0); }) +
+                    //   HtmlCommonRenderer.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
                     "</div>" +
                     "<td>" +
                     el.size +
@@ -38,7 +38,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
                     this.renderTopicConnections(el, c) +
                     "</td>" +
                     "<td>" +
-                    TopicQueueRenderer.renderQueues(el.consumers) +
+                    HtmlTopicQueueRenderer.renderQueues(el.consumers) +
                     "</td>" +
                     "</tr>";
         }
@@ -54,14 +54,31 @@ var HtmlTopicRenderer = /** @class */ (function () {
         }
         return itm;
     };
-    HtmlTopicRenderer.renderCachedPages = function (r) {
+    HtmlTopicRenderer.renderCachedPages = function (pages) {
         var result = "";
-        for (var _i = 0, _a = r.cachedPages; _i < _a.length; _i++) {
-            var info = _a[_i];
+        for (var _i = 0, pages_1 = pages; _i < pages_1.length; _i++) {
+            var id = pages_1[_i];
             result +=
                 '<span class="badge badge-secondary" style="margin-right: 5px">' +
-                    info +
+                    id +
                     "</span>";
+        }
+        return result;
+    };
+    HtmlTopicRenderer.renderTopicsTableBody = function (topics) {
+        var result = "";
+        for (var _i = 0, topics_1 = topics; _i < topics_1.length; _i++) {
+            var topic = topics_1[_i];
+            result += '<tr>' +
+                '<td><b>' + topic.id + '</b>' +
+                '<div id="statistic-' + topic.id + '"></div>' +
+                '<hr/>' +
+                '<div style="font-size: 12px">Cached pages:</div>' +
+                '<div id="cached-pages-' + topic.id + '">' + this.renderCachedPages(topic.pages) + '</div>' +
+                '<div id="topic-metrics-' + topic.id + '"></div>' +
+                '</td>' +
+                '<td id="topic-connections-' + topic.id + '"></td>' +
+                '<td id="topic-queues-' + topic.id + '"></td></tr>';
         }
         return result;
     };

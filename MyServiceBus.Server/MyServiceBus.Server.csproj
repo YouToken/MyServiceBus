@@ -29,13 +29,13 @@
 
     <ItemGroup>
       <TypeScriptCompile Include="Scripts\Contracts.d.ts" />
-      <TypeScriptCompile Include="Scripts\DataLocator.ts" />
       <TypeScriptCompile Include="Scripts\HtmlCommonRenderer.ts" />
       <TypeScriptCompile Include="Scripts\HtmlConnectionsRenderer.ts" />
       <TypeScriptCompile Include="Scripts\HtmlQueueToPersistRenderer.ts" />
       <TypeScriptCompile Include="Scripts\HtmlTopicRenderer.ts" />
       <TypeScriptCompile Include="Scripts\Main.ts" />
-      <TypeScriptCompile Include="Scripts\TopicQueueRenderer.ts" />
+      <TypeScriptCompile Include="Scripts\HtmlTopicQueueRenderer.ts" />
+      <TypeScriptCompile Include="Scripts\typings\signalr.d.ts" />
       <TypeScriptCompile Include="Scripts\Utils.ts" />
     </ItemGroup>
 

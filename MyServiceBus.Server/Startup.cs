@@ -8,6 +8,7 @@ using MyServiceBus.Server.Grpc;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.Domains;
 using MyServiceBus.Domains.Persistence;
+using MyServiceBus.Server.Hubs;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 using Prometheus;
@@ -37,6 +38,7 @@ namespace MyServiceBus.Server
             MyServiceBusMemory.AllocateByteArray = SocketMemoryUtils.AllocateByteArray;
             
             services.AddCodeFirstGrpc();
+            services.AddSignalR();
             var settings = MySettingsReader.SettingsReader.GetSettings<SettingsModel>(".myservicebus");
             
             services.AddApplicationInsightsTelemetry(Configuration);
@@ -85,9 +87,8 @@ namespace MyServiceBus.Server
                     endpoints.MapGrpcService<PublisherApi>();
                     endpoints.MapGrpcService<ManagementGrpcService>();
                     endpoints.MapMetrics();
+                    endpoints.MapHub<MonitoringHub>("/monitoringhub");
                 });
-
-
 
             var sp = _services.BuildServiceProvider();
                         

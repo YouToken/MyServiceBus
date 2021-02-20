@@ -81,6 +81,19 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         }
         return itm;
     };
+    HtmlConnectionsRenderer.renderConnections = function (connections) {
+        var result = "";
+        for (var _i = 0, connections_1 = connections; _i < connections_1.length; _i++) {
+            var connection = connections_1[_i];
+            result += this.renderConnection(connection);
+        }
+        return result;
+    };
+    HtmlConnectionsRenderer.renderConnection = function (conn) {
+        return '<tr><td>' + conn.id + '</td>' +
+            '<td>Ip:' + conn.ip + '</td>' +
+            '</tr>';
+    };
     return HtmlConnectionsRenderer;
 }());
 //# sourceMappingURL=HtmlConnectionsRenderer.js.map

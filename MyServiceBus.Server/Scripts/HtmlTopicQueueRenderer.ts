@@ -1,14 +1,14 @@
-class TopicQueueRenderer{
+class HtmlTopicQueueRenderer{
     public static renderQueues(queues: ITopicQueue[]): string {
         let itm = "";
         for (let q of queues) {
-            itm += this.renderTopicQueue(q);
+            //itm += this.renderTopicQueue(q);
         }
 
         return itm;
     }
     
-    
+    /*
     private static renderTopicQueue(q: ITopicQueue){
         let deleteOnDisconnectBadge = q.deleteOnDisconnect
             ? '<span class="badge badge-success">auto-delete</span>'
@@ -41,9 +41,38 @@ class TopicQueueRenderer{
             leasedAmount +
             "</td><td>"+HtmlCommonRenderer.renderGraph(q.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
     }
+*/
 
-    private static toDuration(v:number):string {
-        return (v / 1000).toFixed(3) + "ms";
+    
+    
+    public static renderTopicQueues(topicId:string, queues:ITopicQueueSignalRContract[]):string{
+        
+        let result = "";
+        
+        for (let queue of queues){
+            result += this.renderTopicQueue(topicId, queue)
+        }
+        
+        return result;
     }
+    
+    private static renderTopicQueue(topicId:string, queue:ITopicQueueSignalRContract):string{
+
+        let connectionsBadge = queue.connections > 0
+            ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections)
+            : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> '+queue.connections);
+        
+        
+        let queueTypeBadge = queue.deleteOnDisconnect 
+            ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
+            : HtmlCommonRenderer.renderBadge('warning', 'permanent');
+        
+        return '<table style="width: 100%"><tr>' +
+            '<td style="width: 100%">'+queue.id+' '+connectionsBadge+' '+queueTypeBadge+'</td>' +
+            '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duratin</div><div id="metrix-'+topicId+'-'+queue.id+'"></div></td>' +
+            '</tr></table>'
+        
+    }
+    
 
 }

@@ -10,6 +10,7 @@ using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
+using MyServiceBus.Server.Hubs;
 using MyServiceBus.Server.Services;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
@@ -18,7 +19,7 @@ namespace MyServiceBus.Server
 {
     public static class ServiceLocator
     {
-sdfsdf
+
         public static int TcpConnectionsSnapshotId { get; set; }
         
         
@@ -122,11 +123,14 @@ sdfsdf
 
             TimerStatistic.Register("Metrics timer", () =>
             {
+                TopicsList.KickMetricsTimer();
+                
                 foreach (var myTopic in TopicsList.Get())
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);
 
-                TopicsList.KickMetricsTimer();
-                ;
+                MonitoringHub.BroadCasMetrics();
+
+
                 return new ValueTask();
             });
 
@@ -152,7 +156,6 @@ sdfsdf
 
             while (MyGlobalVariables.PublishRequestsAmountAreBeingProcessed > 0)
                 Thread.Sleep(500);
-
         }
         
     }

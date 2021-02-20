@@ -25,14 +25,14 @@ class HtmlTopicRenderer {
         "<tr><td><b>" +
         el.id +
         "</b><div>Msg/sec: " +
-        el.msgPerSec +
+       // el.msgPerSec +
         "</div><div>Req/sec: " +
-        el.requestsPerSec +
+       // el.requestsPerSec +
         "</div>" +
         "<hr/><div>Cached:</div><div>" +
-        this.renderCachedPages(el) +
+      //  this.renderCachedPages(el) +
         "</div><div>" +
-          HtmlCommonRenderer.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
+       //   HtmlCommonRenderer.renderGraph(el.messagesPerSecond, v => v.toFixed(0)) +
         "</div>" +
         "<td>" +
         el.size +
@@ -41,7 +41,7 @@ class HtmlTopicRenderer {
         this.renderTopicConnections(el, c) +
         "</td>" +
         "<td>" +
-          TopicQueueRenderer.renderQueues(el.consumers) +
+          HtmlTopicQueueRenderer.renderQueues(el.consumers) +
         "</td>" +
         "</tr>";
 
@@ -63,19 +63,42 @@ class HtmlTopicRenderer {
     return itm;
   }
 
-  private static renderCachedPages(r: ITopicInfo) {
+
+  private static renderCachedPages(pages: number[]) {
     let result = "";
 
-    for (let info of r.cachedPages) {
+    for (let id of pages) {
       result +=
-        '<span class="badge badge-secondary" style="margin-right: 5px">' +
-        info +
-        "</span>";
+          '<span class="badge badge-secondary" style="margin-right: 5px">' +
+          id +
+          "</span>";
     }
 
     return result;
   }
 
+
+  
+  public static renderTopicsTableBody(topics:ITopicSignalRContract[]):string{
+    
+    let result = "";
+    
+    for (let topic of topics){
+      result += '<tr>' +
+          '<td><b>'+topic.id+'</b>' +
+          '<div id="statistic-'+topic.id+'"></div>' +
+          '<hr/>' +
+          '<div style="font-size: 12px">Cached pages:</div>' +
+          '<div id="cached-pages-'+topic.id+'">'+this.renderCachedPages(topic.pages)+'</div>' +
+          '<div id="topic-metrics-'+topic.id+'"></div>' +
+          '</td>' +
+          
+          '<td id="topic-connections-'+topic.id+'"></td>' +
+          '<td id="topic-queues-'+topic.id+'"></td></tr>'
+    }
+    
+    return result;
+  }
 
 
 }

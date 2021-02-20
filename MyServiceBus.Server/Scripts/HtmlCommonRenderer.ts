@@ -44,7 +44,7 @@ class HtmlCommonRenderer{
     
     private static getTopicsTable():string{
         return '<table class="table table-striped">' +
-            '<tr><th>Topic</th><th>Topic connections</th><th>Queues</th><tbody id="topicData"></tbody></tr>'+
+            '<tr><th>Topic</th><th>Topic connections</th><th>Queues</th><tbody id="topicTableBody"></tbody></tr>'+
             '</table>'
     }
 
@@ -57,5 +57,14 @@ class HtmlCommonRenderer{
     
     public static getMainLayout():string{
         return this.getTopicsTable()+this.getTcpConnectionsDataTable();
+    }
+    
+    public static renderBadge(badgeType:string,  content:string):string{
+        return '<span class="badge badge-'+badgeType+'">'+content+'</span>'
+    }
+
+
+    public static toDuration(v:number):string {
+        return (v / 1000).toFixed(3) + "ms";
     }
 }

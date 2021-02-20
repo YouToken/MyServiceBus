@@ -1,7 +1,7 @@
-var TopicQueueRenderer = /** @class */ (function () {
-    function TopicQueueRenderer() {
+var HtmlTopicQueueRenderer = /** @class */ (function () {
+    function HtmlTopicQueueRenderer() {
     }
-    TopicQueueRenderer.renderQueues = function (queues) {
+    HtmlTopicQueueRenderer.renderQueues = function (queues) {
         var itm = "";
         for (var _i = 0, queues_1 = queues; _i < queues_1.length; _i++) {
             var q = queues_1[_i];
@@ -43,26 +43,26 @@ var TopicQueueRenderer = /** @class */ (function () {
             "</td><td>"+HtmlCommonRenderer.renderGraph(q.executionDuration, v => this.toDuration(v))+"</td></tr></table>";
     }
 */
-    TopicQueueRenderer.toDuration = function (v) {
-        return (v / 1000).toFixed(3) + "ms";
-    };
-    TopicQueueRenderer.renderTopicQueues = function (queues) {
+    HtmlTopicQueueRenderer.renderTopicQueues = function (topicId, queues) {
         var result = "";
         for (var _i = 0, queues_2 = queues; _i < queues_2.length; _i++) {
             var queue = queues_2[_i];
-            result += this.renderTopicQueue(queue);
+            result += this.renderTopicQueue(topicId, queue);
         }
         return result;
     };
-    TopicQueueRenderer.renderTopicQueue = function (queue) {
+    HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
+        var connectionsBadge = queue.connections > 0
+            ? HtmlCommonRenderer.renderBadge('primary', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections)
+            : HtmlCommonRenderer.renderBadge('danger', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections);
         var queueTypeBadge = queue.deleteOnDisconnect
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
         return '<table style="width: 100%"><tr>' +
-            '<th style="width: 100%">' + queue.id + ' ' + queueTypeBadge + '</th>' +
-            '<th style="width: 100%"></th>' +
+            '<td style="width: 100%">' + queue.id + ' ' + connectionsBadge + ' ' + queueTypeBadge + '</td>' +
+            '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duratin</div><div id="metrix-' + topicId + '-' + queue.id + '"></div></td>' +
             '</tr></table>';
     };
-    return TopicQueueRenderer;
+    return HtmlTopicQueueRenderer;
 }());
-//# sourceMappingURL=TopicQueueRenderer.js.map
+//# sourceMappingURL=HtmlTopicQueueRenderer.js.map
