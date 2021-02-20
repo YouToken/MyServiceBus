@@ -13,6 +13,8 @@ namespace MyServiceBus.Domains.Queues
         private readonly object _lockObject = new();
         private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
+
+        public int SnapshotId { get; private set; } = -1;
                 
         public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges)
         {
@@ -38,6 +40,7 @@ namespace MyServiceBus.Domains.Queues
                 if (!added)
                     return value;
 
+                SnapshotId++;
                 _topicQueues = newDictionary;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
 
@@ -50,14 +53,14 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_lockObject)
             {
-                if (!_topicQueues.ContainsKey(queueName))
-                    return;
 
                 var newDictionary = _topicQueues.RemoveIfExistsByCreatingNewDictionary(queueName,
                     (k1, k2)=> k1 == k2);
 
                 if (!newDictionary.removed) 
                     return;
+
+                SnapshotId++;
                 
                 _topicQueues = newDictionary.result;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 

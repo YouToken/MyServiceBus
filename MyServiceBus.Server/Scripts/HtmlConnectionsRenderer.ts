@@ -33,8 +33,8 @@ class HtmlConnectionsRenderer {
       if (el.queues)
         for (let queue of el.queues) {
 
-          let leasedQueue = ' <span class="badge badge-warning">QReady:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased)+'</span>';
-          queues += '<div><span class="badge badge-secondary">' + queue.id +leasedQueue+ '</span><div>';
+          let leasedQueue = ' <span class="badge badge-warning">Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased)+'</span>';
+          queues += '<div><span class="badge badge-secondary">' + queue.id + '</span>'+leasedQueue+'<div><hr/>';
         }
 
       itm +=

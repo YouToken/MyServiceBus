@@ -166,10 +166,9 @@ namespace MyServiceBus.Abstractions.QueueIndex
         public void Reset()
         {
             while (_ranges.Count>1)
-                _ranges.RemoveAt(_ranges.Count - 1);
+                _ranges.RemoveAt(0);
 
-            _ranges[0].FromId = 0;
-            _ranges[0].ToId = -1;
+            _ranges[0].FromId = _ranges[0].ToId+1;
         }
     }
 }
