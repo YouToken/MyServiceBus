@@ -18,7 +18,7 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
         var sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:" + queue.size);
         var leasedBadge = HtmlCommonRenderer.renderBadge("warning", "Leased: " + queue.leased);
-        return connectionBadge + ' ' + sizeBadge + ' ' + queueTypeBadge + ' ' + queueBadge + ' ' + leasedBadge;
+        return connectionBadge + ' ' + queueTypeBadge + ' ' + sizeBadge + ' ' + queueBadge + ' ' + leasedBadge;
     };
     HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
         var topicQueueId = topicId + '-' + queue.id;

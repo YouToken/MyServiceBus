@@ -18,7 +18,6 @@ namespace MyServiceBus.Server.Hubs
                 Pages = topic.MessagesContentCache.Pages
             };
         }
-
         
         internal static TcpConnectionHubModel ToTcpConnectionHubModel(this MyServiceBusTcpContext tcpContext)
         {
@@ -38,7 +37,6 @@ namespace MyServiceBus.Server.Hubs
                 Queues = tcpContext.Session == null 
                     ? Array.Empty<TcpConnectionSubscribeHubModel>() 
                     : tcpContext.Session.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))
-
             };
         }
     }

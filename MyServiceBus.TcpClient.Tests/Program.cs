@@ -89,7 +89,7 @@ namespace MyServiceBus.TcpClientTest
 
             Task.Delay(2000).Wait();
   
-            myServiceBusTcpClient.PublishFireAndForget("test-topic", asArray);
+            myServiceBusTcpClient.PublishAsync("test-topic", asArray, false);
 
             while (true)
             {

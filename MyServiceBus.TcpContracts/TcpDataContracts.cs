@@ -13,7 +13,6 @@ namespace MyServiceBus.TcpContracts
     {
 
     }
-
     
     public interface IServiceBusTcpContract
     {
@@ -75,11 +74,8 @@ namespace MyServiceBus.TcpContracts
     {
         public string TopicId { get; set; }
         public long RequestId { get; set; }
-        
         public byte ImmediatePersist { get; set; }
-        
         public IReadOnlyList<byte[]> Data { get; set; }
-        
         public void Serialize(Stream stream, int protocolVersion, int packetVersion)
         {
             stream.WritePascalString(TopicId);

@@ -24,13 +24,9 @@ namespace MyServiceBus.Server.Hubs
     public class TopicQueueHubModel
     {
         public string Id { get; set; }
-        
         public bool DeleteOnDisconnect { get; set; }
-        
         public long Size { get; set; }
-        
         public int Connections { get; set; }
-        
         public int Leased { get; set; }
         public IEnumerable<QueueSliceHubModel> Ready { get; set; }
 

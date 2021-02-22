@@ -26,7 +26,16 @@ namespace MyServiceBus.TcpClient
                 )
                 .RegisterTcpSerializerFactory(()=>new MyServiceBusTcpSerializer())
                 .RegisterTcpContextFactory(() => new MyServiceBusTcpContext(_subscribers, name, 
-                    _packetExceptionHandler, ()=>_checkAndCreateTopics));
+                    _payLoadCollector, _packetExceptionHandler,
+                    ()=>_checkAndCreateTopics));
+        }
+
+
+        private bool _throwExceptionIfPublishNoConnection;
+        public MyServiceBusTcpClient ThrowExceptionOnPublishIfNoConnection(bool throwExceptionIfPublishNoConnection)
+        {
+            _throwExceptionIfPublishNoConnection = throwExceptionIfPublishNoConnection;
+            return this;
         }
 
         public MyServiceBusTcpClient PlugSocketLogs(Action<ITcpContext, object> callback)
@@ -70,42 +79,48 @@ namespace MyServiceBus.TcpClient
                 new SubscriberInfo(topicId, queueId, deleteOnDisconnect, null, callback));
         }
 
-        public void PublishFireAndForget(string topicId, byte[] valueToPublish)
+
+        public Task PublishAsync(string topicId, byte[] valueToPublish, bool immediatelyPersist)
         {
-            var item = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
+            var connection = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
 
-            if (item == null)
-                throw new Exception("No active connection");
+            if (_throwExceptionIfPublishNoConnection)
+            {
+                if (connection == null)
+                    throw new Exception("No active connection");
+            }
 
+            var result = _payLoadCollector.AddMessage(connection.Id, topicId, valueToPublish, immediatelyPersist);
 
-            item.PublishFireAndForget(topicId, new[] {valueToPublish});
-        }
-        
-        public void PublishFireAndForget(string topicId, IEnumerable<byte[]> valueToPublish)
-        {
-            var item = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
-
-            if (item == null)
-                throw new Exception("No active connection");
-
-
-            item.PublishFireAndForget(topicId, valueToPublish);
-        }
-
-        public Task PublishAsync(string topicId, byte[] valueToPublish, bool persistImmediately)
-        {
-            return PublishAsync(topicId, new[] {valueToPublish}, persistImmediately);
-        }
-        
-        public Task PublishAsync(string topicId, IReadOnlyList<byte[]> valueToPublish, bool persistImmediately)
-        {
-            var item = (MyServiceBusTcpContext)_clientTcpSocket.CurrentTcpContext;
+            var nextPayloadToPublish = _payLoadCollector.GetNextPayloadToPublish();
             
-            if (item == null)
-                throw new Exception("No active connection");
-
-            return item.PublishAsync(topicId, valueToPublish, persistImmediately);
+            if (nextPayloadToPublish != null)
+                connection.Publish(nextPayloadToPublish);
+            
+            return result;
         }
+        
+        public Task PublishAsync(string topicId, IEnumerable<byte[]> valueToPublish, bool immediatelyPersist)
+        {
+            var connection = (MyServiceBusTcpContext)_clientTcpSocket.CurrentTcpContext;
+            
+            if (_throwExceptionIfPublishNoConnection)
+            {
+                if (connection == null)
+                    throw new Exception("No active connection");
+            }
+
+            var result = _payLoadCollector.AddMessage(connection.Id, topicId, valueToPublish, immediatelyPersist);
+
+            var nextPayloadToPublish = _payLoadCollector.GetNextPayloadToPublish();
+
+            if (nextPayloadToPublish != null)
+                connection.Publish(nextPayloadToPublish);
+
+            return result;
+        }
+
+        private readonly PayLoadCollector _payLoadCollector = new PayLoadCollector(1024*1024*5);
         
         public void Start()
         {

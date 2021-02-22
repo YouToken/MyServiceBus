@@ -30,7 +30,7 @@ class HtmlTopicQueueRenderer{
         
         let leasedBadge = HtmlCommonRenderer.renderBadge("warning", "Leased: "+queue.leased);
         
-        return connectionBadge+' '+sizeBadge+' '+queueTypeBadge+' '+queueBadge+' '+leasedBadge;
+        return connectionBadge+' '+queueTypeBadge+' '+sizeBadge+' '+queueBadge+' '+leasedBadge;
     }
     
     private static renderTopicQueue(topicId:string, queue:ITopicQueueSignalRContract):string{
