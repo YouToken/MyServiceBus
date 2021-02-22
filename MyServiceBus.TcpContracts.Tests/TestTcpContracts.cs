@@ -34,8 +34,8 @@ namespace MyServiceBus.TcpContracts.Tests
 
             var rawData = serializer.Serialize(pingContract);
             
-            var dataReader = new TcpDataReader(2048, 2048);
-            dataReader.NewPackage(rawData);
+            var dataReader = new TcpDataReader(2048);
+            await dataReader.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
 
@@ -58,8 +58,8 @@ namespace MyServiceBus.TcpContracts.Tests
 
             var rawData = serializer.Serialize(inContract);
 
-            var dataReader = new TcpDataReader(2048, 2048);
-            dataReader.NewPackage(rawData);
+            var dataReader = new TcpDataReader(2048);
+            await dataReader.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -81,9 +81,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 Name = "MyName"
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -108,9 +108,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 ImmediatePersist = 1
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -146,9 +146,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 RequestId = 66
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -175,9 +175,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 DeleteOnDisconnect = true
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -203,9 +203,9 @@ namespace MyServiceBus.TcpContracts.Tests
 
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -246,9 +246,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 }
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);
+            await dataReader.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -284,9 +284,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 ConfirmationId = 555
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);        
+            await dataReader.NewPackageAsync(rawData);       
 
             var ct = new CancellationTokenSource();
             
@@ -313,9 +313,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 MaxMessagesInCache = 243432
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);             
+            await dataReader.NewPackageAsync(rawData);            
 
             var ct = new CancellationTokenSource();
             
@@ -342,9 +342,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 NotOk = new []{new MessagesInterval{FromId = 10, ToId = 10}, new MessagesInterval{FromId = 15, ToId = 16} },
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);           
+            await dataReader.NewPackageAsync(rawData);          
             
             var ct = new CancellationTokenSource();
             
@@ -376,9 +376,9 @@ namespace MyServiceBus.TcpContracts.Tests
             inContract.SetPacketVersion(CommandType.Publish, 1);
             inContract.SetPacketVersion(CommandType.NewMessage, 2);
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);        
+            await dataReader.NewPackageAsync(rawData);       
 
             var ct = new CancellationTokenSource();
             
@@ -409,9 +409,9 @@ namespace MyServiceBus.TcpContracts.Tests
                 Message = "MyMessage"
             };
 
-            var dataReader = new TcpDataReader(2048, 2048);
+            var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
-            dataReader.NewPackage(rawData);          
+            await dataReader.NewPackageAsync(rawData);         
 
             var ct = new CancellationTokenSource();
             

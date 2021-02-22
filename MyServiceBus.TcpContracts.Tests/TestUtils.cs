@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MyTcpSockets.Extensions;
 
@@ -25,9 +26,10 @@ namespace MyServiceBus.TcpContracts.Tests
             return src.AsReadOnlyListAsync().Result;
         }
         
-        public static void NewPackage(this TcpDataReader tcpDataReader, ReadOnlyMemory<byte> data)
+        public static async Task NewPackageAsync(this TcpDataReader tcpDataReader, ReadOnlyMemory<byte> data)
         {
-            var buf = tcpDataReader.AllocateBufferToWrite();
+            var token = new CancellationTokenSource();
+            var buf = await tcpDataReader.AllocateBufferToWriteAsync(token.Token);
             data.CopyTo(buf);
             tcpDataReader.CommitWrittenData(data.Length);
 
