@@ -14,6 +14,7 @@ interface ITopicQueueSignalRContract{
   connections: number,
   size:number,
   deleteOnDisconnect: boolean
+  leased: number,
   ready: IQueueIndex[]
 }
 

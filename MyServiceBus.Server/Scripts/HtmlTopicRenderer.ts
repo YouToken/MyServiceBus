@@ -1,6 +1,5 @@
 class HtmlTopicRenderer {
 
-
   public static renderCachedPages(pages: number[]) {
     let result = "";
 
@@ -13,11 +12,8 @@ class HtmlTopicRenderer {
 
     return result;
   }
-
-
   
   public static renderTopicsTableBody(topics:ITopicSignalRContract[]):string{
-    
     let result = "";
     
     for (let topic of topics){
@@ -38,10 +34,8 @@ class HtmlTopicRenderer {
   }
   
   public static renderRequestsPerSecond(data:ITopicMetricsSignalRContract):string{
-    
-    return '<div>Msg/sec'+data.msgPerSec+'</div>'+
-        '<div>Req/sec'+data.reqPerSec+'</div>';
+    return '<div>Msg/sec:'+data.msgPerSec+'</div>'+
+        '<div>Req/sec:'+data.reqPerSec+'</div>';
   }
-
 
 }

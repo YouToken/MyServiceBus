@@ -30,8 +30,8 @@ var HtmlTopicRenderer = /** @class */ (function () {
         return result;
     };
     HtmlTopicRenderer.renderRequestsPerSecond = function (data) {
-        return '<div>Msg/sec' + data.msgPerSec + '</div>' +
-            '<div>Req/sec' + data.reqPerSec + '</div>';
+        return '<div>Msg/sec:' + data.msgPerSec + '</div>' +
+            '<div>Req/sec:' + data.reqPerSec + '</div>';
     };
     return HtmlTopicRenderer;
 }());

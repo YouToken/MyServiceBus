@@ -31,6 +31,7 @@ namespace MyServiceBus.Server.Hubs
         
         public int Connections { get; set; }
         
+        public int Leased { get; set; }
         public IEnumerable<QueueSliceHubModel> Ready { get; set; }
 
         public static TopicQueueHubModel Create(TopicQueue topicQueue)
@@ -41,7 +42,8 @@ namespace MyServiceBus.Server.Hubs
                 Connections = topicQueue.SubscribersList.GetCount(),
                 DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
                 Size = topicQueue.GetMessagesCount(),
-                Ready = topicQueue.GetReadyQueueSnapshot().Select(QueueSliceHubModel.Create)
+                Ready = topicQueue.GetReadyQueueSnapshot().Select(QueueSliceHubModel.Create),
+                Leased = topicQueue.GetLeasedMessagesCount()
             };
         }
     }

@@ -75,14 +75,12 @@ namespace MyServiceBus.Domains.Sessions
             }
         }
 
-
         public IReadOnlyList<TopicQueue> GetQueueSubscribers()
         {
             return _subscribersToQueueAsList;
         }
 
         private Action<MyServiceBusSession> _onDisconnect;
-
         
         public SessionType SessionType { get; private set; }
         public static MyServiceBusSession Create(long id, string name, string ip, DateTime nowTime, in TimeSpan timeout, Action<MyServiceBusSession> onDisconnect, int protocolVersion,

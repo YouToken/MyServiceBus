@@ -17,13 +17,14 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
             ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
             : HtmlCommonRenderer.renderBadge('warning', 'permanent');
         var sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:" + queue.size);
-        return connectionBadge + ' ' + sizeBadge + ' ' + queueTypeBadge + ' ' + queueBadge;
+        var leasedBadge = HtmlCommonRenderer.renderBadge("warning", "Leased: " + queue.leased);
+        return connectionBadge + ' ' + sizeBadge + ' ' + queueTypeBadge + ' ' + queueBadge + ' ' + leasedBadge;
     };
     HtmlTopicQueueRenderer.renderTopicQueue = function (topicId, queue) {
         var topicQueueId = topicId + '-' + queue.id;
         return '<table style="width: 100%"><tr>' +
-            '<td style="width: 100%">' + queue.id + ' ' +
-            '<span id="queue-info-' + topicQueueId + '">' + this.renderQueueLine(queue) + '</span></td>' +
+            '<td style="width: 100%">' + queue.id +
+            '<div id="queue-info-' + topicQueueId + '">' + this.renderQueueLine(queue) + '</div></td>' +
             '<td style="width: 100%"><div style="font-size: 8px">Avg Event execution duration</div><div id="queue-duration-graph-' + topicQueueId + '"></div></td>' +
             '</tr></table>';
     };
