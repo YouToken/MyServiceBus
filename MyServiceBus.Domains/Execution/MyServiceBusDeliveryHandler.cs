@@ -77,7 +77,10 @@ namespace MyServiceBus.Domains.Execution
                     topicQueue.Topic.MessagesContentCache.TryGetMessage(nextMessage.messageId);
 
                 if (!pageIsLoaded)
+                {
                     await LoadPageAsync(topicQueue.Topic.MessagesContentCache, nextMessage.messageId);
+                    (myMessage, _) = topicQueue.Topic.MessagesContentCache.TryGetMessage(nextMessage.messageId);
+                }
 
                 if (myMessage == null)
                 {
@@ -96,7 +99,7 @@ namespace MyServiceBus.Domains.Execution
                     return;
                 }
 
-                if (subscriber.MessagesSize < _myServiceBusSettings.MaxDeliveryPackageSize)
+                if (subscriber.MessagesSize >= _myServiceBusSettings.MaxDeliveryPackageSize)
                     return;
             }
 
