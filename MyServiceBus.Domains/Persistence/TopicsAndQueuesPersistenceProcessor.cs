@@ -11,7 +11,6 @@ namespace MyServiceBus.Domains.Persistence
     {
         private readonly IMyServiceBusQueuePersistenceGrpcService _grpcService;
 
-
         public TopicsAndQueuesPersistenceProcessor(IMyServiceBusQueuePersistenceGrpcService grpcService)
         {
             _grpcService = grpcService;
@@ -25,7 +24,6 @@ namespace MyServiceBus.Domains.Persistence
                     .ToList();
 
             await _grpcService.SaveSnapshotAsync(toSave);
-            
         }
         
     }

@@ -46,7 +46,7 @@ namespace MyServiceBus.Domains.Execution
             
             foreach (var topic in topics)
             {
-                await _messageContentPersistentProcessor.PersistMessageContentInBackgroundAsync(topic);
+                await _messageContentPersistentProcessor.PersistMessageContentAsync(topic);
             }
         }
         

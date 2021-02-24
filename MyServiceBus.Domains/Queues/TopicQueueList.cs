@@ -62,8 +62,6 @@ namespace MyServiceBus.Domains.Queues
 
                 if (!newDictionary.removed) 
                     return;
-
-
                 
                 _topicQueues = newDictionary.result;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
@@ -130,7 +128,7 @@ namespace MyServiceBus.Domains.Queues
         {
             List<IQueueSnapshot> result = null;
 
-            foreach (var topicQueue in _topicQueues.Values.Where(itm => !itm.DeleteOnDisconnect))
+            foreach (var topicQueue in _queuesAsReadOnlyList.Where(itm => !itm.DeleteOnDisconnect))
             {
                 var snapshot = topicQueue.GetSnapshot();
 

@@ -22,7 +22,7 @@ namespace MyServiceBus.Domains.MessagesContent
             _myServiceBusSettings = myServiceBusSettings;
         }
 
-        public async Task PersistMessageContentInBackgroundAsync(MyTopic myTopic)
+        public async Task PersistMessageContentAsync(MyTopic myTopic)
         {
             var messagesToPersist = _messagesToPersistQueue.GetMessagesToPersist(myTopic.TopicId);
             
