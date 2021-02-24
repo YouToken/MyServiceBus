@@ -13,6 +13,9 @@ namespace MyServiceBus.Domains.Tests
             var dict = new Dictionary<string, string>();
 
             var result = dict.AddIfNotExistsByCreatingNewDictionary("test1", ()=>"test1");
+
+            if (result.added)
+                dict = result.newDictionary;
             
             Assert.IsTrue(result.added);
             
@@ -35,6 +38,43 @@ namespace MyServiceBus.Domains.Tests
             
         }
         
+        
+        [Test]
+        public void TestDeleteCase()
+        {
+
+            var dict = new Dictionary<string, string>
+            {
+                ["test1"] = "test1"
+            };
+
+            var result = dict.RemoveIfExistsByCreatingNewDictionary("test1", (k1, k2) => k1 == k2);
+
+            if (result.removed)
+                dict = result.result;
+            
+            Assert.IsTrue(result.removed);
+            Assert.IsFalse(dict.ContainsKey("test1"));
+        }
+        
+                
+        [Test]
+        public void TestDeleteNotExistsCase()
+        {
+
+            var dict = new Dictionary<string, string>
+            {
+                ["test1"] = "test1"
+            };
+
+            var result = dict.RemoveIfExistsByCreatingNewDictionary("test2", (k1, k2) => k1 == k2);
+
+            if (result.removed)
+                dict = result.result;
+            
+            Assert.IsFalse(result.removed);
+            Assert.IsTrue(dict.ContainsKey("test1"));
+        }
         
     }
 }
