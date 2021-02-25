@@ -70,33 +70,27 @@ namespace MyServiceBus.TcpClient
                 Publish(nextPackageToPublish);
         }
 
-        protected override async ValueTask HandleIncomingDataAsync(IServiceBusTcpContract data)
+        protected override ValueTask HandleIncomingDataAsync(IServiceBusTcpContract data)
         {
-            try
+
+            switch (data)
             {
-                switch (data)
-                {
-                
-                    case NewMessageContract newMsg:
-                        await NewMessageAsync(newMsg);
-                        return;
-                
-                    case PublishResponseContract pr:
-                        HandlePublishResponse(pr);
-                        return;
-                
-                    case RejectConnectionContract rejectContract:
-                        throw new Exception("Reject from server: "+rejectContract.Message);
-                
-                }
+                case NewMessageContract newMsg:
+                    HandleNewMessages(newMsg);
+                    break;
+
+                case PublishResponseContract pr:
+                    HandlePublishResponse(pr);
+                    break;
+
+                case RejectConnectionContract rejectContract:
+                    throw new Exception("Reject from server: " + rejectContract.Message);
             }
-            catch (Exception e)
-            {
-                _packetExceptionHandler?.Invoke(e);
-            }
+
+            return new ValueTask();
         }
 
-        
+
         private void SendSubscribe(string topicId, string queueId, bool deleteOnDisconnect)
         {
             var contract = new SubscribeContract
@@ -116,12 +110,11 @@ namespace MyServiceBus.TcpClient
         }
 
 
-        private void CallbackAsPackage(NewMessageContract newMsg,
+        private async Task CallbackAsPackageAsync(NewMessageContract newMsg,
             Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
         {
 
-            Task.Run(async () =>
-            {
+
                 try
                 {
                     await callback(newMsg.Data);
@@ -137,55 +130,42 @@ namespace MyServiceBus.TcpClient
 
                     _packetExceptionHandler?.Invoke(e);
                 }
-            });
         }
 
 
-        private void CallbackOneByOne(NewMessageContract newMsg,
+        private async Task CallbackOneByOneAsync(NewMessageContract newMsg,
             Func<IMyServiceBusMessage, ValueTask> callback)
         {
-
-            Task.Run(async () =>
+            foreach (var msg in newMsg.Data)
             {
-                foreach (var msg in newMsg.Data)
+                try
                 {
-                    try
-                    {
-                        await callback(msg);
-                    }
-                    catch (Exception e)
-                    {
-                        SendMessageReject(newMsg);
+                    await callback(msg);
+                }
+                catch (Exception e)
+                {
+                    SendMessageReject(newMsg);
 
-                        WriteLog(
-                            $"Message Reject. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}, MessageId: {msg.Id}; AttemptNo: {msg.AttemptNo}");
-                        WriteLog(e);
+                    WriteLog(
+                        $"Message Reject. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}, MessageId: {msg.Id}; AttemptNo: {msg.AttemptNo}");
+                    WriteLog(e);
 
-                        _packetExceptionHandler?.Invoke(e);
-                        return;
-                    }
-
+                    _packetExceptionHandler?.Invoke(e);
+                    return;
                 }
 
-                SendMessageConfirmation(newMsg);
-            });
+            }
 
         }
 
 
-        private ValueTask NewMessageAsync(NewMessageContract newMsg)
+        private void HandleNewMessages(NewMessageContract newMsg)
         {
             var id = GetId(newMsg.TopicId, newMsg.QueueId);
 
             var subscriber = _subscribers[id];
-
-            if (subscriber.CallbackAsAPackage != null)
-                CallbackAsPackage(newMsg, subscriber.CallbackAsAPackage);
-
-            if (subscriber.CallbackAsOneMessage != null)
-                CallbackOneByOne(newMsg, subscriber.CallbackAsOneMessage);
-
-            return new ValueTask();
+            
+            subscriber.InvokeNewMessages(newMsg.Data);
         }
         
         private void SendMessageConfirmation(NewMessageContract messages)

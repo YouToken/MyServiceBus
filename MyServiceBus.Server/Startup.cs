@@ -93,21 +93,33 @@ namespace MyServiceBus.Server
             var sp = _services.BuildServiceProvider();
                         
             ServiceLocator.Init(sp);
-            ServiceLocator.TcpServer    = new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
-                .RegisterSerializer(()=> new MyServiceBusTcpSerializer())
-                .SetService(()=>new MyServiceBusTcpContext())
-                .AddLog((ctx, data) =>
-                {
-                    if (ctx == null)
+            ServiceLocator.TcpServer =
+                new MyServerTcpSocket<IServiceBusTcpContract>(new IPEndPoint(IPAddress.Any, 6421))
+                    .RegisterSerializer(() => new MyServiceBusTcpSerializer())
+                    .SetService(() => new MyServiceBusTcpContext())
+                    .Logs.AddLogInfo((ctx, data) =>
                     {
-                        Console.WriteLine($"{DateTime.UtcNow}: "+data);    
-                    }
-                    else
+                        if (ctx == null)
+                        {
+                            Console.WriteLine($"{DateTime.UtcNow}: " + data);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{DateTime.UtcNow}: ConnectionId: {ctx.Id}. " + data);
+                        }
+                    })
+                    .Logs.AddLogException((ctx, ex) =>
                     {
-                        Console.WriteLine($"{DateTime.UtcNow}: ClientId: {ctx.Id}. "+data);
-                    }
-                    
-                });
+                        if (ctx == null)
+                        {
+                            Console.WriteLine($"{DateTime.UtcNow}: " + ex);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{DateTime.UtcNow}: ConnectionId: {ctx.Id}. " + ex);
+                        } 
+                    });
+            
 
             ServiceLocator.TcpServer.Start();
             

@@ -38,12 +38,7 @@ namespace MyServiceBus.TcpClient
             return this;
         }
 
-        public MyServiceBusTcpClient PlugSocketLogs(Action<ITcpContext, object> callback)
-        {
-            _clientTcpSocket.AddLog(callback);
-            return this;
-        }
-
+        public SocketLog<MyClientTcpSocket<IServiceBusTcpContract>> SocketLogs => _clientTcpSocket.Logs;
 
         public MyServiceBusTcpClient PlugPacketHandleExceptions(Action<object> callback)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions;
+using MyServiceBus.TcpContracts;
 
 namespace MyServiceBus.TcpClient
 {
@@ -23,6 +24,12 @@ namespace MyServiceBus.TcpClient
         public bool DeleteOnDisconnect { get; }
         public Func<IMyServiceBusMessage, ValueTask> CallbackAsOneMessage { get; }
         public Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> CallbackAsAPackage { get; }
+
+
+        public void InvokeNewMessages(IReadOnlyList<NewMessageContract.NewMessageData> messages)
+        {
+            
+        }
 
     }
 }
