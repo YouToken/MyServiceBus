@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using MyServiceBus.Abstractions;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -15,18 +14,14 @@ namespace MyServiceBus.TcpClient
         private readonly string _name;
         private readonly Func<IReadOnlyList<(string topicName, int maxCachedSize)>> _checkAndCreateTopicOnConnect;
 
-        private readonly Action<object> _packetExceptionHandler;
 
+        private readonly PayLoadCollector _payLoadCollector;
 
-        private PayLoadCollector _payLoadCollector;
-        
         public MyServiceBusTcpContext(Dictionary<string, SubscriberInfo> subscribers, string name, 
             PayLoadCollector payLoadCollector,
-            Action<object> packetExceptionHandler,
             Func<IReadOnlyList<(string topicName, int maxCachedSize)>> checkAndCreateTopicOnConnect)
         {
             _payLoadCollector = payLoadCollector;
-            _packetExceptionHandler = packetExceptionHandler;
             _subscribers = subscribers;
             _name = name;
             _checkAndCreateTopicOnConnect = checkAndCreateTopicOnConnect;
@@ -109,63 +104,28 @@ namespace MyServiceBus.TcpClient
             return topicId + "|" + queueId;
         }
 
-
-        private async Task CallbackAsPackageAsync(NewMessageContract newMsg,
-            Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
-        {
-
-
-                try
-                {
-                    await callback(newMsg.Data);
-                    SendMessageConfirmation(newMsg);
-                }
-                catch (Exception e)
-                {
-                    SendMessageReject(newMsg);
-
-                    WriteLog(
-                        $"Bulk Messages Reject [{newMsg.Data[0]}-{newMsg.Data[^1]}]. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}");
-                    WriteLog(e);
-
-                    _packetExceptionHandler?.Invoke(e);
-                }
-        }
-
-
-        private async Task CallbackOneByOneAsync(NewMessageContract newMsg,
-            Func<IMyServiceBusMessage, ValueTask> callback)
-        {
-            foreach (var msg in newMsg.Data)
-            {
-                try
-                {
-                    await callback(msg);
-                }
-                catch (Exception e)
-                {
-                    SendMessageReject(newMsg);
-
-                    WriteLog(
-                        $"Message Reject. Topic: {newMsg.TopicId}, Queue: {newMsg.QueueId}, MessageId: {msg.Id}; AttemptNo: {msg.AttemptNo}");
-                    WriteLog(e);
-
-                    _packetExceptionHandler?.Invoke(e);
-                    return;
-                }
-
-            }
-
-        }
-
-
         private void HandleNewMessages(NewMessageContract newMsg)
         {
             var id = GetId(newMsg.TopicId, newMsg.QueueId);
 
             var subscriber = _subscribers[id];
-            
-            subscriber.InvokeNewMessages(newMsg.Data);
+
+            try
+            {
+                subscriber.InvokeNewMessages(newMsg.Data,
+                    () => SendMessageConfirmation(newMsg),
+                 () => SendMessageReject(newMsg), 
+                    someMessages =>
+                    {
+                        //ToDo = Implement new package
+                        SendMessageReject(newMsg);
+                    }
+                    );
+            }
+            catch (Exception)
+            {
+                SendMessageConfirmation(newMsg);
+            }
         }
         
         private void SendMessageConfirmation(NewMessageContract messages)

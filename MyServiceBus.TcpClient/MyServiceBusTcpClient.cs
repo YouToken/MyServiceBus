@@ -16,18 +16,20 @@ namespace MyServiceBus.TcpClient
         private readonly List<(string topicName, int maxCachedSize)> _checkAndCreateTopics = new List<(string topicName, int maxCachedSize)>();
 
 
-        private Action<object> _packetExceptionHandler;
+        public MyServiceBusLog<MyServiceBusTcpClient> Log;
+      
         
         public MyServiceBusTcpClient(Func<string> getHostPort, string name)
         {
+            Log = new MyServiceBusLog<MyServiceBusTcpClient>(this);
+            
             _clientTcpSocket = new MyClientTcpSocket<IServiceBusTcpContract>(
                     getHostPort,
                     TimeSpan.FromSeconds(3)
                 )
                 .RegisterTcpSerializerFactory(()=>new MyServiceBusTcpSerializer())
                 .RegisterTcpContextFactory(() => new MyServiceBusTcpContext(_subscribers, name, 
-                    _payLoadCollector, _packetExceptionHandler,
-                    ()=>_checkAndCreateTopics));
+                    _payLoadCollector, ()=>_checkAndCreateTopics));
         }
 
 
@@ -39,13 +41,6 @@ namespace MyServiceBus.TcpClient
         }
 
         public SocketLog<MyClientTcpSocket<IServiceBusTcpContract>> SocketLogs => _clientTcpSocket.Logs;
-
-        public MyServiceBusTcpClient PlugPacketHandleExceptions(Action<object> callback)
-        {
-            _packetExceptionHandler = callback;
-            return this;
-        }
-        
 
         public MyServiceBusTcpClient CreateTopicIfNotExists(string topicName, int maxCachedSize)
         {
@@ -62,7 +57,7 @@ namespace MyServiceBus.TcpClient
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
             _subscribers.Add(id,
-                new SubscriberInfo(topicId, queueId, deleteOnDisconnect, callback, null));
+                new SubscriberInfo(Log, topicId, queueId, deleteOnDisconnect, callback, null));
         }
         
         public void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
@@ -71,7 +66,7 @@ namespace MyServiceBus.TcpClient
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
             _subscribers.Add(id,
-                new SubscriberInfo(topicId, queueId, deleteOnDisconnect, null, callback));
+                new SubscriberInfo(Log, topicId, queueId, deleteOnDisconnect, null, callback));
         }
 
 
