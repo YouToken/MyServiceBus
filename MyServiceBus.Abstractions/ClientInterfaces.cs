@@ -4,12 +4,16 @@ using System.Threading.Tasks;
 
 namespace MyServiceBus.Abstractions
 {
-    public interface IMyServiceBusClient
+    public interface IMyServiceBusPublisher
     {
         Task PublishAsync(string topicId, byte[] valueToPublish, bool immediatelyPersist);
 
         Task PublishAsync(string topicId, IEnumerable<byte[]> valueToPublish, bool immediatelyPersist);
+    }
 
+
+    public interface IMyServiceBusSubscriber
+    {
         void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
             Func<IMyServiceBusMessage, ValueTask> callback);
 

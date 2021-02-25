@@ -9,7 +9,7 @@ namespace MyServiceBus.TcpClient
 {
     
     
-    public class MyServiceBusTcpClient : IMyServiceBusClient
+    public class MyServiceBusTcpClient : IMyServiceBusPublisher, IMyServiceBusSubscriber
     {
 
         private readonly MyClientTcpSocket<IServiceBusTcpContract> _clientTcpSocket;
