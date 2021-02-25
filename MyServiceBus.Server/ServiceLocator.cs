@@ -108,11 +108,11 @@ namespace MyServiceBus.Server
         public static void Start()
         {
 
-            TimerGarbageCollector.Register("Long pooling subscribers GarbageCollect",
-                _myServiceBusBackgroundExecutor.ExecuteAsync);
+            TimerGarbageCollector.Register("Persist Topics And Queues",
+                _myServiceBusBackgroundExecutor.PersistTopicsAndQueuesAsync);
             
-            TimerGarbageCollector.Register("Sessions",
-                _myServiceBusBackgroundExecutor.ExecuteAsync);
+            TimerGarbageCollector.Register("Persist Messages",
+                _myServiceBusBackgroundExecutor.PersistMessages);
             
             TimerPersistent.Register("Long pooling subscribers Persist",
                 ()=>
@@ -134,7 +134,6 @@ namespace MyServiceBus.Server
             TimerGarbageCollector.Start();
             TimerPersistent.Start();
             TimerStatistic.Start();
-
         }
 
 

@@ -24,7 +24,7 @@ namespace MyServiceBus.Domains.Execution
             _messageContentPersistentProcessor = messageContentPersistentProcessor;
         }
 
-        public async ValueTask ExecuteAsync()
+        public async ValueTask PersistMessages()
         {
             
             var topics = _topicsList.Get();
@@ -36,7 +36,7 @@ namespace MyServiceBus.Domains.Execution
             }
         }
 
-        public async ValueTask PersistAsync()
+        public async ValueTask PersistTopicsAndQueuesAsync()
         {
             var topics = _topicsList.Get();
             

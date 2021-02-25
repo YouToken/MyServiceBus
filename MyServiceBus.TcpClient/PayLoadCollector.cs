@@ -103,20 +103,12 @@ namespace MyServiceBus.TcpClient
             var payloadsByTopic = GetPayloadPackagesByTopic(topicId);
 
             if (payloadsByTopic.Count == 0)
-            {
-                var result = AddPayloadPackage(topicId, connectionId);
-                payloadsByTopic.Add(result);
-                return result;
-            }
+                return AddPayloadPackage(topicId, connectionId);
 
             var lastPayload = payloadsByTopic[^1];
 
-            if (lastPayload.PayLoadSize >= _maxPayLoadSize)
-            {
-                var result = AddPayloadPackage(topicId, connectionId);
-                payloadsByTopic.Add(result);
-                return result;
-            }
+            if (lastPayload.PayLoadSize >= _maxPayLoadSize || lastPayload.OnPublishing)
+                return AddPayloadPackage(topicId, connectionId);
 
             return lastPayload;
         }

@@ -40,6 +40,7 @@ namespace MyServiceBus.Domains.Persistence
                                 .ToPageInMemoryAsync(pageId);
 
                         topic.MessagesContentCache.UploadPage(page);
+                        return;
                     }
                     catch (Exception e)
                     {

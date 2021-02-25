@@ -52,8 +52,8 @@ namespace MyServiceBus.Domains.Tests.Utils
         public static void SetCurrentTime(this IServiceProvider ioc, DateTime now)
         {
             var backgroundExecutor = ioc.GetRequiredService<MyServiceBusBackgroundExecutor>();
-            backgroundExecutor.ExecuteAsync().AsTask().Wait();
-            backgroundExecutor.PersistAsync().AsTask().Wait();
+            backgroundExecutor.PersistMessages().AsTask().Wait();
+            backgroundExecutor.PersistTopicsAndQueuesAsync().AsTask().Wait();
         }
 
         public static int GetMessagesCount(this IServiceProvider ioc, string topicId, string queueId)
