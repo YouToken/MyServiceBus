@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -150,6 +151,14 @@ namespace MyServiceBus.TcpClient
             };
             
             SendDataToSocket(contract);
+        }
+
+        private void SendSomeMessagesOkSomeRejected(NewMessageContract messages, QueueWithIntervals okMessages)
+        {
+            var contract = new ConfirmSomeMessagesOkSomeFail
+            {
+                OkMessages = okMessages.GetSnapshot()
+            };
         }
         
         

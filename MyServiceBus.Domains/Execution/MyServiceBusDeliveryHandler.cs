@@ -1,95 +1,55 @@
 using System;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.MessagesContent;
+using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
-using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Execution
 {
     
     public class MyServiceBusDeliveryHandler
     {
-        private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
+        private readonly MessagesPageLoader _messagesPageLoader;
         private readonly IMyServiceBusSettings _myServiceBusSettings;
         private readonly Log _log;
-
-        public MyServiceBusDeliveryHandler(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService, 
+        
+        public MyServiceBusDeliveryHandler(MessagesPageLoader messagesPageLoader,
             IMyServiceBusSettings myServiceBusSettings, Log log)
         {
-            _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
+            _messagesPageLoader = messagesPageLoader;
             _myServiceBusSettings = myServiceBusSettings;
             _log = log;
-        }
-        
-        private async Task LoadPageAsync(MessagesContentCache cache, long messageId)
-        {
-            var pageId = messageId.GetMessageContentPageId();
-            
-            var attemptNo = 0;
-
-            while (true)
-            {
-                if (attemptNo >= 5)
-                {
-                    var emptyPage = new MessagesPageInMemory(pageId);
-                    cache.UploadPage(emptyPage);
-                    return;
-                }
-
-                try
-                {
-                    Console.WriteLine(
-                        $"Trying to restore message for topic {cache.TopicId} with messageId:{messageId} during LoadMessageAsync");
-
-                    var page =
-                        await _messagesPersistenceGrpcService.GetPageAsync(cache.TopicId, pageId.Value)
-                            .ToPageInMemoryAsync(pageId);
-
-                    cache.UploadPage(page);
-
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(
-                        $"Count not load page {pageId} for topic {cache.TopicId}. Attempt: {attemptNo}. Message: " +
-                        e.Message);
-
-                    await Task.Delay(200);
-                    attemptNo++;
-                }
-
-            }
         }
 
         private async ValueTask FillMessagesAsync(TopicQueue topicQueue, TheQueueSubscriber subscriber)
         {
-
-
-            foreach (var nextMessage in topicQueue.DequeNextMessage())
+            foreach (var (messageId, attemptNo) in topicQueue.DequeNextMessage())
             {
 
-                if (nextMessage.messageId < 0)
+                if (messageId < 0)
                     return;
 
+                var pageId = messageId.GetMessageContentPageId();
+                
                 var (myMessage, pageIsLoaded) =
-                    topicQueue.Topic.MessagesContentCache.TryGetMessage(nextMessage.messageId);
+                    topicQueue.Topic.MessagesContentCache.TryGetMessage(pageId, messageId);
 
                 if (!pageIsLoaded)
                 {
-                    await LoadPageAsync(topicQueue.Topic.MessagesContentCache, nextMessage.messageId);
-                    (myMessage, _) = topicQueue.Topic.MessagesContentCache.TryGetMessage(nextMessage.messageId);
+                    await _messagesPageLoader.LoadPageAsync(topicQueue.Topic, pageId);
+                    (myMessage, _) = topicQueue.Topic.MessagesContentCache.TryGetMessage(pageId, messageId);
                 }
 
                 if (myMessage == null)
                 {
                     _log.AddLog(LogLevel.Warning, topicQueue,
-                        $"Message #{nextMessage.messageId} with AttemptNo:{nextMessage.attemptNo} is not found. Skipping it...");
+                        $"Message #{messageId} with AttemptNo:{attemptNo} is not found. Skipping it...");
                     continue;
                 }
 
-                subscriber.AddMessage(myMessage, nextMessage.attemptNo);
+                subscriber.AddMessage(myMessage, attemptNo);
 
 
                 if (subscriber.Session.Disconnected)

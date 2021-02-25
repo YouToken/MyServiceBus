@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
 using NUnit.Framework;
@@ -20,7 +19,7 @@ namespace MyServiceBus.Abstractions.Tests
             queueWithIndex.Enqueue(7);
             queueWithIndex.Enqueue(8);
 
-            var result = queueWithIndex.GetElements().ToList();
+            var result = queueWithIndex.ToList();
 
             Assert.AreEqual(5, result.Count);
 

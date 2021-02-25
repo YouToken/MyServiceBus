@@ -10,13 +10,16 @@ namespace MyServiceBus.Domains.MessagesContent
 {
     public class MessageContentPersistentProcessor
     {
+        private readonly MessagesPageLoader _messagesPageLoader;
         private readonly IMyServiceBusMessagesPersistenceGrpcService _messagesPersistenceGrpcService;
         private readonly IMessagesToPersistQueue _messagesToPersistQueue;
         private readonly IMyServiceBusSettings _myServiceBusSettings;
 
-        public MessageContentPersistentProcessor(IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService,
+        public MessageContentPersistentProcessor(MessagesPageLoader messagesPageLoader,
+            IMyServiceBusMessagesPersistenceGrpcService messagesPersistenceGrpcService,
             IMessagesToPersistQueue messagesToPersistQueue, IMyServiceBusSettings myServiceBusSettings)
         {
+            _messagesPageLoader = messagesPageLoader;
             _messagesPersistenceGrpcService = messagesPersistenceGrpcService;
             _messagesToPersistQueue = messagesToPersistQueue;
             _myServiceBusSettings = myServiceBusSettings;
@@ -43,7 +46,6 @@ namespace MyServiceBus.Domains.MessagesContent
         public async Task LoadActivePagesAsync(MyTopic topic, IReadOnlyList<long> pages)
         {
 
-
                 var contentByTopic = topic.MessagesContentCache;
 
 
@@ -60,16 +62,10 @@ namespace MyServiceBus.Domains.MessagesContent
                         Console.WriteLine(
                             $"Restoring messages for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage");
 
-
-
-                        var messages = await _messagesPersistenceGrpcService.GetPageAsync(topic.TopicId, pageId)
-                            .ToPageInMemoryAsync(new MessagesPageId(pageId));
-
-                        
-                        contentByTopic.UploadPage(messages);
+                        await _messagesPageLoader.LoadPageAsync(topic, new MessagesPageId(pageId));
 
                         Console.WriteLine(
-                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow - now:g}. Messages: {messages.Count}");
+                            $"Restored content for topic {topic.TopicId} with PageId: {pageId} from Persistent Storage in {DateTime.UtcNow - now:g}.");
                     }
                     catch (Exception e)
                     {
@@ -80,7 +76,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 }
         }
 
-        public async ValueTask GarbageCollectAsync(MyTopic topic)
+        public async ValueTask GarbageCollectOrWarmUpAsync(MyTopic topic)
         {
             var activePages = topic.GetActiveMessagePages();
 
@@ -88,5 +84,6 @@ namespace MyServiceBus.Domains.MessagesContent
             
             topic.MessagesContentCache.GarbageCollect(activePages);
         }
+
     }
 }

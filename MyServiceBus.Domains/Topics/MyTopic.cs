@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Queues;
@@ -13,11 +14,10 @@ namespace MyServiceBus.Domains.Topics
         private readonly IMetricCollector _metricCollector;
 
         private readonly TopicQueueList _topicQueueList; 
-
         public MessageIdGenerator MessageId { get; }
-        
         public MessagesContentCache MessagesContentCache { get; }
-        
+
+        public readonly AsyncLock MessagesPersistenceLock;
         
         public override string ToString()
         {
@@ -31,6 +31,7 @@ namespace MyServiceBus.Domains.Topics
             MessageId = new MessageIdGenerator(startMessageId);
             _topicQueueList = new TopicQueueList();
             MessagesContentCache = new MessagesContentCache(id);
+            MessagesPersistenceLock = new AsyncLock(new object());
         }
         
         public string TopicId { get; }
@@ -104,7 +105,7 @@ namespace MyServiceBus.Domains.Topics
             return newMessages;
         }
 
-        public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok)
+        public TopicQueue ConfirmDelivery(string queueName, long confirmationId, bool ok, QueueWithIntervals okMessages)
         {
             var queue = _topicQueueList.GetQueue(queueName);
 
@@ -119,6 +120,8 @@ namespace MyServiceBus.Domains.Topics
                 ? default
                 : duration;
             
+            if (okMessages != null)
+                queue.ConfirmSomeDelivered(subscriber, duration, okMessages);
             if (ok)
                 queue.ConfirmDelivery(subscriber, duration);
             else
@@ -129,6 +132,7 @@ namespace MyServiceBus.Domains.Topics
 
             return queue;
         }
+        
 
         public long GetQueueMessagesCount(string queueName)
         {

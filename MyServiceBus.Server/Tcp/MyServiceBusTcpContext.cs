@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
@@ -18,12 +19,28 @@ namespace MyServiceBus.Server.Tcp
         private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
         {
 
-            var topic = ServiceLocator.TopicsList.TryFindTopic(topicId);
+            var topic = ServiceLocator.TopicsList.TryGet(topicId);
 
             if (topic != null)
                 return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
             
             Console.WriteLine($"There is a confirmation {confirmationId} for a topic {topicId} which is not found");
+            Disconnect();
+
+            return new ValueTask();
+        }
+
+        private ValueTask ExecuteSomeMessagesAreOkSomeFail(ConfirmSomeMessagesOkSomeFail packet)
+        {
+            var topic = ServiceLocator.TopicsList.TryGet(packet.TopicId);
+
+            if (topic != null)
+            {
+                var okMessages = new QueueWithIntervals(packet.OkMessages);
+                return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, packet.QueueId, packet.ConfirmationId, okMessages);
+            }
+            
+            Console.WriteLine($"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found");
             Disconnect();
 
             return new ValueTask();
@@ -180,6 +197,9 @@ namespace MyServiceBus.Server.Tcp
 
                     case CreateTopicIfNotExistsContract createTopicIfNotExistsContract:
                         return new ValueTask(CreateTopicIfNotExistsAsync(createTopicIfNotExistsContract));
+                    
+                    case ConfirmSomeMessagesOkSomeFail confirmSomeMessagesOkSomeFail:
+                        return ExecuteSomeMessagesAreOkSomeFail(confirmSomeMessagesOkSomeFail);
 
                     default:
                         return new ValueTask();

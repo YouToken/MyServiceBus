@@ -83,7 +83,6 @@ namespace MyServiceBus.Domains.Persistence
         public static async Task<IReadOnlyList<ITopicPersistence>> GetTopicsAndQueuesSnapshotAsync(
             this IMyServiceBusQueuePersistenceGrpcService grpcService)
         {
-
             var result = new List<ITopicPersistence>();
             
             await foreach (var grpcModel in grpcService.GetSnapshotAsync())
@@ -92,7 +91,6 @@ namespace MyServiceBus.Domains.Persistence
             }
 
             return result;
-
         }
         
     }

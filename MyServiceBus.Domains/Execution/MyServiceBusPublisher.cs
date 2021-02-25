@@ -40,7 +40,7 @@ namespace MyServiceBus.Domains.Execution
             bool persistImmediately)
         {
             
-            var topic = _topicsList.TryFindTopic(topicId);
+            var topic = _topicsList.TryGet(topicId);
 
             if (topic == null)
                 return ExecutionResult.TopicNotFound;

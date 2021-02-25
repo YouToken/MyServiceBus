@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions.QueueIndex;
@@ -105,7 +106,7 @@ namespace MyServiceBus.Domains.Queues
 
 
         private void DisposeNotDeliveredMessages(
-            IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
+            IEnumerable<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
         {
             foreach (var (message, attemptNo) in messages)
             {
@@ -142,6 +143,22 @@ namespace MyServiceBus.Domains.Queues
             lock (_topicLock)
             {
                 _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+                subscriber.SetToUnLeased(); 
+            }
+        }
+        
+        public void ConfirmSomeDelivered(TheQueueSubscriber subscriber, TimeSpan executionDuration, QueueWithIntervals okDelivered)
+        {
+            lock (_topicLock)
+            {
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+
+                var messagesToGoBack = subscriber.MessagesOnDelivery.ToDictionary(itm => itm.message.MessageId);
+
+                foreach (var messageId in okDelivered)
+                    messagesToGoBack.Remove(messageId);
+                DisposeNotDeliveredMessages(messagesToGoBack.Values, 1);
+                
                 subscriber.SetToUnLeased(); 
             }
         }

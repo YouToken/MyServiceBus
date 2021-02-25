@@ -48,7 +48,15 @@ namespace MyServiceBus.TcpClient
 
             foreach (var action in _logInfo)
             {
-                action(message);
+                try
+                {
+                    action(message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+
             }
         }
 
@@ -62,7 +70,14 @@ namespace MyServiceBus.TcpClient
 
             foreach (var action in _logException)
             {
-                action(ex);
+                try
+                {
+                    action(ex);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
         }
     }

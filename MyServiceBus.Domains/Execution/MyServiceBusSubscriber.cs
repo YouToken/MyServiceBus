@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
@@ -27,7 +28,13 @@ namespace MyServiceBus.Domains.Execution
 
         public ValueTask ConfirmDeliveryAsync(MyTopic topic, string queueName, long confirmationId, bool ok)
         {
-            var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, ok);
+            var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, ok, null);
+            return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
+        }
+        
+        public ValueTask ConfirmDeliveryAsync(MyTopic topic, string queueName, long confirmationId, QueueWithIntervals okMessages)
+        {
+            var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, false, okMessages);
             return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
         }
         

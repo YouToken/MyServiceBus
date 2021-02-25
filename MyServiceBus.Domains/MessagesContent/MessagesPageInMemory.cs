@@ -57,11 +57,6 @@ namespace MyServiceBus.Domains.MessagesContent
 
             return false;
         }
-
-        public IEnumerable<MessageContentGrpcModel> Get()
-        {
-            return _messages.Values;
-        }
         
         public MessageContentGrpcModel TryGet(long messageId)
         {

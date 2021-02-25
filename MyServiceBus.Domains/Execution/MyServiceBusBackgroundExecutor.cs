@@ -31,12 +31,10 @@ namespace MyServiceBus.Domains.Execution
 
             foreach (var topic in topics)
             {
-                await _messageContentPersistentProcessor.GarbageCollectAsync(topic);
+                await _messageContentPersistentProcessor.GarbageCollectOrWarmUpAsync(topic);
                 await _myServiceBusDeliveryHandler.SendMessagesAsync(topic);
             }
-            
         }
-
 
         public async ValueTask PersistAsync()
         {

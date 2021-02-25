@@ -138,10 +138,8 @@ namespace MyServiceBus.Domains.MessagesContent
 
         }
 
-        public (MessageContentGrpcModel message, bool pageIsLoaded) TryGetMessage(long messageId)
+        public (MessageContentGrpcModel message, bool pageIsLoaded) TryGetMessage(MessagesPageId pageId, long messageId)
         {
-            var pageId = messageId.GetMessageContentPageId();
-
             return _messages.TryGetValue(pageId.Value, out var page)
                 ? (page.TryGet(messageId), true) 
                 : (null, false);

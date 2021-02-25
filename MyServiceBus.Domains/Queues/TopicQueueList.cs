@@ -26,7 +26,6 @@ namespace MyServiceBus.Domains.Queues
                 SnapshotId++;
                 
                 CalcMinMessageId();
-                
             }
         }
         

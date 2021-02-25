@@ -1,10 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace MyServiceBus.Abstractions.QueueIndex
 {
-    public class QueueWithIntervals
+    public class QueueWithIntervals : IEnumerable<long>
     {
         public QueueWithIntervals(IEnumerable<IQueueIndexRange> ranges)
         {
@@ -80,13 +81,6 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         }
 
-
-        public IEnumerable<long> GetElements()
-        {
-            return _ranges.SelectMany(range => range.GetElements());
-        }
-
-
         public void Enqueue(long messageId)
         {
             var interval = GetInterval(messageId);
@@ -109,9 +103,19 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         }
 
+        public IEnumerator<long> GetEnumerator()
+        {
+            return _ranges.SelectMany(range => range.GetElements()).GetEnumerator();
+        }
+
         public override string ToString()
         {
             return $"Intervals: {_ranges.Count}. Count: {Count}";
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
 
         public IReadOnlyList<QueueIndexRangeReadOnly> GetSnapshot()
