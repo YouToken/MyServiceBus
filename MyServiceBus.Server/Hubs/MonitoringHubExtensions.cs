@@ -96,7 +96,12 @@ namespace MyServiceBus.Server.Hubs
 
         public static Task SendConnectionsAsync(this MonitoringConnection connection)
         {
-            var connections = ServiceLocator.TcpServer.GetConnections().Cast<MyServiceBusTcpContext>();
+            var connections = ServiceLocator
+                .TcpServer
+                .GetConnections()
+                .Cast<MyServiceBusTcpContext>()
+                .Where(itm => itm.Session != null);
+            
             return connection.ClientProxy.SendAsync("connections", connections.Select(conn => conn.ToTcpConnectionHubModel()));
         }
 
