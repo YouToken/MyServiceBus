@@ -54,7 +54,7 @@ namespace MyServiceBus.Server.Hubs
             await base.OnConnectedAsync();
         }
 
-        public override Task OnDisconnectedAsync(Exception? exception)
+        public override Task OnDisconnectedAsync(Exception exception)
         {
             Console.WriteLine("Monitoring Connection dropped: "+Context.ConnectionId);
             Connections.Remove(Context.ConnectionId);

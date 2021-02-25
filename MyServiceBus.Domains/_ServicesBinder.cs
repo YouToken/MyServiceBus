@@ -33,6 +33,7 @@ namespace MyServiceBus.Domains
             sc.AddSingleton<Log>();
 
             sc.AddSingleton<MessagesPerSecondByTopic>();
+            sc.AddSingleton<MessagesPageLoader>();
         }
         
         
