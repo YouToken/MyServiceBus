@@ -7,7 +7,9 @@ using MyTcpSockets;
 
 namespace MyServiceBus.TcpClient
 {
-    public class MyServiceBusTcpClient
+    
+    
+    public class MyServiceBusTcpClient : IMyServiceBusClient
     {
 
         private readonly MyClientTcpSocket<IServiceBusTcpContract> _clientTcpSocket;
@@ -15,8 +17,7 @@ namespace MyServiceBus.TcpClient
 
         private readonly List<(string topicName, int maxCachedSize)> _checkAndCreateTopics = new List<(string topicName, int maxCachedSize)>();
 
-
-        public MyServiceBusLog<MyServiceBusTcpClient> Log;
+        public MyServiceBusLog<MyServiceBusTcpClient> Log { get;}
       
         
         public MyServiceBusTcpClient(Func<string> getHostPort, string name)
@@ -42,9 +43,9 @@ namespace MyServiceBus.TcpClient
 
         public SocketLog<MyClientTcpSocket<IServiceBusTcpContract>> SocketLogs => _clientTcpSocket.Logs;
 
-        public MyServiceBusTcpClient CreateTopicIfNotExists(string topicName, int maxCachedSize)
+        public MyServiceBusTcpClient CreateTopicIfNotExists(string topicName)
         {
-            _checkAndCreateTopics.Add((topicName, maxCachedSize));
+            _checkAndCreateTopics.Add((topicName, 0));
             return this;
         }
 

@@ -17,7 +17,7 @@ namespace MyServiceBus.TcpClientTest
 
        //     var myServiceBusTcpClien2 = new MyServiceBusTcpClient(()=>hostPort, "test2");
 
-            myServiceBusTcpClient.CreateTopicIfNotExists("test-topic", 100000);
+            myServiceBusTcpClient.CreateTopicIfNotExists("test-topic");
 
             var i = 0;
 
