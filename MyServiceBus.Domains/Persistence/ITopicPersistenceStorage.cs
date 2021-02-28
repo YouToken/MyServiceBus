@@ -13,7 +13,6 @@ namespace MyServiceBus.Domains.Persistence
     {
         public string TopicId { get; set; }
         public long MessageId { get; set; }
-        public int MaxMessagesInCache { get; set; }
         public IReadOnlyList<IQueueSnapshot> QueueSnapshots { get; set; }
 
     }

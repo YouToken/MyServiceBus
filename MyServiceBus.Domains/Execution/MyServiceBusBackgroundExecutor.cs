@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
@@ -24,9 +25,8 @@ namespace MyServiceBus.Domains.Execution
             _messageContentPersistentProcessor = messageContentPersistentProcessor;
         }
 
-        public async ValueTask PersistMessages()
+        public async ValueTask GcOrWarmupMessagesAndPushDelivery()
         {
-            
             var topics = _topicsList.Get();
 
             foreach (var topic in topics)
@@ -36,17 +36,24 @@ namespace MyServiceBus.Domains.Execution
             }
         }
 
-        public async ValueTask PersistTopicsAndQueuesAsync()
+
+        public async ValueTask PersistTopicsAndQueuesSnapshotAsync()
         {
             var topics = _topicsList.Get();
-            
             await _topicsAndQueuesPersistenceProcessor.PersistTopicsAndQueuesInBackgroundAsync(topics);
-            
+        }
+
+
+        public async ValueTask PersistMessageContentAsync()
+        {
+            var topics = _topicsList.Get();
+                        
             foreach (var topic in topics)
             {
                 await _messageContentPersistentProcessor.PersistMessageContentAsync(topic);
             }
         }
+        
         
         
     }

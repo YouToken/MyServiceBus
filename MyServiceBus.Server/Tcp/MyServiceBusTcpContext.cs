@@ -177,6 +177,12 @@ namespace MyServiceBus.Server.Tcp
             {
                 Session?.UpdatePacketPerSeconds();
 
+                if (ServiceLocator.MyGlobalVariables.ShuttingDown)
+                {
+                    Disconnect();
+                    return new ValueTask();
+                }
+
                 switch (data)
                 {
                     case PingContract _:

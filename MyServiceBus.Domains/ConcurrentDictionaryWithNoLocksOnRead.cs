@@ -87,5 +87,7 @@ namespace MyServiceBus.Domains
             }
         }
 
+        public int Count => _itemsAsList.Count;
+
     }
 }

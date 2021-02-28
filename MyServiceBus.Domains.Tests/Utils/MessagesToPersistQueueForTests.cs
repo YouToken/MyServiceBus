@@ -8,23 +8,22 @@ namespace MyServiceBus.Domains.Tests.Utils
     public class MessagesToPersistQueueForTests : IMessagesToPersistQueue
     {
         
-        private readonly MessagesToPersistQueue _messagesToPersistQueue = new MessagesToPersistQueue(new MetricsCollectorMock());
-        
-        
-        public readonly Dictionary<string, List<MessageContentGrpcModel>> MessagesToPersist 
-            = new Dictionary<string, List<MessageContentGrpcModel>>();
+        private readonly MessagesToPersistQueue _messagesToPersistQueue = new (new MetricsCollectorMock());
+
+        private readonly Dictionary<string, List<MessageContentGrpcModel>> _messagesToPersist 
+            = new ();
         
         public void EnqueueToPersist(string topicId, IEnumerable<MessageContentGrpcModel> messages)
         {
 
             var messagesAsReadOnlyList = messages.AsReadOnlyList();
             
-            lock (MessagesToPersist)
+            lock (_messagesToPersist)
             {
-                if (!MessagesToPersist.ContainsKey(topicId))
-                    MessagesToPersist.Add(topicId, new List<MessageContentGrpcModel>());
+                if (!_messagesToPersist.ContainsKey(topicId))
+                    _messagesToPersist.Add(topicId, new List<MessageContentGrpcModel>());
                     
-                MessagesToPersist[topicId].AddRange(messagesAsReadOnlyList);
+                _messagesToPersist[topicId].AddRange(messagesAsReadOnlyList);
             }
                 
             _messagesToPersistQueue.EnqueueToPersist(topicId, messagesAsReadOnlyList);
@@ -37,7 +36,9 @@ namespace MyServiceBus.Domains.Tests.Utils
 
         public IReadOnlyList<(string topic, int count)> GetMessagesToPersistCount()
         {
-            throw new System.NotImplementedException();
+            return _messagesToPersistQueue.GetMessagesToPersistCount();
         }
+
+        public int Count => _messagesToPersistQueue.Count;
     }
 }

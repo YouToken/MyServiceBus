@@ -12,7 +12,7 @@ namespace MyServiceBus.Server.Grpc
     {
         public async ValueTask<CreateTopicGrpcResponse> CreateTopicAsync(CreateTopicGrpcRequest request)
         {
-
+            GrpcExtensions.GrpcPreExecutionCheck();
 
             var grpcSession = ServiceLocator.GrpcSessionsList.TryGetSession(request.SessionId, DateTime.UtcNow);
 
@@ -38,7 +38,8 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<CreateQueueGrpcResponse> CreateQueueAsync(CreateQueueGrpcRequest request)
         {
-
+            GrpcExtensions.GrpcPreExecutionCheck();
+            
             var session = ServiceLocator.GrpcSessionsList.TryGetSession(request.SessionId, DateTime.UtcNow);
 
             if (session == null)
@@ -77,6 +78,8 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<GreetingGrpcResponse> GreetingAsync(GreetingGrpcRequest request)
         {
+            
+            GrpcExtensions.GrpcPreExecutionCheck();
 
             var grpcSession = ServiceLocator.GrpcSessionsList.GenerateNewSession(request.Name);
 
@@ -96,6 +99,8 @@ namespace MyServiceBus.Server.Grpc
 
         public ValueTask<PingGrpcResponse> PingAsync(PingGrpcRequest request)
         {
+            GrpcExtensions.GrpcPreExecutionCheck();
+            
             var session = ServiceLocator.GrpcSessionsList.TryGetSession(request.SessionId, DateTime.UtcNow);
 
             if (session != null)

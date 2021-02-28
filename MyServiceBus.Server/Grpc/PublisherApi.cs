@@ -12,6 +12,9 @@ namespace MyServiceBus.Server.Grpc
     {
         public async ValueTask<PublishMessageGrpcResponse> PublishMessageAsync(PublishMessageGrpcRequest request)
         {
+
+            GrpcExtensions.GrpcPreExecutionCheck();
+            
             var now = DateTime.UtcNow;
 
             var session = ServiceLocator.GrpcSessionsList.TryGetSession(request.SessionId, now);

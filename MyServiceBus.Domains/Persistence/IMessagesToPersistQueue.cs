@@ -13,6 +13,10 @@ namespace MyServiceBus.Domains.Persistence
         IReadOnlyList<MessageContentGrpcModel> GetMessagesToPersist(string topicId);
 
         IReadOnlyList<(string topic, int count)> GetMessagesToPersistCount();
+        
+        int Count { get; }
+        
+        
 
     } 
     
@@ -23,7 +27,6 @@ namespace MyServiceBus.Domains.Persistence
         private readonly Dictionary<string, List<MessageContentGrpcModel>> _messagesToPersist 
             = new ();
 
-
         public MessagesToPersistQueue(IMetricCollector metricCollector)
         {
             _metricCollector = metricCollector;
@@ -33,6 +36,17 @@ namespace MyServiceBus.Domains.Persistence
         {
             lock (_messagesToPersist)
                 return _messagesToPersist.Select(itm => (itm.Key, itm.Value.Count)).ToList();
+        }
+
+        public int Count
+        {
+            get
+            {
+                lock (_messagesToPersist)
+                {
+                    return _messagesToPersist.Values.Sum(itm => itm.Count);
+                }
+            }
         }
 
         public void EnqueueToPersist(string topicId, IEnumerable<MessageContentGrpcModel> messages)

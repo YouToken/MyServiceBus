@@ -12,7 +12,6 @@ using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Hubs;
-using MyServiceBus.Server.Services;
 using MyServiceBus.Server.Services.Sessions;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
@@ -23,7 +22,6 @@ namespace MyServiceBus.Server
     {
 
         public static int TcpConnectionsSnapshotId { get; set; }
-        
         
         static ServiceLocator()
         {
@@ -69,13 +67,10 @@ namespace MyServiceBus.Server
         public static GlobalVariables MyGlobalVariables { get; private set; }
         public static MyServiceBusPublisher MyServiceBusPublisher { get; private set; }
         public static MyServiceBusSubscriber Subscriber { get; private set; }
-
-        private static MyServiceBusBackgroundExecutor _myServiceBusBackgroundExecutor;
+        public static MyServiceBusBackgroundExecutor MyServiceBusBackgroundExecutor { get; private set; }
         public static MyServerTcpSocket<IServiceBusTcpContract> TcpServer { get; internal set; }
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
         public static MessagesPerSecondByTopic MessagesPerSecondByTopic { get; private set; }
-        public static PrometheusMetrics PrometheusMetrics { get; private set; }
-        
         public static GrpcSessionsList GrpcSessionsList { get; private set; }
 
         public static void Init(IServiceProvider serviceProvider)
@@ -97,9 +92,7 @@ namespace MyServiceBus.Server
 
             MessagesToPersistQueue = serviceProvider.GetRequiredService<IMessagesToPersistQueue>();
             
-            _myServiceBusBackgroundExecutor = serviceProvider.GetRequiredService<MyServiceBusBackgroundExecutor>();
-
-            PrometheusMetrics = serviceProvider.GetRequiredService<PrometheusMetrics>();
+            MyServiceBusBackgroundExecutor = serviceProvider.GetRequiredService<MyServiceBusBackgroundExecutor>();
 
             DataInitializer.InitAsync(serviceProvider).Wait();
         }
@@ -118,15 +111,20 @@ namespace MyServiceBus.Server
         public static void Start()
         {
 
+            TimerGarbageCollector.Register("GC or Warm up pages",
+                MyServiceBusBackgroundExecutor.GcOrWarmupMessagesAndPushDelivery);
+
             TimerGarbageCollector.Register("Persist Topics And Queues",
-                _myServiceBusBackgroundExecutor.PersistTopicsAndQueuesAsync);
-            
-            TimerGarbageCollector.Register("Persist Messages",
-                _myServiceBusBackgroundExecutor.PersistMessages);
+                MyServiceBusBackgroundExecutor.PersistTopicsAndQueuesSnapshotAsync);
+
+            TimerGarbageCollector.Register("Persist messages content",
+                MyServiceBusBackgroundExecutor.PersistMessageContentAsync);
+
             
             TimerPersistent.Register("Sessions List GC",
                 ()=>
                 {
+                    SessionsList.Timer();
                     GrpcSessionsList.GarbageCollectSessions(DateTime.UtcNow);
                     return new ValueTask();
                 });
@@ -147,28 +145,33 @@ namespace MyServiceBus.Server
         }
 
 
+        private static void StopTimers()
+        {
+            var sw = new Stopwatch();
+            Console.WriteLine("Stopping background timers");
+            sw.Start();
+            TimerPersistent.Stop();
+            TimerGarbageCollector.Stop();
+            TimerStatistic.Stop();
+            sw.Stop();
+            Console.WriteLine("Background timers are stopped in: "+sw.Elapsed);
+        }
+
+
         public  static void Stop()
         {
             
             MyGlobalVariables.ShuttingDown = true;
+
+            ServiceStopper.StopTcpServer();
+
+            ServiceStopper.WaitingSessionsAreZero();
             
-            Console.WriteLine("Stopping TCP server");
-            var sw = new Stopwatch();
-            sw.Start();
-            TcpServer.Stop();
-            while (TcpServer.Count > 0)
-                Thread.Sleep(100);
-            sw.Stop();
-            Console.WriteLine("TCP server is stopped in: " + sw.Elapsed);
+            StopTimers();
             
-            NotCompiled
-
-            Console.WriteLine("Stopping background timers");
-
-            TimerPersistent.Stop();
-            TimerGarbageCollector.Stop();
-            TimerStatistic.Stop();
-
+            ServiceStopper.PersistMessagesContentAsync().Wait();
+            ServiceStopper.PersistQueueSnapshotAsync().Wait();
+            
             Console.WriteLine("Waiting for produce requests are being finished");
 
             while (MyGlobalVariables.PublishRequestsAmountAreBeingProcessed > 0)
