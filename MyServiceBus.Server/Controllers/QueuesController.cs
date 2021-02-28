@@ -10,7 +10,7 @@ namespace MyServiceBus.Server.Controllers
         [HttpDelete("/Queues/")]
         public IActionResult Delete([FromQuery][Required]string topicId, [FromQuery][Required]string queueId)
         {
-            var topic = ServiceLocator.TopicsList.Get(topicId);
+            var topic = ServiceLocator.TopicsList.TryGet(topicId);
             
             if(topic == null)
                 throw new Exception($"Topic {topicId} is not found");
@@ -24,7 +24,7 @@ namespace MyServiceBus.Server.Controllers
         public IActionResult SetMessageId([FromQuery] [Required] string topicId, [FromQuery] [Required] string queueId,
             [FromQuery] [Required] long messageId)
         {
-            var topic = ServiceLocator.TopicsList.Get(topicId);
+            var topic = ServiceLocator.TopicsList.TryGet(topicId);
 
             if (topic == null)
                 throw new Exception($"Topic {topicId} is not found");
