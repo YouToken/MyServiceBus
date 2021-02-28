@@ -13,7 +13,7 @@ namespace MyServiceBus.Server.Controllers
             var topic = ServiceLocator.TopicsList.TryGet(topicId);
             
             if(topic == null)
-                throw new Exception($"Topic {topicId} is not found");
+                return Conflict($"Topic {topicId} is not found");
             
             topic.DeleteQueue(queueId);
 
@@ -27,7 +27,7 @@ namespace MyServiceBus.Server.Controllers
             var topic = ServiceLocator.TopicsList.TryGet(topicId);
 
             if (topic == null)
-                throw new Exception($"Topic {topicId} is not found");
+                return Conflict($"Topic {topicId} is not found");
 
             topic.SetQueueMessageId(queueId, messageId);
 
