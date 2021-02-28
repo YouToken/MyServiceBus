@@ -14,14 +14,14 @@ namespace MyServiceBus.Server.Grpc
         {
             var now = DateTime.UtcNow;
 
-            var session = ServiceLocator.SessionsList.GetSession(request.SessionId, now);
+            var session = ServiceLocator.GrpcSessionsList.TryGetSession(request.SessionId, now);
 
             if (session == null)
                 return ErrorGrpcResponses.SessionExpired;
 
             var response = await ServiceLocator
                 .MyServiceBusPublisher
-                .PublishAsync(session, request.TopicId, request.Messages, now, request.PersistImmediately);
+                .PublishAsync(session.Session, request.TopicId, request.Messages, now, request.PersistImmediately);
 
             if (response == ExecutionResult.TopicNotFound)
             {

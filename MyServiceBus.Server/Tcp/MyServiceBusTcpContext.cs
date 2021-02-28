@@ -14,8 +14,11 @@ using MyTcpSockets;
 
 namespace MyServiceBus.Server.Tcp
 {
-    public class MyServiceBusTcpContext : TcpContext<IServiceBusTcpContract>, IMyServiceBusSession
+    public class MyServiceBusTcpContext : TcpContext<IServiceBusTcpContract>, IMyServiceBusSubscriberSession
     {
+        
+        public int ProtocolVersion { get; private set; }
+        
         private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
         {
 
@@ -111,8 +114,10 @@ namespace MyServiceBus.Server.Tcp
                 Disconnect();
             }
 
+            ProtocolVersion = greetingContract.ProtocolVersion;
+
             Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
-                TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknownIP", DateTime.UtcNow, TimeSpan.FromSeconds(30), greetingContract.ProtocolVersion, SessionType.Tcp);
+                TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknownIP", SessionType.Tcp);
 
             SetContextName(greetingContract.Name);
             ServiceLocator.TcpConnectionsSnapshotId++;
@@ -135,7 +140,7 @@ namespace MyServiceBus.Server.Tcp
 
             if (topic == null)
             {
-                Console.WriteLine($"Client {Session.Name} is trying to subscribe to the topic {contract.TopicId} which does not exists");
+                Console.WriteLine($"Client {Session.SessionName} is trying to subscribe to the topic {contract.TopicId} which does not exists");
                 Disconnect();
                 return;
             }
@@ -157,7 +162,7 @@ namespace MyServiceBus.Server.Tcp
 
         protected override ValueTask OnDisconnectAsync()
         {
-            Session?.Disconnect();
+            Session?.Dispose();
 
             Console.WriteLine("Disconnected: " + ContextName);
             ServiceLocator.TcpConnectionsSnapshotId++;
@@ -170,8 +175,7 @@ namespace MyServiceBus.Server.Tcp
 
             try
             {
-                Session?.UpdateLastAccess();
-
+                Session?.UpdatePacketPerSeconds();
 
                 switch (data)
                 {

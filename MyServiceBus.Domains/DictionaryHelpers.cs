@@ -1,11 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace MyServiceBus.Domains
 {
     public static class DictionaryHelpers
     {
+
+
+        public static TValue TryGetOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> src, TKey key)
+        {
+            return src.TryGetValue(key, out var result) ? result : default;
+        }
+
+        public static TValue TryRemoveOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> src, TKey key)
+        {
+            return src.Remove(key, out var result) ? result : default;
+        }
         
         public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> src, TKey key) where TValue : new()
         {

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyServiceBus.Domains;
 using MyServiceBus.Persistence.Grpc;
 using MyServiceBus.Server.Services;
+using MyServiceBus.Server.Services.Sessions;
 using ProtoBuf.Grpc.Client;
 
 namespace MyServiceBus.Server
@@ -14,6 +15,7 @@ namespace MyServiceBus.Server
             var prometheusMetrics = new PrometheusMetrics();
             sr.AddSingleton<IMetricCollector>(prometheusMetrics);
             sr.AddSingleton(prometheusMetrics);
+            sr.AddSingleton<GrpcSessionsList>();
         }
 
 

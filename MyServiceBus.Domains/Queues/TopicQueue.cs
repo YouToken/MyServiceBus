@@ -74,7 +74,7 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
-        public IReadOnlyList<IQueueIndexRange> GetLeasedQueueSnapshot(IMyServiceBusSession session)
+        public IReadOnlyList<IQueueIndexRange> GetLeasedQueueSnapshot(IMyServiceBusSubscriberSession session)
         {
             lock (_topicLock)
             {
@@ -210,7 +210,7 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
-        public async ValueTask<bool> DisconnectedAsync(IMyServiceBusSession session)
+        public async ValueTask<bool> DisconnectedAsync(IMyServiceBusSubscriberSession session)
         {
             
             var theSubscriber = SubscribersList.Unsubscribe(session);

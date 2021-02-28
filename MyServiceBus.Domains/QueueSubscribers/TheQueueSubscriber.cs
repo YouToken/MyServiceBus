@@ -17,7 +17,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         
         private readonly TopicQueue _topicQueue;
 
-        public TheQueueSubscriber(IMyServiceBusSession session, TopicQueue topicQueue)
+        public TheQueueSubscriber(IMyServiceBusSubscriberSession session, TopicQueue topicQueue)
         {
             _nextConfirmationId++;
             ConfirmationId = _nextConfirmationId;
@@ -25,7 +25,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
             _topicQueue = topicQueue;
         }
 
-        public IMyServiceBusSession Session { get; }
+        public IMyServiceBusSubscriberSession Session { get; }
 
         public readonly QueueWithIntervals LeasedQueue = new (0);
 

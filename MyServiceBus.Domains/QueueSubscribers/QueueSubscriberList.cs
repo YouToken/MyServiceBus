@@ -33,7 +33,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         }
 
 
-        public void Subscribe(IMyServiceBusSession session)
+        public void Subscribe(IMyServiceBusSubscriberSession session)
         {
             lock (_lockObject)
             {
@@ -47,7 +47,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
             }
         }
 
-        public TheQueueSubscriber Unsubscribe(IMyServiceBusSession session)
+        public TheQueueSubscriber Unsubscribe(IMyServiceBusSubscriberSession session)
         {
             lock (_lockObject)
             {
@@ -89,7 +89,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
             }
         }
 
-        public TheQueueSubscriber TryGetSubscriber(IMyServiceBusSession session)
+        public TheQueueSubscriber TryGetSubscriber(IMyServiceBusSubscriberSession session)
         {
             lock (_lockObject)
             {

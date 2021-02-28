@@ -4,7 +4,7 @@ using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.QueueSubscribers
 {
-    public interface IMyServiceBusSession
+    public interface IMyServiceBusSubscriberSession
     {
         void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId);
         string SubscriberId { get; }

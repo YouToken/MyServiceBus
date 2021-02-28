@@ -11,33 +11,14 @@ namespace MyServiceBus.Domains.Sessions
     }
     
     
-    public class MyServiceBusSession
+    public class MyServiceBusSession : IDisposable
     {
-        public long Id { get; private set; }
-        public string Ip { get; private set; }
-        public string Name { get; private set; }
-        public DateTime LastAccess { get; internal set; }
-        public TimeSpan SessionTimeout { get; private set; }
+        public string Id { get; }
         
-        public DateTime Created { get; } = DateTime.UtcNow;
-        
-        public int ProtocolVersion { get; private set; }
-        
-        public bool Disconnected { get; private set; }
+        public string SessionName { get; }
 
-        public void Disconnect()
-        {
-            Disconnected = true;
-            _onDisconnect?.Invoke(this);
-        }
-        
-        
-        public bool IsExpired(DateTime now)
-        {
-            return Disconnected || now - LastAccess >= SessionTimeout;
-        }
-        
-        private Dictionary<string, string> _topicsPublishers = new Dictionary<string, string>();
+
+        private Dictionary<string, string> _topicsPublishers = new ();
 
         private IReadOnlyList<string> _topicsPublishersAsReadOnlyList = Array.Empty<string>();
 
@@ -79,38 +60,34 @@ namespace MyServiceBus.Domains.Sessions
         {
             return _subscribersToQueueAsList;
         }
-
-        private Action<MyServiceBusSession> _onDisconnect;
         
-        public SessionType SessionType { get; private set; }
-        public static MyServiceBusSession Create(long id, string name, string ip, DateTime nowTime, in TimeSpan timeout, Action<MyServiceBusSession> onDisconnect, int protocolVersion,
-            SessionType sessionType)
+        public SessionType SessionType { get; }
+        public MyServiceBusSession (string id, string name,
+            SessionType sessionType,
+            Action<MyServiceBusSession> onDispose)
         {
-            return new MyServiceBusSession
-            {
-                Id = id,
-                Name = name,
-                LastAccess = nowTime,
-                Ip = ip,
-                SessionTimeout = timeout,
-                _onDisconnect = onDisconnect,
-                ProtocolVersion = protocolVersion,
-                SessionType = sessionType
-            };
+            Id = id;
+            SessionName = name;
+            SessionType = sessionType;
+            _onDispose = onDispose;
         }
 
         public override string ToString()
         {
-            return "Session: " + Name;
+            return "Session: " + SessionName;
         }
 
-        public void UpdateLastAccess()
+        private readonly Action<MyServiceBusSession> _onDispose;
+        
+        public void Dispose()
         {
-            LastAccess = DateTime.UtcNow;
+            _onDispose(this);
+        }
+
+        public void UpdatePacketPerSeconds()
+        {
             PacketsPerSecond++;
         }
-        
-        
         
         public int PublishPacketsInternal { get; set; }
         public int PublishPacketsPerSecond { get; set; }

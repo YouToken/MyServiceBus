@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using MyServiceBus.Server.Models;
 using MyServiceBus.Domains.MessagesContent;
-using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Server.Tcp;
 
 namespace MyServiceBus.Server.Controllers
@@ -26,17 +25,11 @@ namespace MyServiceBus.Server.Controllers
                     .Where(itm => itm.Session != null)
                     .ToList();
 
-            var unknownConnections = sessions
-                .Cast<MyServiceBusTcpContext>()
-                .Where(itm => itm.Session == null)
-                .Select(UnknownConnectionModel.Create)
-                .ToList();
             
             var result = new MonitoringModel
             {
                 Topics = topics.Select(itm => TopicMonitoringModel.Create(itm, knownConnections)),
                 Connections = knownConnections.Select(ConnectionModel.Create).ToList(),
-                UnknownConnections = unknownConnections,
                 TcpConnections = sessions.Count,
                 QueueToPersist = ServiceLocator.MessagesToPersistQueue.GetMessagesToPersistCount().Select(itm => new QueueToPersist
                 {
@@ -45,8 +38,7 @@ namespace MyServiceBus.Server.Controllers
                 })
             };
             
-            var grpcConnections = ServiceLocator.SessionsList.GetSessions()
-                .Where(itm => itm.SessionType == SessionType.Http);
+            var grpcConnections = ServiceLocator.GrpcSessionsList.GetAll();
             
             result.Connections.AddRange(grpcConnections.Select(ConnectionModel.Create));
 

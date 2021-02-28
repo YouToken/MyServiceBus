@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -12,6 +13,7 @@ using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Hubs;
 using MyServiceBus.Server.Services;
+using MyServiceBus.Server.Services.Sessions;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -73,9 +75,14 @@ namespace MyServiceBus.Server
         public static IMessagesToPersistQueue MessagesToPersistQueue { get; private set; }
         public static MessagesPerSecondByTopic MessagesPerSecondByTopic { get; private set; }
         public static PrometheusMetrics PrometheusMetrics { get; private set; }
+        
+        public static GrpcSessionsList GrpcSessionsList { get; private set; }
 
         public static void Init(IServiceProvider serviceProvider)
         {
+
+            GrpcSessionsList = serviceProvider.GetRequiredService<GrpcSessionsList>();
+            
             MessagesPerSecondByTopic = serviceProvider.GetRequiredService<MessagesPerSecondByTopic>();
             
             TopicsManagement = serviceProvider.GetRequiredService<TopicsManagement>();
@@ -103,6 +110,9 @@ namespace MyServiceBus.Server
         private static readonly MyTaskTimer TimerPersistent = new (1000);
 
         private static readonly MyTaskTimer TimerStatistic = new (1000);
+        
+        
+        
 
 
         public static void Start()
@@ -114,10 +124,10 @@ namespace MyServiceBus.Server
             TimerGarbageCollector.Register("Persist Messages",
                 _myServiceBusBackgroundExecutor.PersistMessages);
             
-            TimerPersistent.Register("Long pooling subscribers Persist",
+            TimerPersistent.Register("Sessions List GC",
                 ()=>
                 {
-                    SessionsList.Timer(DateTime.UtcNow);
+                    GrpcSessionsList.GarbageCollectSessions(DateTime.UtcNow);
                     return new ValueTask();
                 });
 
@@ -141,6 +151,17 @@ namespace MyServiceBus.Server
         {
             
             MyGlobalVariables.ShuttingDown = true;
+            
+            Console.WriteLine("Stopping TCP server");
+            var sw = new Stopwatch();
+            sw.Start();
+            TcpServer.Stop();
+            while (TcpServer.Count > 0)
+                Thread.Sleep(100);
+            sw.Stop();
+            Console.WriteLine("TCP server is stopped in: " + sw.Elapsed);
+            
+            NotCompiled
 
             Console.WriteLine("Stopping background timers");
 

@@ -28,12 +28,12 @@ namespace MyServiceBus.Server.Controllers
         [HttpPost("Topics/NewMessage")]
         public async Task<IActionResult> NewMessage([FromForm][Required]long sessionId, [FromForm]string topicId, [FromForm][Required]string messageBase64, [FromForm][Required]bool persistImmediately)
         {
-            var session = ServiceLocator.SessionsList.GetSession(sessionId, DateTime.UtcNow);
+            var session = ServiceLocator.GrpcSessionsList.TryGetSession(sessionId, DateTime.UtcNow);
             if (session == null)
                 return Forbid();
             
             var bytes = Convert.FromBase64String(messageBase64); 
-            var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
+            var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session.Session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
             return Json(new {result});
         }
 

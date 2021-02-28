@@ -10,17 +10,18 @@ namespace MyServiceBus.Server.Controllers
         [HttpPost("Greeting")]
         public long Index([FromForm][Required]string name)
         {
-            var session = ServiceLocator.SessionsList.NewSession(name, 
-                HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown", 
-                DateTime.UtcNow, Startup.SessionTimeout, 0, SessionType.Http);
-            
-            return session.Id;
+            var grpcSession = ServiceLocator.GrpcSessionsList.GenerateNewSession(name);
+
+            var session = ServiceLocator.SessionsList.NewSession("HTTP-" + grpcSession.Id, name, SessionType.Http);
+
+            grpcSession.Session = session;
+            return grpcSession.Id;
         }
         
         [HttpPost("Greeting/Ping")]
         public IActionResult Index([FromForm][Required]long sessionId)
         {
-            var session = ServiceLocator.SessionsList.GetSession(sessionId, DateTime.UtcNow);
+            var session = ServiceLocator.GrpcSessionsList.TryGetSession(sessionId, DateTime.UtcNow);
             
             if (session == null)
                 return Forbid();

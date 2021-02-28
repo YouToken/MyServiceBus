@@ -67,6 +67,25 @@ namespace MyServiceBus.Domains
         {
             return _dictionary.TryGetValue(key, out value);
         }
+        
+        public TValue TryGetValueOrDefault(TKey key)
+        {
+            return _dictionary.TryGetValue(key, out var value) ? value : default;
+        }
+
+        public TValue TryRemoveOrDefault(TKey key)
+        {
+            lock (_lockObject)
+            {
+                if (_dictionary.Remove(key, out var result))
+                {
+                    _itemsAsList = _dictionary.Values.ToList();
+                    return result;
+                }
+
+                return default;
+            }
+        }
 
     }
 }

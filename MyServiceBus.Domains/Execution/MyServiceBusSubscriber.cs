@@ -19,7 +19,7 @@ namespace MyServiceBus.Domains.Execution
             _topicsList = topicsList;
         }
 
-        public async ValueTask<TopicQueue> SubscribeToQueueAsync(TopicQueue topicQueue, IMyServiceBusSession session)
+        public async ValueTask<TopicQueue> SubscribeToQueueAsync(TopicQueue topicQueue, IMyServiceBusSubscriberSession session)
         {
             topicQueue.SubscribersList.Subscribe(session);
             await _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
@@ -38,7 +38,7 @@ namespace MyServiceBus.Domains.Execution
             return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
         }
         
-        public async ValueTask DisconnectSubscriberAsync(IMyServiceBusSession session)
+        public async ValueTask DisconnectSubscriberAsync(IMyServiceBusSubscriberSession session)
         {
             var topics = _topicsList.Get();
 

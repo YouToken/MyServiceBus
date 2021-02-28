@@ -30,7 +30,7 @@ namespace MyServiceBus.Server.Hubs
                 Recv = (DateTime.UtcNow - tcpContext.SocketStatistic.LastReceiveTime).FormatTimeStamp(),
                 ReadBytes = tcpContext.SocketStatistic.Received,
                 SentBytes = tcpContext.SocketStatistic.Sent,
-                ProtocolVersion = tcpContext.Session?.ProtocolVersion ?? 0,
+                ProtocolVersion = tcpContext.ProtocolVersion,
                 Topics =  tcpContext.Session == null 
                     ? Array.Empty<string>() 
                     : tcpContext.Session.GetTopicsToPublish(),

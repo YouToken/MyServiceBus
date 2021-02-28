@@ -11,7 +11,7 @@ using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.Tests.Utils
 {
-    public class MockConnection : IMyServiceBusSession
+    public class MockConnection : IMyServiceBusSubscriberSession
     {
 
         private readonly TopicsManagement _topicsManagement;
@@ -35,7 +35,7 @@ namespace MyServiceBus.Domains.Tests.Utils
             Subscriber = sr.GetRequiredService<MyServiceBusSubscriber>();
             Publisher = sr.GetRequiredService<MyServiceBusPublisher>();
             
-            MyServiceBusSession = sessionsList.NewSession(SubscriberId, "10.0.0.0", dt, TimeSpan.FromMinutes(1), 0, SessionType.Http);
+            MyServiceBusSession = sessionsList.NewSession(SubscriberId, "Test",  SessionType.Http);
         }
         
         public readonly List<(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)> Messages 
