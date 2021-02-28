@@ -109,26 +109,32 @@ namespace MyServiceBus.TcpContracts
 
             RequestId = await dataReader.ReadLongAsync(protocolVersion, ct);
         }
-    } 
+    }
+
+
+    public enum TopicQueueTypeTcpContract
+    {
+        
+    }
     
     public class SubscribeContract : IServiceBusTcpContract
     {
         public string TopicId { get; set; }
         public string QueueId { get; set; }
-        public bool DeleteOnDisconnect { get; set; }
-        
+        public TopicQueueType QueueType { get; set; }
+
         public void Serialize(Stream stream, int protocolVersion, int packetVersion)
         {
             stream.WritePascalString(TopicId);
             stream.WritePascalString(QueueId);
-            stream.WriteByte(DeleteOnDisconnect ? (byte)1 : (byte)0);
+            stream.WriteByte((byte)QueueType);
         }
 
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
-            DeleteOnDisconnect = await dataReader.ReadAndCommitByteAsync(ct) == 1;
+            QueueType = (TopicQueueType)await dataReader.ReadAndCommitByteAsync(ct);
         }
     }    
     
@@ -153,7 +159,7 @@ namespace MyServiceBus.TcpContracts
 
 
     
-    public class NewMessageContract : IServiceBusTcpContract
+    public class NewMessagesContract : IServiceBusTcpContract
     {
         public class NewMessageData : IServiceBusTcpContract, IMyServiceBusMessage
         {
@@ -279,9 +285,9 @@ namespace MyServiceBus.TcpContracts
     {
         public byte PacketVersion { get; private set; }
     
-        public string TopicId { get; private set; }
-        public string QueueId { get; private set; }
-        public long ConfirmationId { get; private set; }
+        public string TopicId { get; set; }
+        public string QueueId { get; set; }
+        public long ConfirmationId { get; set; }
         public IReadOnlyList<IQueueIndexRange> OkMessages { get; set; }
         
         public void Serialize(Stream stream, int protocolVersion, int packetVersion)

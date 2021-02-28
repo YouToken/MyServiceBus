@@ -13,9 +13,18 @@ var HtmlTopicQueueRenderer = /** @class */ (function () {
         var connectionBadge = HtmlCommonRenderer.renderBadge(queue.connections > 0 ? 'primary' : 'danger', '<img style="width: 10px" src="/images/plug.svg"> ' + queue.connections);
         var queueSize = Utils.getQueueSize(queue.ready);
         var queueBadge = HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success", HtmlCommonRenderer.RenderQueueSlices(queue.ready));
-        var queueTypeBadge = queue.deleteOnDisconnect
-            ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
-            : HtmlCommonRenderer.renderBadge('warning', 'permanent');
+        var queueTypeBadge = HtmlCommonRenderer.renderBadge('danger', 'unknown');
+        switch (queue.queueType) {
+            case 0:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('warning', 'permanent');
+                break;
+            case 1:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('success', 'auto-delete');
+                break;
+            case 2:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('warning', 'permanent-single-connect');
+                break;
+        }
         var sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:" + queue.size);
         var leasedBadge = HtmlCommonRenderer.renderBadge("warning", "Leased: " + queue.leased);
         return connectionBadge + ' ' + queueTypeBadge + ' ' + sizeBadge + ' ' + queueBadge + ' ' + leasedBadge;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.TcpClient;
 
 namespace MyServiceBus.TcpClientTest
@@ -18,10 +19,11 @@ namespace MyServiceBus.TcpClientTest
        //     var myServiceBusTcpClien2 = new MyServiceBusTcpClient(()=>hostPort, "test2");
 
             myServiceBusTcpClient.CreateTopicIfNotExists("test-topic");
-
+ 
             var i = 0;
 
-            myServiceBusTcpClient.Subscribe("test-topic", "myqueue", false, data =>
+            myServiceBusTcpClient.Subscribe("test-topic", "myqueue", TopicQueueType.Permanent,
+                data =>
             {
                 Console.WriteLine("test-topic Length: " + data.Id);
 

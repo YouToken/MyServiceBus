@@ -15,6 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\MyServiceBus.Abstractions\MyServiceBus.Abstractions.csproj" />
       <ProjectReference Include="..\MyServiceBus.TcpContracts\MyServiceBus.TcpContracts.csproj" />
     </ItemGroup>
 

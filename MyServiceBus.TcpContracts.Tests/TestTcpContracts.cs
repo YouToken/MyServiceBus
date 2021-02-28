@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyTcpSockets.Extensions;
 using NUnit.Framework;
 
@@ -172,7 +173,7 @@ namespace MyServiceBus.TcpContracts.Tests
             {
                 TopicId = "aaa",
                 QueueId = "bbb",
-                DeleteOnDisconnect = true
+                QueueType = TopicQueueType.PermanentWithSingleConnection
             };
 
             var dataReader = new TcpDataReader(2048);
@@ -226,18 +227,18 @@ namespace MyServiceBus.TcpContracts.Tests
             var serializer = new MyServiceBusTcpSerializer();
 
 
-            var inContract = new NewMessageContract
+            var inContract = new NewMessagesContract
             {
                 TopicId = "aaa",
                 QueueId = "bbb",
                 Data = new[]
                 {
-                    new NewMessageContract.NewMessageData
+                    new NewMessagesContract.NewMessageData
                     {
                         Id = 5,
                         Data = new byte[] {1, 2, 3}
                     },
-                    new NewMessageContract.NewMessageData
+                    new NewMessagesContract.NewMessageData
                     {
                         Id = 6,
                         Data = new byte[] {4, 5, 6}
@@ -255,7 +256,7 @@ namespace MyServiceBus.TcpContracts.Tests
             var res = await serializer
                 .DeserializeAsync(dataReader, ct.Token);
             
-            var result = (NewMessageContract) res;
+            var result = (NewMessagesContract) res;
             Assert.AreEqual(inContract.TopicId, result.TopicId);
             Assert.AreEqual(inContract.QueueId, result.QueueId);
             var d1 = inContract.Data.ToArray();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
@@ -9,7 +10,6 @@ namespace MyServiceBus.TcpClient
 {
     public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>
     {
-
 
         private readonly Dictionary<string, SubscriberInfo> _subscribers;
         private readonly string _name;
@@ -41,7 +41,7 @@ namespace MyServiceBus.TcpClient
 
             foreach (var subscriber in _subscribers.Values)
             {
-                SendSubscribe(subscriber.TopicId, subscriber.QueueId, subscriber.DeleteOnDisconnect);
+                SendSubscribe(subscriber.TopicId, subscriber.QueueId, subscriber.QueueType);
             }
             
             return new ValueTask();
@@ -71,7 +71,7 @@ namespace MyServiceBus.TcpClient
 
             switch (data)
             {
-                case NewMessageContract newMsg:
+                case NewMessagesContract newMsg:
                     HandleNewMessages(newMsg);
                     break;
 
@@ -87,13 +87,13 @@ namespace MyServiceBus.TcpClient
         }
 
 
-        private void SendSubscribe(string topicId, string queueId, bool deleteOnDisconnect)
+        private void SendSubscribe(string topicId, string queueId, TopicQueueType queueType)
         {
             var contract = new SubscribeContract
             {
                 TopicId = topicId,
                 QueueId = queueId,
-                DeleteOnDisconnect = deleteOnDisconnect
+                QueueType = queueType
             };
             
             SendDataToSocket(contract);
@@ -105,7 +105,7 @@ namespace MyServiceBus.TcpClient
             return topicId + "|" + queueId;
         }
 
-        private void HandleNewMessages(NewMessageContract newMsg)
+        private void HandleNewMessages(NewMessagesContract newMsg)
         {
             var id = GetId(newMsg.TopicId, newMsg.QueueId);
 
@@ -116,11 +116,7 @@ namespace MyServiceBus.TcpClient
                 subscriber.InvokeNewMessages(newMsg.Data,
                     () => SendMessageConfirmation(newMsg),
                  () => SendMessageReject(newMsg), 
-                    someMessages =>
-                    {
-                        //ToDo = Implement new package
-                        SendMessageReject(newMsg);
-                    }
+                    someMessages => SendSomeMessagesOkSomeRejected(newMsg, someMessages)
                     );
             }
             catch (Exception)
@@ -129,7 +125,7 @@ namespace MyServiceBus.TcpClient
             }
         }
         
-        private void SendMessageConfirmation(NewMessageContract messages)
+        private void SendMessageConfirmation(NewMessagesContract messages)
         {
             var contract = new NewMessageConfirmationContract
             {
@@ -141,7 +137,7 @@ namespace MyServiceBus.TcpClient
             SendDataToSocket(contract);
         }
         
-        private void SendMessageReject(NewMessageContract messages)
+        private void SendMessageReject(NewMessagesContract messages)
         {
             var contract = new MessagesConfirmationAsFailContract
             {
@@ -153,12 +149,17 @@ namespace MyServiceBus.TcpClient
             SendDataToSocket(contract);
         }
 
-        private void SendSomeMessagesOkSomeRejected(NewMessageContract messages, QueueWithIntervals okMessages)
+        private void SendSomeMessagesOkSomeRejected(NewMessagesContract messageses, QueueWithIntervals okMessages)
         {
             var contract = new ConfirmSomeMessagesOkSomeFail
             {
-                OkMessages = okMessages.GetSnapshot()
+                TopicId = messageses.TopicId,
+                QueueId = messageses.QueueId,
+                ConfirmationId = messageses.ConfirmationId,
+                OkMessages = okMessages.GetSnapshot(),
             };
+            
+            SendDataToSocket(contract);
         }
         
         

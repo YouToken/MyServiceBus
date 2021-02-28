@@ -13,7 +13,7 @@ interface ITopicQueueSignalRContract{
   id: string,
   connections: number,
   size:number,
-  deleteOnDisconnect: boolean
+  queueType: number,
   leased: number,
   ready: IQueueIndex[]
 }

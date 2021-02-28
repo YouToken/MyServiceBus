@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
@@ -33,6 +34,11 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
+        
+        public MyTopic Topic { get; }
+        public string QueueId { get; }
+        public TopicQueueType TopicQueueType { get; private set; }
+        
         private readonly QueueWithIntervals _queue;
 
         private readonly object _topicLock = new();
@@ -45,27 +51,25 @@ namespace MyServiceBus.Domains.Queues
         
         public QueueSubscribersList SubscribersList { get; }
 
-        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, IEnumerable<IQueueIndexRange> ranges)
+        public TopicQueue(MyTopic topic, string queueId, TopicQueueType topicQueueType, IEnumerable<IQueueIndexRange> ranges)
         {
             Topic = topic;
             QueueId = queueId;
-            DeleteOnDisconnect = deleteOnDisconnect;
+            TopicQueueType = topicQueueType;
             _queue = new QueueWithIntervals(ranges);
             SubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
-        public TopicQueue(MyTopic topic, string queueId, bool deleteOnDisconnect, long messageId)
+        public TopicQueue(MyTopic topic, string queueId, TopicQueueType topicQueueType, long messageId)
         {
             Topic = topic;
             QueueId = queueId;
-            DeleteOnDisconnect = deleteOnDisconnect;
+            TopicQueueType = topicQueueType;
             _queue = new QueueWithIntervals(messageId);
             SubscribersList = new QueueSubscribersList(this, _topicLock);
         }
 
-        public MyTopic Topic { get; }
-        public string QueueId { get; }
-        public bool DeleteOnDisconnect { get; }
+
         public IReadOnlyList<IQueueIndexRange> GetReadyQueueSnapshot()
         {
             lock (_topicLock)
@@ -103,7 +107,10 @@ namespace MyServiceBus.Domains.Queues
    
         }
 
-
+        public void UpdateTopicQueueType(TopicQueueType topicQueueType)
+        {
+            TopicQueueType = topicQueueType;
+        }
 
         private void DisposeNotDeliveredMessages(
             IEnumerable<(MessageContentGrpcModel message, int attemptNo)> messages, int incrementAttemptNo)
@@ -295,6 +302,6 @@ namespace MyServiceBus.Domains.Queues
                 _executionMonitoring.Reset();
             }
         }
-        
+
     }
 }

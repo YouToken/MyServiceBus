@@ -1,4 +1,5 @@
 using System;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Tests.Utils;
 using NUnit.Framework;
 
@@ -42,7 +43,7 @@ namespace MyServiceBus.Domains.Tests
             
             var session = ioc.ConnectSession("MySession", nowTime);
             var topic = session.CreateTopic(topicName);
-            session.Subscribe(topicName, queueName, false);
+            session.Subscribe(topicName, queueName, TopicQueueType.Permanent);
 
             var queues = topic.GetQueues();
             Assert.AreEqual(1, queues.Count);

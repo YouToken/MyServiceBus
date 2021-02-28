@@ -24,7 +24,7 @@ namespace MyServiceBus.Server.Hubs
     public class TopicQueueHubModel
     {
         public string Id { get; set; }
-        public bool DeleteOnDisconnect { get; set; }
+        public int QueueType { get; set; }
         public long Size { get; set; }
         public int Connections { get; set; }
         public int Leased { get; set; }
@@ -36,7 +36,7 @@ namespace MyServiceBus.Server.Hubs
             {
                 Id = topicQueue.QueueId,
                 Connections = topicQueue.SubscribersList.GetCount(),
-                DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
+                QueueType = (int)topicQueue.TopicQueueType,
                 Size = topicQueue.GetMessagesCount(),
                 Ready = topicQueue.GetReadyQueueSnapshot().Select(QueueSliceHubModel.Create),
                 Leased = topicQueue.GetLeasedMessagesCount()

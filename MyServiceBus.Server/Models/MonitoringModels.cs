@@ -30,7 +30,7 @@ namespace MyServiceBus.Server.Models
     public class ConsumerModel
     {
         public string QueueId { get; set; }
-        public bool DeleteOnDisconnect { get; set; }
+        public int QueueType { get; set; }
         public int Connections { get; set; }
         public long QueueSize { get; set; }
         public IEnumerable<QueueSlice> ReadySlices { get; set; }
@@ -195,7 +195,7 @@ namespace MyServiceBus.Server.Models
             return topic.GetQueues().Select(topicQueue => new ConsumerModel
             {
                 QueueId = topicQueue.QueueId,
-                DeleteOnDisconnect = topicQueue.DeleteOnDisconnect,
+                QueueType = (int)topicQueue.TopicQueueType,
                 Connections = topicQueue.SubscribersList.GetCount(),
                 QueueSize = topicQueue.GetMessagesCount(),
                 LeasedAmount = topicQueue.GetLeasedMessagesCount(),

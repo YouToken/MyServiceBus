@@ -14,10 +14,10 @@ namespace MyServiceBus.Abstractions
 
     public interface IMyServiceBusSubscriber
     {
-        void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
+        void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
             Func<IMyServiceBusMessage, ValueTask> callback);
 
-        void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
+        void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
             Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback);
     }
     

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
-using DotNetCoreDecorators;
+using System.Linq;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Queues;
+using MyServiceBus.Domains.QueueSubscribers;
 
 namespace MyServiceBus.Domains.Sessions
 {
@@ -10,7 +12,6 @@ namespace MyServiceBus.Domains.Sessions
         Tcp, Http
     }
     
-    
     public class MyServiceBusSession : IDisposable
     {
         public string Id { get; }
@@ -18,22 +19,12 @@ namespace MyServiceBus.Domains.Sessions
         public string SessionName { get; }
 
 
-        private Dictionary<string, string> _topicsPublishers = new ();
+        private readonly ConcurrentDictionaryWithNoLocksOnRead<string, string> _topicsPublishers = new ();
 
-        private IReadOnlyList<string> _topicsPublishersAsReadOnlyList = Array.Empty<string>();
 
         public void PublishToTopic(string topic)
         {
-            lock (this)
-            {
-                if (_topicsPublishers.ContainsKey(topic))
-                    return;
-
-                var newTopics = new Dictionary<string, string>(_topicsPublishers) {{topic, topic}};
-                _topicsPublishers = newTopics;
-
-                _topicsPublishersAsReadOnlyList = _topicsPublishers.Keys.AsReadOnlyList();
-            }
+            _topicsPublishers.Add(topic, ()=>topic);
         }
 
         public bool IsTopicPublisher(string topicName)
@@ -43,7 +34,7 @@ namespace MyServiceBus.Domains.Sessions
         
         public IReadOnlyList<string> GetTopicsToPublish()
         {
-            return _topicsPublishersAsReadOnlyList;
+            return _topicsPublishers.GetAllValues();
         }
         
         private IReadOnlyList<TopicQueue> _subscribersToQueueAsList = Array.Empty<TopicQueue>();

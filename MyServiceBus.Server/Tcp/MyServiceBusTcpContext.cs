@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.Queues;
@@ -145,10 +146,18 @@ namespace MyServiceBus.Server.Tcp
                 return;
             }
 
-            var queue = topic.CreateQueueIfNotExists(contract.QueueId, contract.DeleteOnDisconnect);
+            var queue = topic.CreateQueueIfNotExists(contract.QueueId, contract.QueueType, true);
             Session?.SubscribeToQueue(queue);
-
             ServiceLocator.Subscriber.SubscribeToQueueAsync(queue, this);
+
+            if (queue.TopicQueueType == TopicQueueType.PermanentWithSingleConnection)
+            {
+                var subscribersToDisconnect =
+                    queue.SubscribersList.GetReadAccess(readAccess => readAccess.GetExceptThisOne(this).ToList());
+
+                foreach (var subscriber in subscribersToDisconnect)
+                    subscriber.Session.Disconnect();
+            }
 
         }
 
@@ -246,14 +255,14 @@ namespace MyServiceBus.Server.Tcp
             IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)
         {
             var messageData = messages.Select(
-                msg => new NewMessageContract.NewMessageData
+                msg => new NewMessagesContract.NewMessageData
             {
                 Id = msg.message.MessageId,
                 Data = msg.message.Data,
                 AttemptNo = msg.attemptNo
             }).ToList();
 
-            var contract = new NewMessageContract
+            var contract = new NewMessagesContract
             {
                 TopicId = topicQueue.Topic.TopicId,
                 QueueId = topicQueue.QueueId,

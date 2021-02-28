@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
@@ -70,9 +71,9 @@ namespace MyServiceBus.Domains.Topics
             _topicQueueList.DeleteQueue(queueName);
         }
 
-        public TopicQueue CreateQueueIfNotExists(string queueName, bool deleteOnDisconnect)
+        public TopicQueue CreateQueueIfNotExists(string queueName, TopicQueueType topicQueueType, bool overrideTopicQueueType)
         {
-            return _topicQueueList.CreateQueueIfNotExists(this, queueName, deleteOnDisconnect, MessageId.Value);
+            return _topicQueueList.CreateQueueIfNotExists(this, queueName, topicQueueType, MessageId.Value, overrideTopicQueueType);
         }
 
         public IReadOnlyList<MessageContentGrpcModel> Publish(IEnumerable<byte[]> messages, DateTime now)
@@ -169,7 +170,7 @@ namespace MyServiceBus.Domains.Topics
                     Console.WriteLine(indexRange.FromId + "-" + indexRange.ToId);
                 }
 
-                _topicQueueList.Init(this, queueSnapshot.QueueId, false, queueSnapshot.Ranges);
+                _topicQueueList.Init(this, queueSnapshot);
             }
         }
 

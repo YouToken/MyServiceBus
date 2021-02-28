@@ -6,7 +6,7 @@ namespace MyServiceBus.Server.Tcp
     public static class Mappers
     {
 
-        public static NewMessageContract.NewMessageData ToMessageData(this MessageContentGrpcModel messageContent, int attemptId)
+        public static NewMessagesContract.NewMessageData ToMessageData(this MessageContentGrpcModel messageContent, int attemptId)
         {
             
             return new ()

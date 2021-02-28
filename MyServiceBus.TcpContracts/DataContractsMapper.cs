@@ -23,7 +23,7 @@ namespace MyServiceBus.TcpContracts
                 [CommandType.PublishResponse] = () => new PublishResponseContract(),
                 [CommandType.Subscribe] = () => new SubscribeContract(),
                 [CommandType.SubscribeResponse] = () => new SubscribeResponseContract(),
-                [CommandType.NewMessage] = () => new NewMessageContract(),
+                [CommandType.NewMessage] = () => new NewMessagesContract(),
                 [CommandType.NewMessageConfirmation] = () => new NewMessageConfirmationContract(),
                 [CommandType.CreateTopicIfNotExists] = () => new CreateTopicIfNotExistsContract(),
                 [CommandType.MessagesConfirmation] = () => new MessagesConfirmationContract(),

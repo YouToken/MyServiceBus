@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
@@ -51,7 +52,7 @@ namespace MyServiceBus.Domains.Execution
                     
                     await _myServiceBusDeliveryHandler.SendMessagesAsync(queue);
                     
-                    if (queue.DeleteOnDisconnect && queue.SubscribersList.GetCount() == 0)
+                    if (queue.TopicQueueType == TopicQueueType.DeleteOnDisconnect && queue.SubscribersList.GetCount() == 0)
                         topic.DeleteQueue(queue.QueueId);
                 }
             }

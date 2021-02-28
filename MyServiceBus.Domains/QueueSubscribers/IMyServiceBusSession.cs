@@ -9,5 +9,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
         void SendMessagesAsync(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId);
         string SubscriberId { get; }
         bool Disconnected { get; }
+        void Disconnect();
     }
 }

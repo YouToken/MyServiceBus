@@ -13,25 +13,25 @@ namespace MyServiceBus.TcpClient
     {
         private readonly IMyServiceBusLogInvoker _log;
 
-        public SubscriberInfo(IMyServiceBusLogInvoker log, string topicId, string queueId, bool deleteOnDisconnect, 
+        public SubscriberInfo(IMyServiceBusLogInvoker log, string topicId, string queueId, TopicQueueType queueType, 
             Func<IMyServiceBusMessage, ValueTask> callbackAsOneMessage, Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callbackAsAPackage)
         {
             _log = log;
             TopicId = topicId;
             QueueId = queueId;
-            DeleteOnDisconnect = deleteOnDisconnect;
+            QueueType = queueType;
             CallbackAsOneMessage = callbackAsOneMessage;
             CallbackAsAPackage = callbackAsAPackage;
         }
 
         public string TopicId { get; }
         public string QueueId { get; }
-        public bool DeleteOnDisconnect { get; }
+        public TopicQueueType QueueType { get; }
         public Func<IMyServiceBusMessage, ValueTask> CallbackAsOneMessage { get; }
         public Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> CallbackAsAPackage { get; }
         
 
-        private async Task InvokeOneByOne(IReadOnlyList<NewMessageContract.NewMessageData> messages,
+        private async Task InvokeOneByOne(IReadOnlyList<NewMessagesContract.NewMessageData> messages,
             Action confirmAllOk, Action confirmAllReject, Action<QueueWithIntervals> confirmSomeMessagesAreOk)
         {
             
@@ -63,7 +63,7 @@ namespace MyServiceBus.TcpClient
             confirmAllOk();
         }
 
-        private async Task InvokeBulkCallback(IReadOnlyList<NewMessageContract.NewMessageData> messages, 
+        private async Task InvokeBulkCallback(IReadOnlyList<NewMessagesContract.NewMessageData> messages, 
             Action confirmAllOk, Action confirmAllReject)
         {
             if (CallbackAsAPackage == null)
@@ -82,7 +82,7 @@ namespace MyServiceBus.TcpClient
 
         }
 
-        public void InvokeNewMessages(IReadOnlyList<NewMessageContract.NewMessageData> messages,
+        public void InvokeNewMessages(IReadOnlyList<NewMessagesContract.NewMessageData> messages,
             Action confirmAllOk, Action confirmAllReject, 
             Action<QueueWithIntervals> confirmSomeMessagesAreOk)
         {

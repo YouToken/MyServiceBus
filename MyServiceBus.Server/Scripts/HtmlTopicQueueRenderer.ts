@@ -22,9 +22,19 @@ class HtmlTopicQueueRenderer{
         let queueBadge =  HtmlCommonRenderer.renderBadge(queueSize > 1000 ? "danger" : "success",
             HtmlCommonRenderer.RenderQueueSlices(queue.ready));
 
-        let queueTypeBadge = queue.deleteOnDisconnect
-            ? HtmlCommonRenderer.renderBadge('success', 'auto-delete')
-            : HtmlCommonRenderer.renderBadge('warning', 'permanent');
+        let queueTypeBadge = HtmlCommonRenderer.renderBadge('danger', 'unknown');
+        
+        switch (queue.queueType){
+            case 0:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('warning', 'permanent');
+                break;
+            case 1:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('success', 'auto-delete');
+                break;
+            case 2:
+                queueTypeBadge = HtmlCommonRenderer.renderBadge('warning', 'permanent-single-connect');
+                break;
+        }
 
         let sizeBadge = HtmlCommonRenderer.renderBadge(queue.size > 100 ? 'danger' : 'success', "Size:"+queue.size)
         

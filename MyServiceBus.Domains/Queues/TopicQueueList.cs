@@ -2,45 +2,45 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotNetCoreDecorators;
-using MyServiceBus.Abstractions.QueueIndex;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Domains.Queues
 {
+    
     public class TopicQueueList
     {
         private readonly object _lockObject = new();
         private Dictionary<string, TopicQueue> _topicQueues = new ();
         private IReadOnlyList<TopicQueue> _queuesAsReadOnlyList = Array.Empty<TopicQueue>();
-
         public int SnapshotId { get; private set; }
                 
-        public void Init(MyTopic topic, string queueName, bool deleteOnDisconnect,  IEnumerable<IQueueIndexRange> ranges)
+        public void Init(MyTopic topic, IQueueSnapshot snapshot)
         {
             lock (_lockObject)
             {
-                var queue = new TopicQueue(topic, queueName, deleteOnDisconnect, ranges);
-                _topicQueues.Add(queueName, queue);
+                var queue = new TopicQueue(topic, snapshot.QueueId, snapshot.TopicQueueType, snapshot.Ranges);
+                _topicQueues.Add(snapshot.QueueId, queue);
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList();
                 SnapshotId++;
-                
                 CalcMinMessageId();
             }
         }
         
-        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, bool deleteOnDisconnect, long messageId)
+        public TopicQueue CreateQueueIfNotExists(MyTopic topic, string queueName, TopicQueueType topicQueueType, long messageId, bool overrideTopicQueueType)
         {
-
             lock (_lockObject)
             {
-
                 var (added, newDictionary, value) = _topicQueues.AddIfNotExistsByCreatingNewDictionary(queueName,
-                    () => new TopicQueue(topic, queueName, deleteOnDisconnect, messageId));
+                    () => new TopicQueue(topic, queueName, topicQueueType, messageId));
 
                 if (!added)
+                {
+                    if (overrideTopicQueueType)
+                        value.UpdateTopicQueueType(topicQueueType);
                     return value;
-
+                }
 
                 _topicQueues = newDictionary;
                 _queuesAsReadOnlyList = _topicQueues.Values.AsReadOnlyList(); 
@@ -127,7 +127,7 @@ namespace MyServiceBus.Domains.Queues
         {
             List<IQueueSnapshot> result = null;
 
-            foreach (var topicQueue in _queuesAsReadOnlyList.Where(itm => !itm.DeleteOnDisconnect))
+            foreach (var topicQueue in _queuesAsReadOnlyList.Where(itm => itm.TopicQueueType != TopicQueueType.DeleteOnDisconnect))
             {
                 var snapshot = topicQueue.GetSnapshot();
 

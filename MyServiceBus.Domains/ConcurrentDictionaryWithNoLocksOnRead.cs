@@ -87,6 +87,14 @@ namespace MyServiceBus.Domains
             }
         }
 
+        public bool ContainsKey(TKey key)
+        {
+            lock (_lockObject)
+            {
+                return _dictionary.ContainsKey(key);
+            }
+        }
+
         public int Count => _itemsAsList.Count;
 
     }

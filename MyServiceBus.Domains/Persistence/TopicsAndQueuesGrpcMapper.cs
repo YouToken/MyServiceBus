@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Persistence.Grpc;
 
@@ -18,14 +19,39 @@ namespace MyServiceBus.Domains.Persistence
             };
         }
 
+        private static QueueTypePersistenceGrpcEnum ToGrpcModel(this TopicQueueType topicQueueType)
+        {
+            return topicQueueType switch
+            {
+                TopicQueueType.Permanent => QueueTypePersistenceGrpcEnum.Permanent,
+                TopicQueueType.PermanentWithSingleConnection => QueueTypePersistenceGrpcEnum
+                    .PermanentWithSingleConnection,
+                _ => QueueTypePersistenceGrpcEnum.AutoDelete
+            };
+        }
+
+        private static TopicQueueType ToDomain(this QueueTypePersistenceGrpcEnum src)
+        {
+            return src switch
+            {
+                QueueTypePersistenceGrpcEnum.Permanent => TopicQueueType.Permanent,
+                QueueTypePersistenceGrpcEnum.PermanentWithSingleConnection => TopicQueueType
+                    .PermanentWithSingleConnection,
+                _ => TopicQueueType.DeleteOnDisconnect
+            };
+        }
+
+
         private static QueueSnapshotGrpcModel ToGrpcModel(this IQueueSnapshot src)
         {
             return new()
             {
                 QueueId = src.QueueId,
-                Ranges = src.Ranges.Select(itm => itm.ToGrpcModel()).ToArray()
+                Ranges = src.Ranges.Select(itm => itm.ToGrpcModel()).ToArray(),
+                QueueType = src.TopicQueueType.ToGrpcModel()
             };
         }
+        
 
 
         private static TopicAndQueuesSnapshotGrpcModel ToGrpcModel(this ITopicPersistence src)
@@ -34,7 +60,8 @@ namespace MyServiceBus.Domains.Persistence
             {
                 TopicId = src.TopicId,
                 MessageId = src.MessageId,
-                QueueSnapshots = src.QueueSnapshots.Select(itm => itm.ToGrpcModel()).ToArray()
+                QueueSnapshots = src.QueueSnapshots.Select(itm => itm.ToGrpcModel()).ToArray(),
+                
             };
         }
         
@@ -45,7 +72,7 @@ namespace MyServiceBus.Domains.Persistence
 
             var grpcRequestContract = new SaveQueueSnapshotGrpcRequest
             {
-                QueueSnapshot = topics.Select(topic => topic.ToGrpcModel()).ToArray()
+                QueueSnapshot = topics.Select(topic => topic.ToGrpcModel()).ToArray(),
             }; 
             
             return grpcService.SaveSnapshotAsync(grpcRequestContract);
@@ -59,12 +86,17 @@ namespace MyServiceBus.Domains.Persistence
             return new (src.FromId, src.ToId);
         }
         
+        
+
+        
         private static IQueueSnapshot ToDomain(this QueueSnapshotGrpcModel src)
         {
             return new QueueSnapshot
             {
                 QueueId = src.QueueId,
-                RangesData = src.Ranges?.Select(itm => itm.ToDomain()).ToList() ?? Array.Empty<QueueIndexRangeReadOnly>() as IReadOnlyList<QueueIndexRangeReadOnly>
+                RangesData = src.Ranges?
+                    .Select(itm => itm.ToDomain()).ToList() ?? Array.Empty<QueueIndexRangeReadOnly>() as IReadOnlyList<QueueIndexRangeReadOnly>,
+                TopicQueueType = src.QueueType.ToDomain()
             };
         }
 
@@ -76,6 +108,7 @@ namespace MyServiceBus.Domains.Persistence
                 TopicId = src.TopicId,
                 MessageId = src.MessageId,
                 QueueSnapshots = src.QueueSnapshots?.Select(itm => itm.ToDomain()).ToList() ?? Array.Empty<IQueueSnapshot>() as IReadOnlyList<IQueueSnapshot>
+                
             };
         }
 

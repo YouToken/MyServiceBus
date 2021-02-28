@@ -1,5 +1,6 @@
 using System;
 using DotNetCoreDecorators;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Tests.Utils;
 using NUnit.Framework;
 
@@ -20,7 +21,7 @@ namespace MyServiceBus.Domains.Tests
             var session = ioc.ConnectSession("MySession", nowTime);
             
             session.CreateTopic(topicName);
-            session.Subscribe(topicName, queueName, false);
+            session.Subscribe(topicName, queueName, TopicQueueType.Permanent);
             
             session.PublishMessage(topicName, new byte[] {0}, nowTime);
             session.PublishMessage(topicName, new byte[] {1}, nowTime);
@@ -66,7 +67,7 @@ namespace MyServiceBus.Domains.Tests
             var session = ioc.ConnectSession("MySession");
             
             session.CreateTopic(topicName);
-            session.Subscribe(topicName, queueName,false);
+            session.Subscribe(topicName, queueName,TopicQueueType.Permanent);
 
 
             session.PublishMessage(topicName, new byte[] {0}, nowTime);

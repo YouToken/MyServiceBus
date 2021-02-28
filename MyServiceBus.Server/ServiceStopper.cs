@@ -7,7 +7,6 @@ namespace MyServiceBus.Server
 {
     public static class ServiceStopper
     {
-
         public static void StopTcpServer()
         {
             
@@ -49,7 +48,6 @@ namespace MyServiceBus.Server
             sw.Stop();
             Console.WriteLine("Sessions are zero in: " + sw.Elapsed);
         }
-
 
         public static async Task PersistMessagesContentAsync()
         {

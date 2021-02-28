@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.QueueSubscribers;
@@ -75,11 +76,11 @@ namespace MyServiceBus.Domains.Tests.Utils
         }
 
 
-        public TopicQueue Subscribe(string topicId, string queueId, bool deleteOnDisconnect = true)
+        public TopicQueue Subscribe(string topicId, string queueId, TopicQueueType topicQueueType = TopicQueueType.DeleteOnDisconnect)
         {
             var topic = _topicsList.Get(topicId);
 
-            var queue = topic.CreateQueueIfNotExists(queueId, deleteOnDisconnect);
+            var queue = topic.CreateQueueIfNotExists(queueId, topicQueueType, true);
             
             var task = Subscriber.SubscribeToQueueAsync(queue, this);
                 

@@ -14,11 +14,9 @@ namespace MyServiceBus.TcpClient
 
         private readonly MyClientTcpSocket<IServiceBusTcpContract> _clientTcpSocket;
 
-
         private readonly List<(string topicName, int maxCachedSize)> _checkAndCreateTopics = new List<(string topicName, int maxCachedSize)>();
 
         public MyServiceBusLog<MyServiceBusTcpClient> Log { get;}
-      
         
         public MyServiceBusTcpClient(Func<string> getHostPort, string name)
         {
@@ -52,22 +50,22 @@ namespace MyServiceBus.TcpClient
         private readonly Dictionary<string, SubscriberInfo> _subscribers = new Dictionary<string, SubscriberInfo>();
 
 
-        public void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
+        public void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
             Func<IMyServiceBusMessage, ValueTask> callback)
         {
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
             _subscribers.Add(id,
-                new SubscriberInfo(Log, topicId, queueId, deleteOnDisconnect, callback, null));
+                new SubscriberInfo(Log, topicId, queueId, topicQueueType, callback, null));
         }
         
-        public void Subscribe(string topicId, string queueId, bool deleteOnDisconnect,
+        public void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
             Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
         {
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 
             _subscribers.Add(id,
-                new SubscriberInfo(Log, topicId, queueId, deleteOnDisconnect, null, callback));
+                new SubscriberInfo(Log, topicId, queueId, topicQueueType, null, callback));
         }
 
 

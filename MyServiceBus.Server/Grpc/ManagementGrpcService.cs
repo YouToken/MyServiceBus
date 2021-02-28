@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using MyServiceBus.Abstractions;
 using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Grpc;
 using MyServiceBus.Grpc.Contracts;
@@ -64,7 +65,7 @@ namespace MyServiceBus.Server.Grpc
                 return new ValueTask<CreateQueueGrpcResponse>(topicNotFoundResult); 
             }
 
-            topic.CreateQueueIfNotExists(request.QueueId, request.DeleteOnNoConnections);
+            topic.CreateQueueIfNotExists(request.QueueId, ToTopicQueueType(request.QueueType), false);
 
             var okResult = new CreateQueueGrpcResponse
             {
@@ -72,8 +73,18 @@ namespace MyServiceBus.Server.Grpc
                 Status = GrpcResponseStatus.Ok
 
             };
-            return new ValueTask<CreateQueueGrpcResponse>(okResult);
             
+            return new ValueTask<CreateQueueGrpcResponse>(okResult);
+        }
+
+        private static TopicQueueType ToTopicQueueType(QueueTypeGrpcEnum queueType)
+        {
+            return queueType switch
+            {
+                QueueTypeGrpcEnum.Permanent => TopicQueueType.Permanent,
+                QueueTypeGrpcEnum.PermanentWithSingleConnect => TopicQueueType.PermanentWithSingleConnection,
+                _ => TopicQueueType.DeleteOnDisconnect
+            };
         }
 
         public ValueTask<GreetingGrpcResponse> GreetingAsync(GreetingGrpcRequest request)

@@ -7,10 +7,10 @@ using MyServiceBus.Domains.Queues;
 namespace MyServiceBus.Domains.QueueSubscribers
 {
 
-
     public interface IReadSubscribersAccess
     {
         IEnumerable<TheQueueSubscriber> GetSubscribers();
+        IEnumerable<TheQueueSubscriber> GetExceptThisOne(IMyServiceBusSubscriberSession subscriberSession);
     }
 
     public class QueueSubscribersList : IReadSubscribersAccess
@@ -129,6 +129,11 @@ namespace MyServiceBus.Domains.QueueSubscribers
         IEnumerable<TheQueueSubscriber> IReadSubscribersAccess.GetSubscribers()
         {
             return _subscribers.Values;
+        }
+
+        IEnumerable<TheQueueSubscriber> IReadSubscribersAccess.GetExceptThisOne(IMyServiceBusSubscriberSession subscriberSession)
+        {
+            return _subscribers.Values.Where(itm => itm.Session.SubscriberId != subscriberSession.SubscriberId);
         }
     }
 
