@@ -31,14 +31,20 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> MessagesOnDelivery { get; private set; }
         public DateTime OnDeliveryStart { get; private set; }
+
+        public void SendMessages()
+        {
+            OnDeliveryStart = DateTime.UtcNow;
+            Session.SendMessagesAsync(_topicQueue, MessagesOnDelivery, ConfirmationId);
+        }
+        
         internal void SetOnDeliveryAndSendMessages()
         {
             if (Status != SubscriberStatus.Leased)
                 throw new Exception($"Only leased status can be switched to - on Deliver. Now status is: {Status}");
             MessagesOnDelivery = MessagesCollector;
             Status = SubscriberStatus.OnDelivery;
-            OnDeliveryStart = DateTime.UtcNow;
-            Session.SendMessagesAsync(_topicQueue, MessagesOnDelivery, ConfirmationId);
+            SendMessages();
         }
 
         public List<(MessageContentGrpcModel message, int attemptNo)> MessagesCollector { get; private set; }

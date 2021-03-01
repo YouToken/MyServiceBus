@@ -117,6 +117,14 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 return _subscribers.Count;
             }
         }
+        
+        public void GetReadAccess(Action<IReadSubscribersAccess> callback)
+        {
+            lock (_lockObject)
+            {
+                callback(this);
+            }   
+        }
 
         public T GetReadAccess<T>(Func<IReadSubscribersAccess, T> callback)
         {
@@ -135,6 +143,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         {
             return _subscribers.Values.Where(itm => itm.Session.SubscriberId != subscriberSession.SubscriberId);
         }
+        
     }
 
 }
