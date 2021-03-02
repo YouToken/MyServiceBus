@@ -91,7 +91,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var topics = "";
         for (var _i = 0, _a = conn.topics; _i < _a.length; _i++) {
             var topic = _a[_i];
-            topics += HtmlCommonRenderer.renderBadge(topic.light ? 'primary' : 'secondary', topic.id) + "<br/>";
+            topics += HtmlCommonRenderer.renderBadge(topic.light ? 'success' : 'secondary', topic.id) + "<br/>";
         }
         var queues = "";
         for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
@@ -126,9 +126,9 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                 if (!result[topic.id])
                     result[topic.id] = "";
                 if (topic.light)
-                    result[topic.id] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';
-                else
                     result[topic.id] += '<div style="color: green">' + HtmlCommonRenderer.renderClientName(conn.name) + '</div><div>' + conn.ip + '</div><hr/>';
+                else
+                    result[topic.id] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';
             }
         }
         for (var _c = 0, _d = Object.keys(result); _c < _d.length; _c++) {
