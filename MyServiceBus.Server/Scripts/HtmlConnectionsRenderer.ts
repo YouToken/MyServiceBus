@@ -110,7 +110,7 @@ class HtmlConnectionsRenderer {
       queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+
           HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) 
               ? 'warning' 
-              : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+'Size: '+qSize+
+              : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased)+'Size: '+qSize)+
           "<hr/>";
     }
     
