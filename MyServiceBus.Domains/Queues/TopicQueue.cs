@@ -166,10 +166,13 @@ namespace MyServiceBus.Domains.Queues
                 _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration, true);
 
                 var messagesToGoBack = subscriber.MessagesOnDelivery.ToDictionary(itm => itm.message.MessageId);
-
+                
                 foreach (var messageId in okDelivered)
                     messagesToGoBack.Remove(messageId);
+                
+                
                 DisposeNotDeliveredMessages(messagesToGoBack.Values, 1);
+                
                 
                 subscriber.SetToUnLeased(); 
             }
@@ -237,8 +240,11 @@ namespace MyServiceBus.Domains.Queues
 
             lock (_topicLock)
             {
-                if (theSubscriber.MessagesOnDelivery.Count>0)
+                if (theSubscriber.MessagesOnDelivery.Count > 0)
+                {
+                    _executionMonitoring.UpdateLastAmount(theSubscriber.MessagesOnDelivery.Count, DateTime.UtcNow - theSubscriber.OnDeliveryStart, true);
                     DisposeNotDeliveredMessages(theSubscriber.MessagesOnDelivery, 1);
+                }
 
                 return true;
             }
