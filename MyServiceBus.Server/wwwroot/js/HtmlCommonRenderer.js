@@ -1,7 +1,7 @@
 var HtmlCommonRenderer = /** @class */ (function () {
     function HtmlCommonRenderer() {
     }
-    HtmlCommonRenderer.renderGraph = function (c, showValue) {
+    HtmlCommonRenderer.renderGraph = function (c, showValue, getValue, highlight) {
         var max = Utils.getMax(c);
         var w = 50;
         var coef = max == 0 ? 0 : w / max;
@@ -13,7 +13,17 @@ var HtmlCommonRenderer = /** @class */ (function () {
         var i = 0;
         for (var _i = 0, c_1 = c; _i < c_1.length; _i++) {
             var m = c_1[_i];
-            var y = w - m * coef;
+            var y = w - getValue(m) * coef;
+            if (highlight(m)) {
+                result +=
+                    '<line x1="' +
+                        i +
+                        '" y1="' +
+                        w +
+                        '" x2="' +
+                        i +
+                        '" y2="0" style="stroke:firebrick;stroke-width:2" />';
+            }
             result +=
                 '<line x1="' +
                     i +

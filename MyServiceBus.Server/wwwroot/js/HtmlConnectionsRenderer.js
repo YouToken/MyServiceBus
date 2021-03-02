@@ -46,11 +46,9 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                     el.publishPacketsPerSecond +
                     "</div>" +
                     "<div><b>Sub:</b>" +
-                    el.subscribePacketsPerSecond +
+                    el.deliveryPacketsPerSecond +
                     "</div>" +
-                    "<div><b>Total:</b>" +
-                    el.packetsPerSecondInternal +
-                    "</div></td>" +
+                    "</td>" +
                     '<td style="font-size:10px">' +
                     "<div><b>Connected:</b>" +
                     el.connectedTimeStamp +
@@ -110,6 +108,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
             '<div><b>Last incoming:</b>:' + conn.recv + '</div>' +
             '<div><b>Read bytes:</b>:' + Utils.renderBytes(conn.readBytes) + '</div>' +
             '<div><b>Sent bytes:</b>:' + Utils.renderBytes(conn.sentBytes) + '</div>' +
+            '<div><b>Delivery evnt per sec:</b>:' + conn.deliveryEventsPerSecond + '</div>' +
             '</td>' +
             '<td>' + topics + '</td>' +
             '<td>' + queues + '</td>' +

@@ -17,7 +17,7 @@ namespace MyServiceBus.Server.Tcp
 {
     public class MyServiceBusTcpContext : TcpContext<IServiceBusTcpContract>, IMyServiceBusSubscriberSession
     {
-        
+
         public int ProtocolVersion { get; private set; }
         
         private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
@@ -52,21 +52,13 @@ namespace MyServiceBus.Server.Tcp
 
         private async ValueTask PublishAsync(PublishContract contract)
         {
-
-            if (Session == null)
-            {
-                Console.WriteLine($"Trying to publish to topic {contract.TopicId} with no active Session");
-                Disconnect();
-                return;
-            }
-
-            Session.PublishPacketsInternal++;
+            SessionContext.PublisherInfo.PublishMetricPerSecond.EventHappened();
 
             var now = DateTime.UtcNow;
 
             var response = await ServiceLocator
                 .MyServiceBusPublisher
-                .PublishAsync(Session, contract.TopicId, contract.Data, now, contract.ImmediatePersist == 1);
+                .PublishAsync(SessionContext, contract.TopicId, contract.Data, now, contract.ImmediatePersist == 1);
 
             if (response != ExecutionResult.Ok)
             {
@@ -83,8 +75,7 @@ namespace MyServiceBus.Server.Tcp
             SendDataToSocket(resp);
         }
 
-        public MyServiceBusSession Session { get; private set; }
-
+        public readonly MyServiceBusSessionContext SessionContext =  new ();
 
         private static readonly Dictionary<int, int> AcceptedProtocolVersions = new ()
         {
@@ -117,9 +108,6 @@ namespace MyServiceBus.Server.Tcp
 
             ProtocolVersion = greetingContract.ProtocolVersion;
 
-            Session = ServiceLocator.SessionsList.NewSession(greetingContract.Name,
-                TcpClient.Client.RemoteEndPoint?.ToString() ?? "unknownIP", SessionType.Tcp);
-
             SetContextName(greetingContract.Name);
             ServiceLocator.TcpConnectionsSnapshotId++;
             return new ValueTask();
@@ -130,24 +118,17 @@ namespace MyServiceBus.Server.Tcp
         {
             Console.WriteLine("Subscribed to topic: " + contract.TopicId + " with queue: " + contract.QueueId);
 
-            if (Session == null)
-            {
-                Console.WriteLine($"Client with IP {TcpClient.Client.RemoteEndPoint} is trying to subscribe to topic {contract.TopicId} but it has not sent greeting message yet");
-                Disconnect();
-                return;
-            }
-
             var topic = ServiceLocator.TopicsList.TryGet(contract.TopicId);
 
             if (topic == null)
             {
-                Console.WriteLine($"Client {Session.SessionName} is trying to subscribe to the topic {contract.TopicId} which does not exists");
+                Console.WriteLine($"Client {ContextName} is trying to subscribe to the topic {contract.TopicId} which does not exists");
                 Disconnect();
                 return;
             }
 
             var queue = topic.CreateQueueIfNotExists(contract.QueueId, contract.QueueType, true);
-            Session?.SubscribeToQueue(queue);
+            SessionContext.SubscribeToQueue(queue);
             ServiceLocator.Subscriber.SubscribeToQueueAsync(queue, this);
 
             if (queue.TopicQueueType == TopicQueueType.PermanentWithSingleConnection)
@@ -171,8 +152,6 @@ namespace MyServiceBus.Server.Tcp
 
         protected override ValueTask OnDisconnectAsync()
         {
-            Session?.Dispose();
-
             Console.WriteLine("Disconnected: " + ContextName);
             ServiceLocator.TcpConnectionsSnapshotId++;
             return ServiceLocator.Subscriber.DisconnectSubscriberAsync(this);
@@ -184,7 +163,6 @@ namespace MyServiceBus.Server.Tcp
 
             try
             {
-                Session?.UpdatePacketPerSeconds();
 
                 if (ServiceLocator.MyGlobalVariables.ShuttingDown)
                 {
@@ -238,13 +216,7 @@ namespace MyServiceBus.Server.Tcp
 
             Console.WriteLine($"Attempt to create topic {createTopicIfNotExistsContract.TopicId} with max cached amount {createTopicIfNotExistsContract.MaxMessagesInCache}");
 
-
-            if (Session == null)
-            {
-                Console.WriteLine("Session is not initialized from creating topic: " + createTopicIfNotExistsContract.TopicId);
-            }
-
-            Session?.PublishToTopic(createTopicIfNotExistsContract.TopicId);
+            SessionContext.PublisherInfo.AddIfNotExists(createTopicIfNotExistsContract.TopicId);
 
 
             ServiceLocator.TopicsManagement.AddIfNotExistsAsync(createTopicIfNotExistsContract.TopicId);
@@ -270,7 +242,7 @@ namespace MyServiceBus.Server.Tcp
                 Data = messageData,
             };
 
-            Session.SubscribePacketsInternal++;
+            SessionContext.MessagesDeliveryMetricPerSecond.EventHappened();
             SendDataToSocket(contract);
         }
 

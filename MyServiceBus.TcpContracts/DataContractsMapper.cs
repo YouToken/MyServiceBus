@@ -32,8 +32,8 @@ namespace MyServiceBus.TcpContracts
                 [CommandType.Reject] = ()=> new RejectConnectionContract(),
                 [CommandType.SomeMessagesOkSomeFailed] = ()=>new ConfirmSomeMessagesOkSomeFail()
             };
-        
-        public static readonly Dictionary<Type, byte> TypeToCommandType =
+
+        private static readonly Dictionary<Type, byte> TypeToCommandType =
             new Dictionary<Type, byte>();
 
         static DataContractsMapper()

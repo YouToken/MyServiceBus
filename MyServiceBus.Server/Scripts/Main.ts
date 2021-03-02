@@ -56,7 +56,7 @@ class Main{
        
                 let el = document.getElementById("topic-performance-graph-"+topicId);
                 if (el)
-                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => v.toString());
+                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => v.toString(), v=>v, _=>false);
             }
         });
 
@@ -66,7 +66,7 @@ class Main{
 
                 let el = document.getElementById("queue-duration-graph-"+topicId);
                 if (el)
-                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => HtmlCommonRenderer.toDuration(v));
+                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, v => HtmlCommonRenderer.toDuration(v), v => Math.abs(v), v => v<0);
             }
         });
         

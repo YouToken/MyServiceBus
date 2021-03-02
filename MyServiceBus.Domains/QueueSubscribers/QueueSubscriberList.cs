@@ -23,6 +23,8 @@ namespace MyServiceBus.Domains.QueueSubscribers
         private readonly Dictionary<long, TheQueueSubscriber> _subscribersByDeliveryId 
             = new ();
 
+        private IReadOnlyList<TheQueueSubscriber> _subscribersAsList = Array.Empty<TheQueueSubscriber>();
+
 
         private readonly object _lockObject;
 
@@ -31,7 +33,6 @@ namespace MyServiceBus.Domains.QueueSubscribers
             _topicQueue = topicQueue;
             _lockObject = lockObject;
         }
-
 
         public void Subscribe(IMyServiceBusSubscriberSession session)
         {
@@ -44,6 +45,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 
                 _subscribers.Add(session.SubscriberId, theSubscriber);
                 _subscribersByDeliveryId.Add(theSubscriber.ConfirmationId, theSubscriber);
+                _subscribersAsList = _subscribers.Values.ToList();
             }
         }
 
@@ -56,6 +58,8 @@ namespace MyServiceBus.Domains.QueueSubscribers
                     _subscribersByDeliveryId.Remove(removedItem.ConfirmationId);
                     return removedItem;
                 }
+
+                _subscribersAsList = _subscribers.Values.ToList();
                 return null;
             }
         }
@@ -133,7 +137,15 @@ namespace MyServiceBus.Domains.QueueSubscribers
                 return callback(this);
             }   
         }
-        
+
+
+        public void OneSecondTimer()
+        {
+            foreach (var subscriber in _subscribersAsList)
+                subscriber.OneSecondTimer();
+        }
+
+
         IEnumerable<TheQueueSubscriber> IReadSubscribersAccess.GetSubscribers()
         {
             return _subscribers.Values;
@@ -143,7 +155,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
         {
             return _subscribers.Values.Where(itm => itm.Session.SubscriberId != subscriberSession.SubscriberId);
         }
-        
+
     }
 
 }

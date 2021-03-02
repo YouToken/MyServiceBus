@@ -30,13 +30,14 @@ namespace MyServiceBus.Server.Hubs
                 Recv = (DateTime.UtcNow - tcpContext.SocketStatistic.LastReceiveTime).FormatTimeStamp(),
                 ReadBytes = tcpContext.SocketStatistic.Received,
                 SentBytes = tcpContext.SocketStatistic.Sent,
+                DeliveryEventsPerSecond = tcpContext.SessionContext.MessagesDeliveryMetricPerSecond.Value,
                 ProtocolVersion = tcpContext.ProtocolVersion,
-                Topics =  tcpContext.Session == null 
+                Topics =  tcpContext.SessionContext == null 
                     ? Array.Empty<string>() 
-                    : tcpContext.Session.GetTopicsToPublish(),
-                Queues = tcpContext.Session == null 
+                    : tcpContext.SessionContext.PublisherInfo.GetTopicsToPublish(),
+                Queues = tcpContext.SessionContext == null 
                     ? Array.Empty<TcpConnectionSubscribeHubModel>() 
-                    : tcpContext.Session.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))
+                    : tcpContext.SessionContext.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))
             };
         }
     }

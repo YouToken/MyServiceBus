@@ -21,16 +21,21 @@ namespace MyServiceBus.Domains.Queues
             public long ExecutedAmount { get; private set; }
             public TimeSpan ExecutionDuration { get; private set; }
             
-            internal void UpdateLastAmount(int amount, TimeSpan executionDuration)
+            public bool HadException { get; private set; }
+            
+            internal void UpdateLastAmount(int amount, TimeSpan executionDuration, bool exception)
             {
                 ExecutedAmount += amount;
                 ExecutionDuration += executionDuration;
+                if (exception)
+                    HadException = true;
             }
 
             internal void Reset()
             {
                 ExecutedAmount = 0;
                 ExecutionDuration = TimeSpan.Zero;
+                HadException = false;
             }
         }
 
@@ -149,7 +154,7 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_topicLock)
             {
-                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration, false);
                 subscriber.SetToUnLeased(); 
             }
         }
@@ -158,7 +163,7 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_topicLock)
             {
-                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration, true);
 
                 var messagesToGoBack = subscriber.MessagesOnDelivery.ToDictionary(itm => itm.message.MessageId);
 
@@ -174,7 +179,7 @@ namespace MyServiceBus.Domains.Queues
         {
             lock (_topicLock)
             {
-                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration);
+                _executionMonitoring.UpdateLastAmount(subscriber.MessagesOnDelivery.Count, executionDuration, true);
 
                 DisposeNotDeliveredMessages(subscriber.MessagesOnDelivery, 1);
                 subscriber.SetToUnLeased();
@@ -291,12 +296,18 @@ namespace MyServiceBus.Domains.Queues
 
         public void KickMetricsTimer()
         {
+            
+            SubscribersList.OneSecondTimer();
+            
             lock (_executionDuration)
             {
                 if (_executionMonitoring.ExecutedAmount == 0)
                     return;
 
                 var amount = _executionMonitoring.ExecutionDuration / _executionMonitoring.ExecutedAmount;
+                if (_executionMonitoring.HadException)
+                    amount = -amount;
+                
                 _executionDuration.PutData((int)(amount.TotalMilliseconds * 1000));
 
                 _executionMonitoring.Reset();

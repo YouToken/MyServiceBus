@@ -100,7 +100,7 @@ namespace MyServiceBus.Server.Hubs
                 .TcpServer
                 .GetConnections()
                 .Cast<MyServiceBusTcpContext>()
-                .Where(itm => itm.Session != null);
+                .Where(itm => itm.SessionContext != null);
             
             return connection.ClientProxy.SendAsync("connections", connections.Select(conn => conn.ToTcpConnectionHubModel()));
         }

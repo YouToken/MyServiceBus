@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using MyServiceBus.Abstractions;
-using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Grpc;
 using MyServiceBus.Grpc.Contracts;
 using MyServiceBus.Grpc.Models;
@@ -24,11 +23,11 @@ namespace MyServiceBus.Server.Grpc
                     Status = GrpcResponseStatus.SessionExpired
                 };
             
-            Console.WriteLine($"Creating topic {request.TopicId} for connection: "+grpcSession.Session.SessionName);
+            Console.WriteLine($"Creating topic {request.TopicId} for connection: "+grpcSession.Name);
             
             await ServiceLocator.TopicsManagement.AddIfNotExistsAsync(request.TopicId);
 
-            grpcSession.Session.PublishToTopic(request.TopicId);
+            grpcSession.SessionContext.PublisherInfo.AddIfNotExists(request.TopicId);
             
             return new CreateTopicGrpcResponse
             {
@@ -93,11 +92,6 @@ namespace MyServiceBus.Server.Grpc
             GrpcExtensions.GrpcPreExecutionCheck();
 
             var grpcSession = ServiceLocator.GrpcSessionsList.GenerateNewSession(request.Name);
-
-            var id = "GRPC-" + grpcSession.Id;
-
-            var session = ServiceLocator.SessionsList.NewSession(id, request.Name, SessionType.Http);
-            grpcSession.Session = session;            
 
             var result = new GreetingGrpcResponse
             {

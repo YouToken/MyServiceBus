@@ -86,6 +86,8 @@ namespace MyServiceBus.Server.Hubs
         public string Recv { get; set; }
         public long ReadBytes { get; set; }
         public long SentBytes { get; set; }
+        
+        public int DeliveryEventsPerSecond { get; set; }
         public int ProtocolVersion { get; set; }
         
         

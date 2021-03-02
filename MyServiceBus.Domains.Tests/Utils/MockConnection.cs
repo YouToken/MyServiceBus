@@ -18,25 +18,23 @@ namespace MyServiceBus.Domains.Tests.Utils
         private readonly TopicsManagement _topicsManagement;
 
         private readonly TopicsList _topicsList;
-        
-        public MyServiceBusSession MyServiceBusSession { get; }
+
+        public readonly MyServiceBusSessionContext MyServiceBusSessionContext = new ();
         
         public MyServiceBusSubscriber Subscriber { get; }
         
         public MyServiceBusPublisher Publisher { get; }
 
+
         public MockConnection(IServiceProvider sr, string sessionsName, DateTime dt)
         {
             SubscriberId = sessionsName;
-            var sessionsList = sr.GetRequiredService<SessionsList>();
             _topicsList = sr.GetRequiredService<TopicsList>();
             _topicsManagement = sr.GetRequiredService<TopicsManagement>();
 
 
             Subscriber = sr.GetRequiredService<MyServiceBusSubscriber>();
             Publisher = sr.GetRequiredService<MyServiceBusPublisher>();
-            
-            MyServiceBusSession = sessionsList.NewSession(SubscriberId, "Test",  SessionType.Http);
         }
         
         public readonly List<(TopicQueue topicQueue, IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> messages, long confirmationId)> Messages 
@@ -67,7 +65,7 @@ namespace MyServiceBus.Domains.Tests.Utils
         public ExecutionResult PublishMessage( string topicName, byte[] message, DateTime dateTime, bool persistImmediately = false)
         {
             topicName = topicName.ToLower();
-            return Publisher.PublishAsync(MyServiceBusSession, topicName, new[] {message}, dateTime, persistImmediately).Result;
+            return Publisher.PublishAsync(MyServiceBusSessionContext, topicName, new[] {message}, dateTime, persistImmediately).Result;
         }
         
         public MyTopic CreateTopic(string topicName)

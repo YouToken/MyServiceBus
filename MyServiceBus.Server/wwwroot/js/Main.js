@@ -37,7 +37,7 @@ var Main = /** @class */ (function () {
                 var metrixData = data[topicId];
                 var el = document.getElementById("topic-performance-graph-" + topicId);
                 if (el)
-                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return v.toString(); });
+                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return v.toString(); }, function (v) { return v; }, function (_) { return false; });
             }
         });
         this.signalRConnection.on("queue-duration-graph", function (data) {
@@ -46,7 +46,7 @@ var Main = /** @class */ (function () {
                 var metrixData = data[topicId];
                 var el = document.getElementById("queue-duration-graph-" + topicId);
                 if (el)
-                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return HtmlCommonRenderer.toDuration(v); });
+                    el.innerHTML = HtmlCommonRenderer.renderGraph(metrixData, function (v) { return HtmlCommonRenderer.toDuration(v); }, function (v) { return Math.abs(v); }, function (v) { return v < 0; });
             }
         });
         this.signalRConnection.on('connections', function (data) {

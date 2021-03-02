@@ -24,7 +24,7 @@ namespace MyServiceBus.Server.Grpc
 
             var response = await ServiceLocator
                 .MyServiceBusPublisher
-                .PublishAsync(session.Session, request.TopicId, request.Messages, now, request.PersistImmediately);
+                .PublishAsync(session.SessionContext, request.TopicId, request.Messages, now, request.PersistImmediately);
 
             if (response == ExecutionResult.TopicNotFound)
             {

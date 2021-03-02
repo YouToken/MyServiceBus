@@ -26,8 +26,6 @@ namespace MyServiceBus.Domains
             
             sc.AddSingleton<TopicsManagement>();
             
-            sc.AddSingleton<SessionsList>();
-            
             sc.AddSingleton<MyServiceBusDeliveryHandler>();
 
             sc.AddSingleton<Log>();

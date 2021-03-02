@@ -142,7 +142,7 @@ namespace MyServiceBus.Domains.Queues
         }
 
 
-        public void KickMetricsTimer()
+        public void OneSecondTimer()
         {
             foreach (var topicQueue in _queuesAsReadOnlyList)
             {

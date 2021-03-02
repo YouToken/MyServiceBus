@@ -35,7 +35,7 @@ namespace MyServiceBus.Domains.Execution
         }
         
 
-        public async ValueTask<ExecutionResult> PublishAsync(MyServiceBusSession session, 
+        public async ValueTask<ExecutionResult> PublishAsync(MyServiceBusSessionContext sessionContext, 
             string topicId, IEnumerable<byte[]> messages, DateTime now, 
             bool persistImmediately)
         {
@@ -45,7 +45,7 @@ namespace MyServiceBus.Domains.Execution
             if (topic == null)
                 return ExecutionResult.TopicNotFound;
             
-            session.PublishToTopic(topicId);
+            sessionContext.PublisherInfo.AddIfNotExists(topicId);
             
             var addedMessages = topic.Publish(messages, now);
 

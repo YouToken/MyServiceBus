@@ -1,8 +1,6 @@
-using System;
 using System.Threading.Tasks;
 using MyServiceBus.Domains.MessagesContent;
 using MyServiceBus.Domains.Persistence;
-using MyServiceBus.Domains.QueueSubscribers;
 using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Domains.Execution
@@ -26,9 +24,6 @@ namespace MyServiceBus.Domains.Execution
             _messageContentPersistentProcessor = messageContentPersistentProcessor;
         }
 
-        
-
-
         public async ValueTask GcOrWarmupMessagesAndPushDelivery()
         {
             var topics = _topicsList.Get();
@@ -40,13 +35,11 @@ namespace MyServiceBus.Domains.Execution
             }
         }
 
-
         public async ValueTask PersistTopicsAndQueuesSnapshotAsync()
         {
             var topics = _topicsList.Get();
             await _topicsAndQueuesPersistenceProcessor.PersistTopicsAndQueuesInBackgroundAsync(topics);
         }
-
 
         public async ValueTask PersistMessageContentAsync()
         {
@@ -57,8 +50,6 @@ namespace MyServiceBus.Domains.Execution
                 await _messageContentPersistentProcessor.PersistMessageContentAsync(topic);
             }
         }
-        
-        
         
     }
 }

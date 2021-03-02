@@ -64,12 +64,10 @@ namespace MyServiceBus.TcpClient
 
         private readonly SortedDictionary<string, List<PayloadPackage>> _readyToGo = new SortedDictionary<string, List<PayloadPackage>>();
 
-
         public PayLoadCollector(int maxPayLoadSize)
         {
             _maxPayLoadSize = maxPayLoadSize;
         }
-
 
         private PayloadPackage AddPayloadPackage(string topicId, long connectionId)
         {
@@ -85,8 +83,6 @@ namespace MyServiceBus.TcpClient
             
             return result;
         }
-
-
 
         private List<PayloadPackage> GetPayloadPackagesByTopic(string topicId)
         {
@@ -113,7 +109,6 @@ namespace MyServiceBus.TcpClient
             return lastPayload;
         }
         
-        
         private void CheckIfItStillConnected(long connectionId)
         {
             if (_lastDisconnectId == -1)
@@ -134,7 +129,6 @@ namespace MyServiceBus.TcpClient
                 return payLoadPackage.CommitTask.Task;
             }
         }
-
  
         public Task AddMessage(long connectionId, string topicId, byte[] newPayLoad, bool immediatelyPersist)
         {
@@ -187,7 +181,6 @@ namespace MyServiceBus.TcpClient
             }
             
         }
-
 
         private long _lastDisconnectId = -1;
 

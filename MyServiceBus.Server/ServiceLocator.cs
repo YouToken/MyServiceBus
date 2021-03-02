@@ -9,10 +9,10 @@ using MyServiceBus.Domains;
 using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
-using MyServiceBus.Domains.Sessions;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Hubs;
 using MyServiceBus.Server.Services.Sessions;
+using MyServiceBus.Server.Tcp;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 
@@ -61,7 +61,6 @@ namespace MyServiceBus.Server
 
         public static string AspNetEnvironment { get;  }
         public static string Host { get; }
-        public static SessionsList SessionsList { get; private set; }
         public static TopicsManagement TopicsManagement { get; private set; }
         public static TopicsList TopicsList { get; private set; }
         public static GlobalVariables MyGlobalVariables { get; private set; }
@@ -87,8 +86,6 @@ namespace MyServiceBus.Server
 
             MyServiceBusPublisher = serviceProvider.GetRequiredService<MyServiceBusPublisher>();
             Subscriber = serviceProvider.GetRequiredService<MyServiceBusSubscriber>();
-            
-            SessionsList = serviceProvider.GetRequiredService<SessionsList>();
 
             MessagesToPersistQueue = serviceProvider.GetRequiredService<IMessagesToPersistQueue>();
             
@@ -124,7 +121,6 @@ namespace MyServiceBus.Server
             TimerPersistent.Register("Sessions List GC",
                 ()=>
                 {
-                    SessionsList.Timer();
                     GrpcSessionsList.GarbageCollectSessions(DateTime.UtcNow);
                     return new ValueTask();
                 });
@@ -132,6 +128,15 @@ namespace MyServiceBus.Server
             TimerStatistic.Register("Metrics timer", () =>
             {
                 TopicsList.KickMetricsTimer();
+                
+                
+                var connections = TcpServer.GetConnections();
+
+                foreach (var connection in connections.Cast<MyServiceBusTcpContext>()
+                    .Where(itm => itm.SessionContext != null))
+                {
+                    connection.SessionContext.OneSecondTimer();
+                }
                 
                 foreach (var myTopic in TopicsList.Get())
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);

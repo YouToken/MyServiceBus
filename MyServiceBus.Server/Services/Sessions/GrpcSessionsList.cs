@@ -98,8 +98,7 @@ namespace MyServiceBus.Server.Services.Sessions
                 {
                     foreach (var sessionToGc in sessionsToGc)
                     {
-                        var removedSession = _sessions.TryRemoveOrDefault(sessionToGc.Id);
-                        removedSession.Session.Dispose();
+                        _sessions.TryRemoveOrDefault(sessionToGc.Id);
                     }
                     
                     _sessionsAsList = _sessions.Values.ToList();
@@ -134,5 +133,7 @@ namespace MyServiceBus.Server.Services.Sessions
         {
             return _sessionsAsList;
         }
+
+        public int Count => _sessionsAsList.Count;
     }
 }

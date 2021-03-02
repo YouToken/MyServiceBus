@@ -22,7 +22,7 @@ namespace MyServiceBus.Server.Controllers
             var knownConnections =
                 sessions
                     .Cast<MyServiceBusTcpContext>()
-                    .Where(itm => itm.Session != null)
+                    .Where(itm => itm.SessionContext != null)
                     .ToList();
 
             

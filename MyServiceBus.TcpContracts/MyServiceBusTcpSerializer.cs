@@ -30,9 +30,6 @@ namespace MyServiceBus.TcpContracts
                 _packetVersions.Add(key, value);  
         }
 
-
-        public int BufferSize { get; } = 1024 * 16;
-
         public ReadOnlyMemory<byte> Serialize(IServiceBusTcpContract data)
         {
             

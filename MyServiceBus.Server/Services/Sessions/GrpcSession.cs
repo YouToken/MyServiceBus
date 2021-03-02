@@ -3,9 +3,8 @@ using MyServiceBus.Domains.Sessions;
 
 namespace MyServiceBus.Server.Services.Sessions
 {
-    public class GrpcSession : IDisposable
+    public class GrpcSession
     {
-        
         
         public DateTime Created { get; } = DateTime.UtcNow;
         
@@ -22,16 +21,11 @@ namespace MyServiceBus.Server.Services.Sessions
             Name = name;
         }
         public long Id { get; }
-        
-        public MyServiceBusSession Session { get; internal set; }
-        
+
+        public MyServiceBusSessionContext SessionContext = new ();
         
         public string Name { get; }
 
-        public void Dispose()
-        {
-            Session?.Dispose();
-        }
     }
     
     

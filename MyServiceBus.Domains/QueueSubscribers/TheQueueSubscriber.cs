@@ -17,6 +17,8 @@ namespace MyServiceBus.Domains.QueueSubscribers
         
         private readonly TopicQueue _topicQueue;
 
+        public readonly MetricPerSecond DeliveryEventsPerSecond = new ();
+
         public TheQueueSubscriber(IMyServiceBusSubscriberSession session, TopicQueue topicQueue)
         {
             _nextConfirmationId++;
@@ -27,7 +29,7 @@ namespace MyServiceBus.Domains.QueueSubscribers
 
         public IMyServiceBusSubscriberSession Session { get; }
 
-        public readonly QueueWithIntervals LeasedQueue = new (0);
+        public readonly QueueWithIntervals LeasedQueue = new ();
 
         public IReadOnlyList<(MessageContentGrpcModel message, int attemptNo)> MessagesOnDelivery { get; private set; }
         public DateTime OnDeliveryStart { get; private set; }
@@ -85,6 +87,11 @@ namespace MyServiceBus.Domains.QueueSubscribers
             if (MessagesSize == 0)
                 return;
             MessagesSize = 0;
+        }
+
+        public void OneSecondTimer()
+        {
+            DeliveryEventsPerSecond.OneSecondTimer();
         }
  
     }

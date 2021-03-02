@@ -1,5 +1,5 @@
 class HtmlCommonRenderer{
-    public static renderGraph(c: number[], showValue: (v:number)=>string) {
+    public static renderGraph(c: number[], showValue: (v:number)=>string, getValue:(v:number)=>number, highlight: (v:number)=>boolean) {
         const max = Utils.getMax(c);
 
         const w = 50;
@@ -15,7 +15,18 @@ class HtmlCommonRenderer{
 
         let i = 0;
         for (let m of c) {
-            let y = w - m * coef;
+            let y = w - getValue(m) * coef;
+            if (highlight(m)){
+                result +=
+                    '<line x1="' +
+                    i +
+                    '" y1="' +
+                    w +
+                    '" x2="' +
+                    i +
+                    '" y2="0" style="stroke:firebrick;stroke-width:2" />';  
+            }
+            
 
             result +=
                 '<line x1="' +

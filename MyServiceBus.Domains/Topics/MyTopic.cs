@@ -51,7 +51,7 @@ namespace MyServiceBus.Domains.Topics
             RequestsPerSecond = _requestsPerSecond;
             _requestsPerSecond = 0;
 
-            _topicQueueList.KickMetricsTimer();
+            _topicQueueList.OneSecondTimer();
         }
 
         public IReadOnlyList<TopicQueue> GetQueues()

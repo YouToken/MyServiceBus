@@ -33,7 +33,7 @@ namespace MyServiceBus.Server.Controllers
                 return Forbid();
             
             var bytes = Convert.FromBase64String(messageBase64); 
-            var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session.Session, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
+            var result = await ServiceLocator.MyServiceBusPublisher.PublishAsync(session.SessionContext, topicId, new[] {bytes}, DateTime.UtcNow, persistImmediately);
             return Json(new {result});
         }
 

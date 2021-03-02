@@ -34,6 +34,7 @@ interface IConnectionSignalRContract{
   recv:string,
   readBytes:number,
   sentBytes:number,
+  deliveryEventsPerSecond:number,
   protocolVersion:number
 }
 
@@ -64,8 +65,7 @@ interface IConnectionQueueInfo{
 interface IConnection extends IUnknownConnection {
   name: string;
   publishPacketsPerSecond: number;
-  subscribePacketsPerSecond: number;
-  packetsPerSecondInternal: number;
+  deliveryPacketsPerSecond: number;
   protocolVersion: number;
   topics: string[];
   queues: IConnectionQueueInfo[];

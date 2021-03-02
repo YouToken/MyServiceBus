@@ -60,7 +60,7 @@ namespace MyServiceBus.Server.Models
                 RequestsPerSec = topic.RequestsPerSecond,
                 Consumers = topic.GetConsumers(),
                 MessageId = topic.MessageId.Value,
-                Publishers = connections.Where(itm => itm.Session.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
+                Publishers = connections.Where(itm => itm.SessionContext.PublisherInfo.IsTopicPublisher(topic.TopicId)).Select(itm => itm.Id),
                 CachedPages = topic.MessagesContentCache.Pages,
                 MessagesPerSecond = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId),
             };
@@ -94,22 +94,21 @@ namespace MyServiceBus.Server.Models
         public int ProtocolVersion { get; set; }
         
         public int PublishPacketsPerSecond { get; set; }
-        public int SubscribePacketsPerSecond { get; set; }
-        public int PacketsPerSecondInternal { get; set; }
+        public int DeliveryPacketsPerSecond { get; set; }
         public IEnumerable<string> Topics { get; set; }
         public IEnumerable<ConnectionQueueInfoModel> Queues { get; set; }
 
-        private void Init(MyServiceBusSession myServiceBusSession, IMyServiceBusSubscriberSession subscriberSession)
+        private void Init(MyServiceBusSessionContext myServiceBusSessionContext, IMyServiceBusSubscriberSession subscriberSession)
         {
-            PublishPacketsPerSecond = myServiceBusSession.PublishPacketsPerSecond;
-            SubscribePacketsPerSecond = myServiceBusSession.SubscribePacketsInternal;
-            PacketsPerSecondInternal = myServiceBusSession.PacketsPerSecond;
+            PublishPacketsPerSecond = myServiceBusSessionContext.PublisherInfo.PublishMetricPerSecond.Value;
+            DeliveryPacketsPerSecond = myServiceBusSessionContext.MessagesDeliveryMetricPerSecond.Value;
+            
 
-            Topics = myServiceBusSession.GetTopicsToPublish();
+            Topics = myServiceBusSessionContext.PublisherInfo.GetTopicsToPublish();
 
             if (subscriberSession != null)
             {
-                Queues = myServiceBusSession.GetQueueSubscribers().Select(topicQueue => new ConnectionQueueInfoModel
+                Queues = myServiceBusSessionContext.GetQueueSubscribers().Select(topicQueue => new ConnectionQueueInfoModel
                 {
                     Id = topicQueue.Topic.TopicId + ">>>" + topicQueue.QueueId,
                     Leased = topicQueue.GetLeasedQueueSnapshot(subscriberSession).Select(QueueSlice.Create)
@@ -141,8 +140,8 @@ namespace MyServiceBus.Server.Models
             };
             
             
-            if (context.Session != null)
-                result.Init(context.Session, context);
+            if (context.SessionContext != null)
+                result.Init(context.SessionContext, context);
 
             return result;
         }
@@ -154,11 +153,10 @@ namespace MyServiceBus.Server.Models
             var result = new ConnectionModel
             {
                 Name = context.Name,
-                Topics = context.Session.GetTopicsToPublish(),
+                Topics = context.SessionContext.PublisherInfo.GetTopicsToPublish(),
                 Queues = Array.Empty<ConnectionQueueInfoModel>(),
-                PublishPacketsPerSecond = context.Session.PublishPacketsPerSecond,
-                SubscribePacketsPerSecond = context.Session.SubscribePacketsInternal,
-                PacketsPerSecondInternal = context.Session.PacketsPerSecond,
+                PublishPacketsPerSecond = context.SessionContext.PublisherInfo.PublishMetricPerSecond.Value,
+                DeliveryPacketsPerSecond = context.SessionContext.MessagesDeliveryMetricPerSecond.Value,
                 ProtocolVersion = 0,
                 ConnectedTimeStamp = (now - context.Created).FormatTimeStamp(),
                 ReceiveTimeStamp = (now - context.LastAccess).FormatTimeStamp()

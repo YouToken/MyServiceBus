@@ -31,9 +31,9 @@ namespace MyServiceBus.Server
 
         public static void WaitingSessionsAreZero()
         {
-            var sessionsCount = ServiceLocator.SessionsList.Count;
+            var sessionsCount = ServiceLocator.GrpcSessionsList.Count;
             
-            Console.WriteLine("Waiting sessions got 0. Now sessions are: "+sessionsCount);
+            Console.WriteLine("Waiting GRPC sessions got 0. Now sessions are: "+sessionsCount);
             var sw = new Stopwatch();
             sw.Start();
 
@@ -41,12 +41,12 @@ namespace MyServiceBus.Server
             {
   
                 Thread.Sleep(500);  
-                sessionsCount = ServiceLocator.SessionsList.Count;
+                sessionsCount = ServiceLocator.GrpcSessionsList.Count;
                 Console.WriteLine("Sessions are: "+sessionsCount);
             }
             
             sw.Stop();
-            Console.WriteLine("Sessions are zero in: " + sw.Elapsed);
+            Console.WriteLine("GRPC Sessions are zero in: " + sw.Elapsed);
         }
 
         public static async Task PersistMessagesContentAsync()
