@@ -33,7 +33,7 @@ namespace MyServiceBus.Server.Hubs
                 SentBytes = tcpContext.SocketStatistic.Sent,
                 DeliveryEventsPerSecond = tcpContext.SessionContext.MessagesDeliveryMetricPerSecond.Value,
                 ProtocolVersion = tcpContext.ProtocolVersion,
-                Topics =  tcpContext.SessionContext.PublisherInfo.GetTopicsToPublish(),
+                Topics =  tcpContext.SessionContext.PublisherInfo.GetTopicsToPublish().Select(TopicConnectionHubModel.Create),
                 Queues = tcpContext.SessionContext == null 
                     ? Array.Empty<TcpConnectionSubscribeHubModel>() 
                     : tcpContext.SessionContext.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))

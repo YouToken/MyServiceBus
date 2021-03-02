@@ -20,6 +20,21 @@ namespace MyServiceBus.Server.Hubs
         public IEnumerable<long> Pages { get; set; }
 
     }
+    
+    public class TopicConnectionHubModel
+    {
+        public string Id { get; set; }
+        public bool Light { get; set; }
+        private static TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
+        public static TopicConnectionHubModel Create(KeyValuePair<string, DateTime> src)
+        {
+            return new ()
+            {
+                Id = src.Key,
+                Light = DateTime.UtcNow - src.Value < TwoSeconds
+            };
+        }
+    }
 
 
     public class TopicQueueHubModel
@@ -91,7 +106,7 @@ namespace MyServiceBus.Server.Hubs
         public int DeliveryEventsPerSecond { get; set; }
         public int ProtocolVersion { get; set; }
         
-        public Dictionary<string, DateTime> Topics { get; set; }
+        public IEnumerable<TopicConnectionHubModel> Topics { get; set; }
         
         public IEnumerable<TcpConnectionSubscribeHubModel> Queues { get; set; }
     }
