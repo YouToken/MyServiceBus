@@ -24,11 +24,16 @@ interface ISubscriberSignalrRContract{
   leased: IQueueIndex[]
 }
 
+interface ITopic{
+  id:string;
+  light:boolean;
+}
+
 interface IConnectionSignalRContract{
   id: string;
   name: string;
   ip:string;
-  topics: string[];
+  topics: ITopic[];
   queues: ISubscriberSignalrRContract[],
   connected: string,
   recv:string,

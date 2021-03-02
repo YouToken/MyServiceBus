@@ -1,19 +1,33 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace MyServiceBus.Domains.Sessions
 {
     public class TopicPublisherInfo
     {
-        
-        private readonly ConcurrentDictionaryWithNoLocksOnRead<string, string> _topicsPublishers = new ();
+
+        private Dictionary<string, DateTime> _topicsPublishers = new ();
 
 
         public readonly MetricPerSecond PublishMetricPerSecond = new ();
 
-        
+
         public void AddIfNotExists(string topic)
         {
-            _topicsPublishers.Add(topic, ()=>topic);
+
+            if (_topicsPublishers.ContainsKey(topic))
+                _topicsPublishers[topic] = DateTime.UtcNow;
+
+
+            lock (_topicsPublishers)
+            {
+                var result = _topicsPublishers.AddIfNotExistsByCreatingNewDictionary(topic, () => DateTime.UtcNow);
+
+                if (result.added)
+                    _topicsPublishers = result.newDictionary;
+            }
+
         }
 
         public bool IsTopicPublisher(string topicName)
@@ -22,9 +36,9 @@ namespace MyServiceBus.Domains.Sessions
         }
         
                 
-        public IReadOnlyList<string> GetTopicsToPublish()
+        public Dictionary<string, DateTime> GetTopicsToPublish()
         {
-            return _topicsPublishers.GetAllValues();
+            return _topicsPublishers;
         }
     }
 }

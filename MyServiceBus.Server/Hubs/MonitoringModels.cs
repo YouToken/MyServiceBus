@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
@@ -90,8 +91,7 @@ namespace MyServiceBus.Server.Hubs
         public int DeliveryEventsPerSecond { get; set; }
         public int ProtocolVersion { get; set; }
         
-        
-        public IEnumerable<string> Topics { get; set; }
+        public Dictionary<string, DateTime> Topics { get; set; }
         
         public IEnumerable<TcpConnectionSubscribeHubModel> Queues { get; set; }
     }

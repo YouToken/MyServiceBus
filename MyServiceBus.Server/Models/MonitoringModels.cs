@@ -87,6 +87,21 @@ namespace MyServiceBus.Server.Models
         public IEnumerable<QueueSlice> Leased { get; set; }
     }
 
+    public class TopicHubModel
+    {
+        public string Id { get; set; }
+        public bool Light { get; set; }
+        private static TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
+        public static TopicHubModel Create(KeyValuePair<string, DateTime> src)
+        {
+            return new ()
+            {
+                Id = src.Key,
+                Light = DateTime.UtcNow - src.Value < TwoSeconds
+            };
+        }
+    }
+
     public class ConnectionModel : UnknownConnectionModel
     {
         public string Name { get; set; }
@@ -95,16 +110,19 @@ namespace MyServiceBus.Server.Models
         
         public int PublishPacketsPerSecond { get; set; }
         public int DeliveryPacketsPerSecond { get; set; }
-        public IEnumerable<string> Topics { get; set; }
+        public IEnumerable<TopicHubModel> Topics { get; set; }
         public IEnumerable<ConnectionQueueInfoModel> Queues { get; set; }
+
+
 
         private void Init(MyServiceBusSessionContext myServiceBusSessionContext, IMyServiceBusSubscriberSession subscriberSession)
         {
             PublishPacketsPerSecond = myServiceBusSessionContext.PublisherInfo.PublishMetricPerSecond.Value;
             DeliveryPacketsPerSecond = myServiceBusSessionContext.MessagesDeliveryMetricPerSecond.Value;
-            
 
-            Topics = myServiceBusSessionContext.PublisherInfo.GetTopicsToPublish();
+            var now = DateTime.UtcNow;
+
+            Topics = myServiceBusSessionContext.PublisherInfo.GetTopicsToPublish().Select(TopicHubModel.Create);
 
             if (subscriberSession != null)
             {
@@ -153,7 +171,7 @@ namespace MyServiceBus.Server.Models
             var result = new ConnectionModel
             {
                 Name = context.Name,
-                Topics = context.SessionContext.PublisherInfo.GetTopicsToPublish(),
+                Topics = context.SessionContext.PublisherInfo.GetTopicsToPublish().Select(TopicHubModel.Create),
                 Queues = Array.Empty<ConnectionQueueInfoModel>(),
                 PublishPacketsPerSecond = context.SessionContext.PublisherInfo.PublishMetricPerSecond.Value,
                 DeliveryPacketsPerSecond = context.SessionContext.MessagesDeliveryMetricPerSecond.Value,

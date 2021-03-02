@@ -101,7 +101,7 @@ class HtmlConnectionsRenderer {
     let topics = "";
     
     for (let topic of conn.topics){
-      topics += HtmlCommonRenderer.renderBadge('secondary', topic)+"<br/>";
+      topics += HtmlCommonRenderer.renderBadge(topic.light ? 'primary' : 'secondary', topic.id)+"<br/>";
     }
     
     let queues = "";
@@ -137,10 +137,13 @@ class HtmlConnectionsRenderer {
     for (let conn of connections){
       for (let topic of conn.topics){
         
-        if (!result[topic])
-          result[topic] = "";
+        if (!result[topic.id])
+          result[topic.id] = "";
         
-        result[topic] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';
+        if (topic.light)
+        result[topic.id] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';
+        else
+          result[topic.id] +=  '<div style="color: green">'+HtmlCommonRenderer.renderClientName(conn.name)+'</div><div>' + conn.ip + '</div><hr/>';
       }
     }
     

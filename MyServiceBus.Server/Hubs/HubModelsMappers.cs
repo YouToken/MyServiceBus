@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Models;
@@ -32,9 +33,7 @@ namespace MyServiceBus.Server.Hubs
                 SentBytes = tcpContext.SocketStatistic.Sent,
                 DeliveryEventsPerSecond = tcpContext.SessionContext.MessagesDeliveryMetricPerSecond.Value,
                 ProtocolVersion = tcpContext.ProtocolVersion,
-                Topics =  tcpContext.SessionContext == null 
-                    ? Array.Empty<string>() 
-                    : tcpContext.SessionContext.PublisherInfo.GetTopicsToPublish(),
+                Topics =  tcpContext.SessionContext.PublisherInfo.GetTopicsToPublish(),
                 Queues = tcpContext.SessionContext == null 
                     ? Array.Empty<TcpConnectionSubscribeHubModel>() 
                     : tcpContext.SessionContext.GetQueueSubscribers().Select(queue => TcpConnectionSubscribeHubModel.Create(queue, queue.GetLeasedQueueSnapshot(tcpContext)))
