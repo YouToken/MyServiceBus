@@ -106,8 +106,11 @@ class HtmlConnectionsRenderer {
     
     let queues = "";
     for (let queue of conn.queues){
+      let qSize = Utils.getQueueSize(queue.leased);
       queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+
-          HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) ? 'warning' : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+
+          HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) 
+              ? 'warning' 
+              : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased))+'Size: '+qSize+
           "<hr/>";
     }
     

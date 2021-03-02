@@ -96,8 +96,11 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var queues = "";
         for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
             var queue = _c[_b];
+            var qSize = Utils.getQueueSize(queue.leased);
             queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) +
-                HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) ? 'warning' : 'danger', 'Leased:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased)) +
+                HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased)
+                    ? 'warning'
+                    : 'danger', 'Leased:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased)) + 'Size: ' + qSize +
                 "<hr/>";
         }
         return '<tr><td>' + conn.id + '</td>' +
