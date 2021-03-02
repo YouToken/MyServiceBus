@@ -16,7 +16,8 @@ class HtmlCommonRenderer{
         let i = 0;
         for (let m of c) {
             let y = w - getValue(m) * coef;
-            if (highlight(m)){
+            var hightlight = highlight(m);
+            if (hightlight){
                 result +=
                     '<line x1="' +
                     i +
@@ -24,9 +25,10 @@ class HtmlCommonRenderer{
                     w +
                     '" x2="' +
                     i +
-                    '" y2="0" style="stroke:firebrick;stroke-width:2" />';  
+                    '" y2="0" style="stroke:#ed969e;stroke-width:2" />';  
             }
             
+            let color = hightlight ? "red" : "lightblue";
 
             result +=
                 '<line x1="' +
@@ -37,7 +39,7 @@ class HtmlCommonRenderer{
                 i +
                 '" y2="' +
                 y +
-                '" style="stroke:lightblue;stroke-width:2" />';
+                '" style="stroke:'+color+';stroke-width:2" />';
             i += 2;
         }
 

@@ -14,7 +14,8 @@ var HtmlCommonRenderer = /** @class */ (function () {
         for (var _i = 0, c_1 = c; _i < c_1.length; _i++) {
             var m = c_1[_i];
             var y = w - getValue(m) * coef;
-            if (highlight(m)) {
+            var hightlight = highlight(m);
+            if (hightlight) {
                 result +=
                     '<line x1="' +
                         i +
@@ -22,8 +23,9 @@ var HtmlCommonRenderer = /** @class */ (function () {
                         w +
                         '" x2="' +
                         i +
-                        '" y2="0" style="stroke:firebrick;stroke-width:2" />';
+                        '" y2="0" style="stroke:#ed969e;stroke-width:2" />';
             }
+            var color = hightlight ? "red" : "lightblue";
             result +=
                 '<line x1="' +
                     i +
@@ -33,7 +35,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
                     i +
                     '" y2="' +
                     y +
-                    '" style="stroke:lightblue;stroke-width:2" />';
+                    '" style="stroke:' + color + ';stroke-width:2" />';
             i += 2;
         }
         return result + '<text x="0" y="15" fill="red">' + showValue(max) + "</text></svg>";
