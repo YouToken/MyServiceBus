@@ -13,7 +13,7 @@ namespace MyServiceBus.Server.Hubs
         
         public static MonitoringConnectionTopicContext Create(MyTopic topic)
         {
-            return new MonitoringConnectionTopicContext
+            return new ()
             {
                 Topic = topic
             };

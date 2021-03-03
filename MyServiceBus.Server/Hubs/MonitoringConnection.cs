@@ -5,20 +5,17 @@ using MyServiceBus.Domains.Topics;
 namespace MyServiceBus.Server.Hubs
 {
     
-    
     public class MonitoringConnection
     {
         
         public IClientProxy ClientProxy { get; }
         
         public string Id { get; }
-
-
         
         public int TopicsSnapshotId { get; set; }
-        public Dictionary<string, MonitoringConnectionTopicContext> TopicContexts = new();
+        public readonly Dictionary<string, MonitoringConnectionTopicContext> TopicContexts = new();
 
-        public object LockObject = new ();
+        public readonly object LockObject = new ();
 
         public MonitoringConnection(string id, IClientProxy clientProxy)
         {
