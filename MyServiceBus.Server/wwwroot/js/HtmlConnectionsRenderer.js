@@ -91,13 +91,13 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         var topics = "";
         for (var _i = 0, _a = conn.topics; _i < _a.length; _i++) {
             var topic = _a[_i];
-            topics += HtmlCommonRenderer.renderBadge(topic.light ? 'success' : 'secondary', topic.id) + "<br/>";
+            topics += HtmlCommonRenderer.renderBadge(topic.light == 1 ? 'success' : 'secondary', topic.id) + "<br/>";
         }
         var queues = "";
         for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
             var queue = _c[_b];
             var qSize = Utils.getQueueSize(queue.leased);
-            queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId + ">>>" + queue.queueId) +
+            queues += HtmlCommonRenderer.renderBadge(queue.light == 1 ? 'primary' : 'secondary', queue.topicId + ">>>" + queue.queueId) +
                 HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased)
                     ? 'warning'
                     : 'danger', 'Leased:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased) + 'Size: ' + qSize) +
@@ -125,7 +125,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                 var topic = _b[_a];
                 if (!result[topic.id])
                     result[topic.id] = "";
-                if (topic.light)
+                if (topic.light == 1)
                     result[topic.id] += '<div style="color: green">' + HtmlCommonRenderer.renderClientName(conn.name) + '</div><div>' + conn.ip + '</div><hr/>';
                 else
                     result[topic.id] += HtmlCommonRenderer.renderClientName(conn.name) + '<div>' + conn.ip + '</div><hr/>';

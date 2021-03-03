@@ -10,6 +10,8 @@ namespace MyServiceBus.Domains.Sessions
 
         public readonly TopicPublisherInfo PublisherInfo = new ();
 
+        public readonly QueueSubscriberInfo SubscriberInfo = new ();
+
         public readonly MetricPerSecond MessagesDeliveryMetricPerSecond = new();
         
         private IReadOnlyList<TopicQueue> _subscribersToQueueAsList = Array.Empty<TopicQueue>();
@@ -38,7 +40,12 @@ namespace MyServiceBus.Domains.Sessions
                 topicQueue.SubscribersList.OneSecondTimer();
             }
         }
- 
+
+        public void DeliveringToQueue(TopicQueue topicQueue)
+        {
+            MessagesDeliveryMetricPerSecond.EventHappened();
+            SubscriberInfo.DeliveryAttempt(topicQueue.Topic.TopicId, topicQueue.QueueId);
+        }
     }
 
 }

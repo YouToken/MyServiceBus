@@ -101,19 +101,19 @@ class HtmlConnectionsRenderer {
     let topics = "";
     
     for (let topic of conn.topics){
-      topics += HtmlCommonRenderer.renderBadge(topic.light ? 'success' : 'secondary', topic.id)+"<br/>";
+      topics += HtmlCommonRenderer.renderBadge(topic.light == 1 ? 'success' : 'secondary', topic.id)+"<br/>";
     }
     
     let queues = "";
     for (let queue of conn.queues){
       let qSize = Utils.getQueueSize(queue.leased);
-      queues += HtmlCommonRenderer.renderBadge('secondary', queue.topicId+">>>"+queue.queueId)+
+      queues += HtmlCommonRenderer.renderBadge( queue.light == 1  ? 'primary' : 'secondary', queue.topicId+">>>"+queue.queueId)+
           HtmlCommonRenderer.renderBadge(Utils.queueIsEmpty(queue.leased) 
               ? 'warning' 
               : 'danger', 'Leased:'+HtmlCommonRenderer.RenderQueueSlices(queue.leased)+'Size: '+qSize)+
           "<hr/>";
     }
-    
+
     return '<tr><td>' + conn.id + '</td>' +
         '<td style="font-size: 10px">' +
         HtmlCommonRenderer.renderClientName(conn.name)+
@@ -140,7 +140,7 @@ class HtmlConnectionsRenderer {
         if (!result[topic.id])
           result[topic.id] = "";
         
-        if (topic.light)
+        if (topic.light == 1)
         result[topic.id] +=  '<div style="color: green">'+HtmlCommonRenderer.renderClientName(conn.name)+'</div><div>' + conn.ip + '</div><hr/>';
         else
           result[topic.id] +=  HtmlCommonRenderer.renderClientName(conn.name)+'<div>' + conn.ip + '</div><hr/>';

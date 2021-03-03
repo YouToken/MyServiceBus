@@ -5,6 +5,7 @@ using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Models;
+using MyServiceBus.Server.Tcp;
 
 namespace MyServiceBus.Server.Hubs
 {
@@ -24,9 +25,24 @@ namespace MyServiceBus.Server.Hubs
     public class TopicConnectionHubModel
     {
         public string Id { get; set; }
-        public bool Light { get; set; }
-        private static TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
+        public int Light { get; set; }
+        internal static readonly TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
         public static TopicConnectionHubModel Create(KeyValuePair<string, DateTime> src)
+        {
+            return new ()
+            {
+                Id = src.Key,
+                Light = DateTime.UtcNow - src.Value < TwoSeconds ? 1 : 0
+            };
+        }
+    }
+    
+    public class QueueConnectionHubModel
+    {
+        public string Id { get; set; }
+        public bool Light { get; set; }
+        private static readonly TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
+        public static QueueConnectionHubModel Create(KeyValuePair<string, DateTime> src)
         {
             return new ()
             {
@@ -79,16 +95,17 @@ namespace MyServiceBus.Server.Hubs
     {
         public string TopicId { get; set; }
         public string QueueId { get; set; }
-        
+        public int Light { get; set; }
         public IEnumerable<QueueSliceHubModel> Leased { get; set; }
 
-        public static TcpConnectionSubscribeHubModel Create(TopicQueue topicQueue, IEnumerable<IQueueIndexRange> src)
+        public static TcpConnectionSubscribeHubModel Create(TopicQueue topicQueue, MyServiceBusTcpContext tcpContext)
         {
             return new ()
             {
                 TopicId = topicQueue.Topic.TopicId,
                 QueueId = topicQueue.QueueId,
-                Leased = src.Select(QueueSliceHubModel.Create)
+                Leased = topicQueue.GetLeasedQueueSnapshot(tcpContext).Select(QueueSliceHubModel.Create),
+                Light = DateTime.UtcNow - tcpContext.SessionContext.SubscriberInfo.GetSubscriberLastPacketDateTime(topicQueue.Topic.TopicId, topicQueue.QueueId) < TopicConnectionHubModel.TwoSeconds ? 1 : 0
             };
         }
     }

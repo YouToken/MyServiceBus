@@ -21,12 +21,13 @@ interface ITopicQueueSignalRContract{
 interface ISubscriberSignalrRContract{
   topicId :string,
   queueId:string,
-  leased: IQueueIndex[]
+  leased: IQueueIndex[],
+  light: number
 }
 
 interface ITopic{
   id:string;
-  light:boolean;
+  light:number;
 }
 
 interface IConnectionSignalRContract{

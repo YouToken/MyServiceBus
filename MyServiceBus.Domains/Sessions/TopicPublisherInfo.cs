@@ -17,8 +17,10 @@ namespace MyServiceBus.Domains.Sessions
         {
 
             if (_topicsPublishers.ContainsKey(topic))
+            {
                 _topicsPublishers[topic] = DateTime.UtcNow;
-
+                return;
+            }
 
             lock (_topicsPublishers)
             {

@@ -242,7 +242,7 @@ namespace MyServiceBus.Server.Tcp
                 Data = messageData,
             };
 
-            SessionContext.MessagesDeliveryMetricPerSecond.EventHappened();
+            SessionContext.DeliveringToQueue(topicQueue);
             SendDataToSocket(contract);
         }
 
