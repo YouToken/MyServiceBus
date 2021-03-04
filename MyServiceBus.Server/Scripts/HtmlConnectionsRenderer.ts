@@ -96,6 +96,20 @@ class HtmlConnectionsRenderer {
   }
   
   
+  private static getTopicsFilter(conn: IConnectionSignalRContract):string{
+    let result = conn.name;
+    
+    for (let topic of conn.topics){
+      result += ' '+topic.id;
+    }
+    
+    for (let queue of conn.queues){
+      result += ' '+queue.queueId;
+    }
+    
+    return result
+  }
+  
   private static renderConnection(conn: IConnectionSignalRContract):string {
     
     let topics = "";
@@ -114,7 +128,7 @@ class HtmlConnectionsRenderer {
           "<hr/>";
     }
 
-    return '<tr><td>' + conn.id + '</td>' +
+    return '<tr class="search-filter" data-filter="'+this.getTopicsFilter(conn)+'"><td>' + conn.id + '</td>' +
         '<td style="font-size: 10px">' +
         HtmlCommonRenderer.renderClientName(conn.name)+
         '<div><b>Ip</b>:' + conn.ip + '</div>' +

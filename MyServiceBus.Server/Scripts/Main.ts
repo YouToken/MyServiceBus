@@ -128,8 +128,6 @@ class Main{
     }
 
     static filter(el:HTMLInputElement){
-        console.log(el);
-        
         let filterLine = el.value.toLowerCase().trim();
         
         if (filterLine == ''){
@@ -144,7 +142,7 @@ class Main{
 
             for (let i=0; i<elements.length; i++){
                 let el = elements.item(i);
-                if (el.getAttribute('data-filter').toLowerCase().indexOf(filterLine)>0){
+                if (el.getAttribute('data-filter').toLowerCase().indexOf(filterLine)>-1){
                     elements.item(i).classList.remove('hide-element');
                 }
                 else{

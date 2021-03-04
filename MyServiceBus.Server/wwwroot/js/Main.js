@@ -94,7 +94,6 @@ var Main = /** @class */ (function () {
         }
     };
     Main.filter = function (el) {
-        console.log(el);
         var filterLine = el.value.toLowerCase().trim();
         if (filterLine == '') {
             var elements = document.getElementsByClassName('search-filter');
@@ -106,7 +105,7 @@ var Main = /** @class */ (function () {
             var elements = document.getElementsByClassName('search-filter');
             for (var i = 0; i < elements.length; i++) {
                 var el_1 = elements.item(i);
-                if (el_1.getAttribute('data-filter').toLowerCase().indexOf(filterLine) > 0) {
+                if (el_1.getAttribute('data-filter').toLowerCase().indexOf(filterLine) > -1) {
                     elements.item(i).classList.remove('hide-element');
                 }
                 else {

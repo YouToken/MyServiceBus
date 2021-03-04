@@ -87,6 +87,18 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
         }
         return result;
     };
+    HtmlConnectionsRenderer.getTopicsFilter = function (conn) {
+        var result = conn.name;
+        for (var _i = 0, _a = conn.topics; _i < _a.length; _i++) {
+            var topic = _a[_i];
+            result += ' ' + topic.id;
+        }
+        for (var _b = 0, _c = conn.queues; _b < _c.length; _b++) {
+            var queue = _c[_b];
+            result += ' ' + queue.queueId;
+        }
+        return result;
+    };
     HtmlConnectionsRenderer.renderConnection = function (conn) {
         var topics = "";
         for (var _i = 0, _a = conn.topics; _i < _a.length; _i++) {
@@ -103,7 +115,7 @@ var HtmlConnectionsRenderer = /** @class */ (function () {
                     : 'danger', 'Leased:' + HtmlCommonRenderer.RenderQueueSlices(queue.leased) + 'Size: ' + qSize) +
                 "<hr/>";
         }
-        return '<tr><td>' + conn.id + '</td>' +
+        return '<tr class="search-filter" data-filter="' + this.getTopicsFilter(conn) + '"><td>' + conn.id + '</td>' +
             '<td style="font-size: 10px">' +
             HtmlCommonRenderer.renderClientName(conn.name) +
             '<div><b>Ip</b>:' + conn.ip + '</div>' +
