@@ -16,7 +16,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
         var result = "";
         for (var _i = 0, topics_1 = topics; _i < topics_1.length; _i++) {
             var topic = topics_1[_i];
-            result += '<tr>' +
+            result += '<tr class="search-filter" data-filter="' + topic.id + '">' +
                 '<td><b>' + topic.id + '</b>' +
                 '<div id="statistic-' + topic.id + '"></div>' +
                 '<hr/>' +

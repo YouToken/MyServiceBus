@@ -69,10 +69,7 @@ class HtmlCommonRenderer{
     
     
     private static getSearchLayout():string{
-        return '<div><div class="input-group">' +
-            '<input type="text" class="form-control" placeholder="Search">' +
-            '<button class="btn btn-secondary" id="btn-search">Search</button>' +
-            '</div></div>'
+        return '<div><input id="input-filter" type="text" class="form-control" placeholder="Filter" style="max-width: 300px" onkeyup="Main.filter(this)"/></div>'
     }
     
     

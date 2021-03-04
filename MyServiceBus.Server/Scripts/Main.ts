@@ -126,6 +126,37 @@ class Main{
                 .catch(err => console.error(err.toString()));
         }
     }
+
+    static filter(el:HTMLInputElement){
+        console.log(el);
+        
+        let filterLine = el.value.toLowerCase().trim();
+        
+        if (filterLine == ''){
+            let elements = document.getElementsByClassName('search-filter');
+            
+            for (let i=0; i<elements.length; i++){
+                elements.item(i).classList.remove('hide-element');
+            }
+        }
+        else{
+            let elements = document.getElementsByClassName('search-filter');
+
+            for (let i=0; i<elements.length; i++){
+                let el = elements.item(i);
+                if (el.getAttribute('data-filter').toLowerCase().indexOf(filterLine)>0){
+                    elements.item(i).classList.remove('hide-element');
+                }
+                else{
+                    elements.item(i).classList.add('hide-element');                    
+                }
+
+            }
+        }
+        
+        
+        
+    }
     
 }
 

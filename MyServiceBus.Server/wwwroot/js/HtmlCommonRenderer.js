@@ -59,10 +59,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
             '</table>';
     };
     HtmlCommonRenderer.getSearchLayout = function () {
-        return '<div><div class="input-group">' +
-            '<input type="text" class="form-control" placeholder="Search">' +
-            '<button class="btn btn-secondary" id="btn-search">Search</button>' +
-            '</div></div>';
+        return '<div><input id="input-filter" type="text" class="form-control" placeholder="Filter" style="max-width: 300px" onkeyup="Main.filter(this)"/></div>';
     };
     HtmlCommonRenderer.getMainLayout = function () {
         return this.getSearchLayout() +

@@ -93,6 +93,28 @@ var Main = /** @class */ (function () {
                 .catch(function (err) { return console.error(err.toString()); });
         }
     };
+    Main.filter = function (el) {
+        console.log(el);
+        var filterLine = el.value.toLowerCase().trim();
+        if (filterLine == '') {
+            var elements = document.getElementsByClassName('search-filter');
+            for (var i = 0; i < elements.length; i++) {
+                elements.item(i).classList.remove('hide-element');
+            }
+        }
+        else {
+            var elements = document.getElementsByClassName('search-filter');
+            for (var i = 0; i < elements.length; i++) {
+                var el_1 = elements.item(i);
+                if (el_1.getAttribute('data-filter').toLowerCase().indexOf(filterLine) > 0) {
+                    elements.item(i).classList.remove('hide-element');
+                }
+                else {
+                    elements.item(i).classList.add('hide-element');
+                }
+            }
+        }
+    };
     Main.connected = true;
     return Main;
 }());

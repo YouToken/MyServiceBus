@@ -17,7 +17,7 @@ class HtmlTopicRenderer {
     let result = "";
     
     for (let topic of topics){
-      result += '<tr>' +
+      result += '<tr class="search-filter" data-filter="'+topic.id+'">' +
           '<td><b>'+topic.id+'</b>' +
           '<div id="statistic-'+topic.id+'"></div>' +
           '<hr/>' +
