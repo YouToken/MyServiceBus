@@ -8,7 +8,7 @@ using MyTcpSockets;
 
 namespace MyServiceBus.TcpClient
 {
-    public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>, IConfirmationContext
+    public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>
     {
 
         private readonly Dictionary<string, SubscriberInfo> _subscribers;
@@ -111,9 +111,11 @@ namespace MyServiceBus.TcpClient
 
             var subscriber = _subscribers[id];
 
+            var ctx = new MessagesConfirmationContext(newMsg.TopicId, newMsg.QueueId, newMsg.ConfirmationId, ConfirmMessages);
+
             try
             {
-                subscriber.InvokeNewMessages(this, newMsg.Data,
+                subscriber.InvokeNewMessages(ctx, newMsg.Data,
                     () => SendMessageConfirmation(newMsg),
                  () => SendMessageReject(newMsg), 
                     someMessages => SendSomeMessagesOkSomeRejected(newMsg, someMessages)
@@ -240,14 +242,14 @@ namespace MyServiceBus.TcpClient
 
         }
 
-        public void ConfirmMessages(string topicId, string queueId, long confirmationId, IEnumerable<long> messagesToConfirm)
+        public void ConfirmMessages(IConfirmationContext ctx, IEnumerable<long> messagesToConfirm)
         {
             var queueWithIntervals = new QueueWithIntervals();
 
             foreach (var messageId in messagesToConfirm)
                 queueWithIntervals.Enqueue(messageId);
 
-            var contract = ConfirmMessagesByNotDeliveryContract.Create(topicId, queueId, confirmationId,
+            var contract = ConfirmMessagesByNotDeliveryContract.Create(ctx.TopicId, ctx.QueueId, ctx.ConfirmationId,
                 queueWithIntervals.GetSnapshot());
             SendDataToSocket(contract);
         }
