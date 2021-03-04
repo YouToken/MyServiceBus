@@ -58,8 +58,17 @@ var HtmlCommonRenderer = /** @class */ (function () {
             '<tr><th>Id</th><th>Info</th><th>Topics</th><th>Queues</th><tbody id="tcpConnections"></tbody></tr>' +
             '</table>';
     };
+    HtmlCommonRenderer.getSearchLayout = function () {
+        return '<div><div class="input-group">' +
+            '<input type="text" class="form-control" placeholder="Search">' +
+            '<button class="btn btn-secondary" id="btn-search">Search</button>' +
+            '</div></div>';
+    };
     HtmlCommonRenderer.getMainLayout = function () {
-        return this.getTopicsTable() + this.getTcpConnectionsDataTable() + '<div id="persistent-queue"></div>';
+        return this.getSearchLayout() +
+            this.getTopicsTable() +
+            this.getTcpConnectionsDataTable() +
+            '<div id="persistent-queue"></div>';
     };
     HtmlCommonRenderer.renderBadge = function (badgeType, content) {
         return '<span class="badge badge-' + badgeType + '">' + content + '</span>';

@@ -68,9 +68,19 @@ class HtmlCommonRenderer{
     }
     
     
+    private static getSearchLayout():string{
+        return '<div><div class="input-group">' +
+            '<input type="text" class="form-control" placeholder="Search">' +
+            '<button class="btn btn-secondary" id="btn-search">Search</button>' +
+            '</div></div>'
+    }
+    
     
     public static getMainLayout():string{
-        return this.getTopicsTable()+this.getTcpConnectionsDataTable()+'<div id="persistent-queue"></div>';
+        return this.getSearchLayout()+ 
+            this.getTopicsTable()+
+            this.getTcpConnectionsDataTable()+
+            '<div id="persistent-queue"></div>';
     }
     
     public static renderBadge(badgeType:string,  content:string):string{
