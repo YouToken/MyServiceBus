@@ -33,6 +33,12 @@ namespace MyServiceBus.Domains.Execution
             return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
         }
         
+        public ValueTask ConfirmMessagesByNotDeliveryAsync(MyTopic topic, string queueName, long confirmationId, QueueWithIntervals queueWithIntervals)
+        {
+            var topicQueue = topic.ConfirmMessagesButNotDelivery(queueName, confirmationId, queueWithIntervals);
+            return _myServiceBusDeliveryHandler.SendMessagesAsync(topicQueue);
+        }
+        
         public ValueTask ConfirmDeliveryAsync(MyTopic topic, string queueName, long confirmationId, QueueWithIntervals okMessages)
         {
             var topicQueue = topic.ConfirmDelivery(queueName, confirmationId, false, okMessages);

@@ -18,7 +18,7 @@ namespace MyServiceBus.Abstractions
             Func<IMyServiceBusMessage, ValueTask> callback);
 
         void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
-            Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback);
+            Func<IConfirmationContext, IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback);
     }
     
 }

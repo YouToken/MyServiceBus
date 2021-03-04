@@ -8,7 +8,7 @@ using MyTcpSockets;
 
 namespace MyServiceBus.TcpClient
 {
-    public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>
+    public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>, IConfirmationContext
     {
 
         private readonly Dictionary<string, SubscriberInfo> _subscribers;
@@ -113,7 +113,7 @@ namespace MyServiceBus.TcpClient
 
             try
             {
-                subscriber.InvokeNewMessages(newMsg.Data,
+                subscriber.InvokeNewMessages(this, newMsg.Data,
                     () => SendMessageConfirmation(newMsg),
                  () => SendMessageReject(newMsg), 
                     someMessages => SendSomeMessagesOkSomeRejected(newMsg, someMessages)
@@ -149,13 +149,13 @@ namespace MyServiceBus.TcpClient
             SendDataToSocket(contract);
         }
 
-        private void SendSomeMessagesOkSomeRejected(NewMessagesContract messageses, QueueWithIntervals okMessages)
+        private void SendSomeMessagesOkSomeRejected(NewMessagesContract messages, QueueWithIntervals okMessages)
         {
             var contract = new ConfirmSomeMessagesOkSomeFail
             {
-                TopicId = messageses.TopicId,
-                QueueId = messageses.QueueId,
-                ConfirmationId = messageses.ConfirmationId,
+                TopicId = messages.TopicId,
+                QueueId = messages.QueueId,
+                ConfirmationId = messages.ConfirmationId,
                 OkMessages = okMessages.GetSnapshot(),
             };
             
@@ -240,6 +240,17 @@ namespace MyServiceBus.TcpClient
 
         }
 
+        public void ConfirmMessages(string topicId, string queueId, long confirmationId, IEnumerable<long> messagesToConfirm)
+        {
+            var queueWithIntervals = new QueueWithIntervals();
+
+            foreach (var messageId in messagesToConfirm)
+                queueWithIntervals.Enqueue(messageId);
+
+            var contract = ConfirmMessagesByNotDeliveryContract.Create(topicId, queueId, confirmationId,
+                queueWithIntervals.GetSnapshot());
+            SendDataToSocket(contract);
+        }
     }
     
 }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyTcpSockets.Extensions;
 
 namespace MyServiceBus.TcpContracts
@@ -77,6 +78,30 @@ namespace MyServiceBus.TcpContracts
             {
                 var data = await reader.ReadByteArrayAsync(ct);
                 result.Add(data);
+            }
+
+            return result;
+        }
+
+        public static void SerializeMessagesIntervals(this Stream stream, IReadOnlyList<IQueueIndexRange> ranges, int protocolVersion, int packetVersion)
+        {
+            stream.WriteInt(ranges.Count);
+            foreach (var indexRange in ranges)
+                QueueIndexRangeTcpContract.Create(indexRange).Serialize(stream, protocolVersion, packetVersion);
+        }
+
+        public static async ValueTask<IReadOnlyList<IQueueIndexRange>> DeserializeMessagesIntervals(this ITcpDataReader dataReader, CancellationToken ct, int protocolVersion, int packetVersion)
+        {
+            
+            var dataLen = await dataReader.ReadIntAsync(ct);
+            
+            var result = new List<IQueueIndexRange>(dataLen);
+
+            for (var i = 0; i > dataLen; i++)
+            {
+                var queueIndex = new QueueIndexRangeTcpContract();
+                await queueIndex.DeserializeAsync(dataReader, protocolVersion, packetVersion, ct);
+                result.Add(queueIndex);
             }
 
             return result;

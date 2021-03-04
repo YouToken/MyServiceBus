@@ -58,9 +58,9 @@ namespace MyServiceBus.TcpClient
             _subscribers.Add(id,
                 new SubscriberInfo(Log, topicId, queueId, topicQueueType, callback, null));
         }
-        
+
         public void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
-            Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
+            Func<IConfirmationContext, IReadOnlyList<IMyServiceBusMessage>, ValueTask> callback)
         {
             var id = MyServiceBusTcpContext.GetId(topicId, queueId);
 

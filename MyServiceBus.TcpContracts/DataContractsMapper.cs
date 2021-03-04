@@ -8,7 +8,7 @@ namespace MyServiceBus.TcpContracts
     public enum CommandType
     {
         Ping, Pong, Greeting, Publish, PublishResponse, Subscribe, SubscribeResponse, NewMessage, NewMessageConfirmation, CreateTopicIfNotExists, 
-        MessagesConfirmation, PacketVersions, Reject, MessagesConfirmationAsFail, SomeMessagesOkSomeFailed
+        MessagesConfirmation, PacketVersions, Reject, MessagesConfirmationAsFail, SomeMessagesOkSomeFailed, ConfirmMessagesByNotDelivery
     }
     
     public static class DataContractsMapper
@@ -30,7 +30,8 @@ namespace MyServiceBus.TcpContracts
                 [CommandType.MessagesConfirmationAsFail] = () => new MessagesConfirmationAsFailContract(),
                 [CommandType.PacketVersions] = ()=>new PacketVersionsContract(),
                 [CommandType.Reject] = ()=> new RejectConnectionContract(),
-                [CommandType.SomeMessagesOkSomeFailed] = ()=>new ConfirmSomeMessagesOkSomeFail()
+                [CommandType.SomeMessagesOkSomeFailed] = ()=>new ConfirmSomeMessagesOkSomeFail(),
+                [CommandType.ConfirmMessagesByNotDelivery] = ()=>new ConfirmMessagesByNotDeliveryContract()
             };
 
         private static readonly Dictionary<Type, byte> TypeToCommandType =

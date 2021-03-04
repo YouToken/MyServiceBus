@@ -177,6 +177,17 @@ namespace MyServiceBus.Domains.Queues
                 subscriber.SetToUnLeased(); 
             }
         }
+        
+        public void ConfirmMessagesByNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration, QueueWithIntervals confirmedMessages)
+        {
+            lock (_topicLock)
+            {
+                _executionMonitoring.UpdateLastAmount(confirmedMessages.Count, executionDuration, false);
+
+                subscriber.ConfirmedMessagesAsDelivered(confirmedMessages);
+                
+            }
+        }
 
         public void ConfirmNotDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {

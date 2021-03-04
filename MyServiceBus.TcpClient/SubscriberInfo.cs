@@ -14,7 +14,7 @@ namespace MyServiceBus.TcpClient
         private readonly IMyServiceBusLogInvoker _log;
 
         public SubscriberInfo(IMyServiceBusLogInvoker log, string topicId, string queueId, TopicQueueType queueType, 
-            Func<IMyServiceBusMessage, ValueTask> callbackAsOneMessage, Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> callbackAsAPackage)
+            Func<IMyServiceBusMessage, ValueTask> callbackAsOneMessage, Func<IConfirmationContext, IReadOnlyList<IMyServiceBusMessage>, ValueTask> callbackAsAPackage)
         {
             _log = log;
             TopicId = topicId;
@@ -28,7 +28,7 @@ namespace MyServiceBus.TcpClient
         public string QueueId { get; }
         public TopicQueueType QueueType { get; }
         public Func<IMyServiceBusMessage, ValueTask> CallbackAsOneMessage { get; }
-        public Func<IReadOnlyList<IMyServiceBusMessage>, ValueTask> CallbackAsAPackage { get; }
+        public Func<IConfirmationContext, IReadOnlyList<IMyServiceBusMessage>, ValueTask> CallbackAsAPackage { get; }
         
 
         private async Task InvokeOneByOne(IReadOnlyList<NewMessagesContract.NewMessageData> messages,
@@ -63,7 +63,7 @@ namespace MyServiceBus.TcpClient
             confirmAllOk();
         }
 
-        private async Task InvokeBulkCallback(IReadOnlyList<NewMessagesContract.NewMessageData> messages, 
+        private async Task InvokeBulkCallback(IConfirmationContext confirmationContext, IReadOnlyList<NewMessagesContract.NewMessageData> messages, 
             Action confirmAllOk, Action confirmAllReject)
         {
             if (CallbackAsAPackage == null)
@@ -71,7 +71,7 @@ namespace MyServiceBus.TcpClient
 
             try
             {
-                await CallbackAsAPackage(messages);
+                await CallbackAsAPackage(confirmationContext, messages);
                 confirmAllOk();
             }
             catch (Exception e)
@@ -82,13 +82,13 @@ namespace MyServiceBus.TcpClient
 
         }
 
-        public void InvokeNewMessages(IReadOnlyList<NewMessagesContract.NewMessageData> messages,
+        public void InvokeNewMessages(IConfirmationContext confirmationContext, IReadOnlyList<NewMessagesContract.NewMessageData> messages,
             Action confirmAllOk, Action confirmAllReject, 
             Action<QueueWithIntervals> confirmSomeMessagesAreOk)
         {
             #pragma warning disable
             InvokeOneByOne(messages, confirmAllOk, confirmAllReject, confirmSomeMessagesAreOk);
-            InvokeBulkCallback(messages,confirmAllOk, confirmAllReject);
+            InvokeBulkCallback(confirmationContext, messages,confirmAllOk, confirmAllReject);
             #pragma warning restore
         }
 

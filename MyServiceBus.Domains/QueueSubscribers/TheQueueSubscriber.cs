@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using MyServiceBus.Abstractions.QueueIndex;
 using MyServiceBus.Domains.Queues;
 using MyServiceBus.Persistence.Grpc;
@@ -93,7 +94,19 @@ namespace MyServiceBus.Domains.QueueSubscribers
         {
             DeliveryEventsPerSecond.OneSecondTimer();
         }
- 
+
+        public void ConfirmedMessagesAsDelivered(QueueWithIntervals confirmedMessages)
+        {
+            var result = MessagesOnDelivery.ToDictionary(itm => itm.message.MessageId);
+
+            foreach (var messageId in confirmedMessages)
+            {
+                result.Remove(messageId);
+                LeasedQueue.Remove(messageId);
+            }
+
+            MessagesOnDelivery = result.Values.ToList();
+        }
     }
 
 }

@@ -297,10 +297,7 @@ namespace MyServiceBus.TcpContracts
             stream.WritePascalString(TopicId);
             stream.WritePascalString(QueueId);
             stream.WriteLong(ConfirmationId);
-            
-            stream.WriteInt(OkMessages.Count);
-            foreach (var indexRange in OkMessages)
-                QueueIndexRangeTcpContract.Create(indexRange).Serialize(stream, protocolVersion, packetVersion);
+            stream.SerializeMessagesIntervals(OkMessages, protocolVersion, packetVersion);
         }
 
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
@@ -310,19 +307,7 @@ namespace MyServiceBus.TcpContracts
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
             ConfirmationId = await dataReader.ReadLongAsync(ct);
-            
-            var dataLen = await dataReader.ReadIntAsync(ct);
-
-            var result = new List<IQueueIndexRange>(dataLen);
-
-            for (var i = 0; i > dataLen; i++)
-            {
-                var queueIndex = new QueueIndexRangeTcpContract();
-                await queueIndex.DeserializeAsync(dataReader, packetVersion, packetVersion, ct);
-                result.Add(queueIndex);
-            }
-
-            OkMessages = result;
+            OkMessages = await dataReader.DeserializeMessagesIntervals(ct, protocolVersion, packetVersion);
         }
     }
 
@@ -479,6 +464,49 @@ namespace MyServiceBus.TcpContracts
                 Message = message
             };
         }
+    }
+
+    public class ConfirmMessagesByNotDeliveryContract : IServiceBusTcpContract
+    {
+        public byte PacketVersion { get; private set; }
+
+        
+        public string TopicId { get; private set; }
+        public string QueueId { get; private set; }
+        public long ConfirmationId { get; private set; }
+        
+        public IReadOnlyList<IQueueIndexRange> ConfirmedMessages { get; private set; }
+        
+        public void Serialize(Stream stream, int protocolVersion, int packetVersion)
+        {
+            stream.WriteByte(PacketVersion);
+            stream.WritePascalString(TopicId);
+            stream.WritePascalString(QueueId);
+            stream.WriteLong(ConfirmationId);
+            stream.SerializeMessagesIntervals(ConfirmedMessages, packetVersion, packetVersion);
+        }
+
+        public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
+        {
+            PacketVersion = await dataReader.ReadAndCommitByteAsync(ct);
+            TopicId = await dataReader.ReadPascalStringAsync(ct);
+            QueueId = await dataReader.ReadPascalStringAsync(ct);
+            ConfirmationId = await dataReader.ReadLongAsync(ct);
+            ConfirmedMessages = await dataReader.DeserializeMessagesIntervals(ct, protocolVersion, packetVersion);
+        }
+
+        public static ConfirmMessagesByNotDeliveryContract Create(string topicId, string queueId, 
+            long confirmationId, IReadOnlyList<IQueueIndexRange> confirmedMessages)
+        {
+            return new ConfirmMessagesByNotDeliveryContract
+            {
+                TopicId = topicId,
+                QueueId = queueId,
+                ConfirmationId = confirmationId,
+                ConfirmedMessages = confirmedMessages
+            };
+        }
+        
     }
     
 }

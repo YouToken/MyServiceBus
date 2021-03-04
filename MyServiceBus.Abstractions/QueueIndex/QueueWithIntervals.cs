@@ -156,7 +156,7 @@ namespace MyServiceBus.Abstractions.QueueIndex
                 _ranges.RemoveAt(index);
         }
 
-        public long Count => _ranges.Sum(itm => itm.Count);
+        public int Count => _ranges.Sum(itm => itm.Count);
         
         public void SetMinMessageId(long fromId, long toId)
         {

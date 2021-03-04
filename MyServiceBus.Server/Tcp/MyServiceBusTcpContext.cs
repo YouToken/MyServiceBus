@@ -33,6 +33,24 @@ namespace MyServiceBus.Server.Tcp
 
             return new ValueTask();
         }
+        
+        
+
+        private ValueTask ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(ConfirmMessagesByNotDeliveryContract packet)
+        {
+            var topic = ServiceLocator.TopicsList.TryGet(packet.TopicId);
+
+            if (topic != null)
+            {
+                var confirmedMessages = new QueueWithIntervals(packet.ConfirmedMessages);
+                return ServiceLocator.Subscriber.ConfirmMessagesByNotDeliveryAsync(topic, packet.QueueId, packet.ConfirmationId, confirmedMessages);
+            }
+            
+            Console.WriteLine($"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found");
+            Disconnect();
+
+            return new ValueTask();
+        }
 
         private ValueTask ExecuteSomeMessagesAreOkSomeFail(ConfirmSomeMessagesOkSomeFail packet)
         {
@@ -197,6 +215,10 @@ namespace MyServiceBus.Server.Tcp
                     
                     case ConfirmSomeMessagesOkSomeFail confirmSomeMessagesOkSomeFail:
                         return ExecuteSomeMessagesAreOkSomeFail(confirmSomeMessagesOkSomeFail);
+                    
+                    case ConfirmMessagesByNotDeliveryContract confirmDeliveryOfSomeMessagesByNotCommit:
+                        return ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(
+                            confirmDeliveryOfSomeMessagesByNotCommit);
 
                     default:
                         return new ValueTask();
@@ -210,6 +232,7 @@ namespace MyServiceBus.Server.Tcp
 
 
         }
+
 
         private Task CreateTopicIfNotExistsAsync(CreateTopicIfNotExistsContract createTopicIfNotExistsContract)
         {

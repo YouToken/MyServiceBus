@@ -133,6 +133,29 @@ namespace MyServiceBus.Domains.Topics
 
             return queue;
         }
+
+        public TopicQueue ConfirmMessagesButNotDelivery(string queueName, long confirmationId, QueueWithIntervals queueWithIntervals)
+        {
+            var queue = _topicQueueList.GetQueue(queueName);
+
+            var subscriber = queue.SubscribersList.TryGetSubscriber(confirmationId);
+
+            if (subscriber == null)
+                return queue;
+            
+            var duration = DateTime.UtcNow - subscriber.OnDeliveryStart;
+
+            duration = subscriber.MessagesOnDelivery.Count == 0
+                ? default
+                : duration;
+            
+            queue.ConfirmMessagesByNotDelivery(subscriber, duration, queueWithIntervals);
+            
+            _topicQueueList.CalcMinMessageId();
+            _metricCollector.TopicQueueSize(TopicId, _topicQueueList.GetMessagesCount());
+
+            return queue;
+        }
         
 
         public long GetQueueMessagesCount(string queueName)
