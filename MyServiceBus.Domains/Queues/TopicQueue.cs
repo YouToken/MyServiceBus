@@ -303,6 +303,15 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
+
+        public long GetExecutionDurationSnapshotId()
+        {
+            lock (_executionDuration)
+            {
+                return _executionDuration.SnapshotId;
+            }
+        }
+
         public IReadOnlyList<int> GetExecutionDuration()
         {
             lock (_executionDuration)

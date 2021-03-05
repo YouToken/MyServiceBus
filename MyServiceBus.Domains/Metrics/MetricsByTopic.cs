@@ -21,12 +21,15 @@ namespace MyServiceBus.Domains.Metrics
             }
 
             _asList = null;
+            SnapshotId++;
         }
 
         public IReadOnlyList<T> GetItems()
         {
             return _asList ??= _items.ToList();
         }
+        
+        public long SnapshotId { get; private set; }
     }
 
     public class MetricsByTopic<T>

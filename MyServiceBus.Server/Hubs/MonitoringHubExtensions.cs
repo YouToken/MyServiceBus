@@ -79,19 +79,34 @@ namespace MyServiceBus.Server.Hubs
             return connection.ClientProxy.SendAsync("topic-performance-graph", contract);
         }
 
-        public static Task SendQueueGraphAsync(this MonitoringConnection connection)
+        public static ValueTask SendQueueGraphAsync(this MonitoringConnection connection)
         {
-            var contract = new Dictionary<string, IReadOnlyList<int>>();
+            
+            
+            Dictionary<string, IReadOnlyList<int>> contract = null;
 
             foreach (var topic in ServiceLocator.TopicsList.Get())
             {
+                
+                    
                 foreach (var topicQueue in topic.GetQueues())
                 {
+
+                    var lastSentSnapshotId = connection.GetLastQueueGraphSendSnapshot(topicQueue.Topic.TopicId, topicQueue.QueueId);
+                    var currentSnapshotId = topicQueue.GetExecutionDurationSnapshotId();
+                    
+                    if (currentSnapshotId == lastSentSnapshotId)
+                        continue;
+                    
+                    contract ??= new Dictionary<string, IReadOnlyList<int>>();
                     contract.Add(topic.TopicId+"-"+topicQueue.QueueId, topicQueue.GetExecutionDuration());
                 }
             }
             
-            return connection.ClientProxy.SendAsync("queue-duration-graph", contract);
+            if (contract == null)
+                return new ValueTask();
+            
+            return new ValueTask(connection.ClientProxy.SendAsync("queue-duration-graph", contract));
         }
 
         public static Task SendConnectionsAsync(this MonitoringConnection connection)
