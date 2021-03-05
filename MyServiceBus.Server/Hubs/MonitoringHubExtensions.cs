@@ -74,11 +74,11 @@ namespace MyServiceBus.Server.Hubs
         private static void CompressGraph(this MonitoringConnection connection,
             Dictionary<string, IReadOnlyList<int>> dataToCompress)
         {
-            foreach (var (topicId, value) in dataToCompress.Where(itm => itm.Value.Count > 0).ToList())
+            foreach (var (topicId, value) in dataToCompress.ToList())
             {
                 var sentLastTimeAsEmpty = connection.DidWeSendLastTimeAsEmptyTopicGraph(topicId);
 
-                if (value.All(itm => itm == 0))
+                if (value.All(itm => itm == 0) || value.Count == 0)
                 {
                     if (sentLastTimeAsEmpty)
                         dataToCompress.Remove(topicId);
@@ -96,7 +96,7 @@ namespace MyServiceBus.Server.Hubs
         }
 
 
-        public static Task SendTopicGraphAsync(this MonitoringConnection connection)
+        public static ValueTask SendTopicGraphAsync(this MonitoringConnection connection)
         {
             
             var contract = ServiceLocator.TopicsList.Get()
@@ -105,7 +105,10 @@ namespace MyServiceBus.Server.Hubs
             
             connection.CompressGraph(contract);
 
-            return connection.ClientProxy.SendAsync("topic-performance-graph", contract);
+            if (contract.Count ==0)
+                return new ValueTask();
+            
+            return new ValueTask(connection.ClientProxy.SendAsync("topic-performance-graph", contract));
         }
 
         public static ValueTask SendQueueGraphAsync(this MonitoringConnection connection)

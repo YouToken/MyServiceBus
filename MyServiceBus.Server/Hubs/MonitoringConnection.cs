@@ -24,9 +24,7 @@ namespace MyServiceBus.Server.Hubs
         {
             lock (LockObject)
             {
-                if (_sentLastTimeAsEmpty.TryGetValue(topic, out var result))
-                    return result;
-                return false;
+                return _sentLastTimeAsEmpty.TryGetValue(topic, out var result) && result;
             }
         }
 
