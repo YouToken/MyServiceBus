@@ -35,8 +35,6 @@ namespace MyServiceBus.Domains.Metrics
     public class MetricsByTopic<T>
     {
         
-
-        
         private readonly Dictionary<string, MetricList<T>> _messagesPerSeconds = new ();
 
         private readonly ReaderWriterLockSlim _lockSlim = new ();

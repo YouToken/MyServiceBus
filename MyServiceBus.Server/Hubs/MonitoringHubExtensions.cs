@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,12 +70,25 @@ namespace MyServiceBus.Server.Hubs
         }
 
 
+
+        private static void CompressGraph(Dictionary<string, IReadOnlyList<int>> dataToCompress)
+        {
+            foreach (var (key, value) in dataToCompress.Where(itm => itm.Value.Count>0).ToList())
+            {
+                if (value.All(itm => itm == 0))
+                    dataToCompress[key] = Array.Empty<int>();
+            }
+        }
+
+
         public static Task SendTopicGraphAsync(this MonitoringConnection connection)
         {
             
             var contract = ServiceLocator.TopicsList.Get()
                 .ToDictionary(topic => topic.TopicId, 
                     topic => ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
+            
+            CompressGraph(contract);
 
             return connection.ClientProxy.SendAsync("topic-performance-graph", contract);
         }
@@ -87,8 +101,6 @@ namespace MyServiceBus.Server.Hubs
 
             foreach (var topic in ServiceLocator.TopicsList.Get())
             {
-                
-                    
                 foreach (var topicQueue in topic.GetQueues())
                 {
 
