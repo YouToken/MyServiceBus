@@ -18,6 +18,30 @@ namespace MyServiceBus.Server.Hubs
         public readonly object LockObject = new ();
 
 
+
+        private readonly Dictionary<string, bool> _sentLastTimeAsEmpty = new ();
+        internal bool DidWeSendLastTimeAsEmptyTopicGraph(string topic)
+        {
+            lock (LockObject)
+            {
+                if (_sentLastTimeAsEmpty.TryGetValue(topic, out var result))
+                    return result;
+                return false;
+            }
+        }
+
+        public void SetSentAsEmptyLastTime(string topic, bool value)
+        {
+            lock (LockObject)
+            {
+                if (_sentLastTimeAsEmpty.ContainsKey(topic))
+                    _sentLastTimeAsEmpty[topic] = value;
+                else
+                    _sentLastTimeAsEmpty.Add(topic, value);
+            }
+        }
+
+
         #region LastQueueDurationGraphSentSnapshot
 
         private readonly Dictionary<string, Dictionary<string, long>> _lastQueueDurationGraphSnapshot

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Server.Hubs

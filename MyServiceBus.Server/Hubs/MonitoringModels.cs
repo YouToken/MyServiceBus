@@ -36,21 +36,6 @@ namespace MyServiceBus.Server.Hubs
             };
         }
     }
-    
-    public class QueueConnectionHubModel
-    {
-        public string Id { get; set; }
-        public bool Light { get; set; }
-        private static readonly TimeSpan TwoSeconds = TimeSpan.FromSeconds(2);
-        public static QueueConnectionHubModel Create(KeyValuePair<string, DateTime> src)
-        {
-            return new ()
-            {
-                Id = src.Key,
-                Light = DateTime.UtcNow - src.Value < TwoSeconds
-            };
-        }
-    }
 
 
     public class TopicQueueHubModel

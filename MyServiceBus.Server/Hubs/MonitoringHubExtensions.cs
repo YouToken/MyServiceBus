@@ -71,12 +71,27 @@ namespace MyServiceBus.Server.Hubs
 
 
 
-        private static void CompressGraph(Dictionary<string, IReadOnlyList<int>> dataToCompress)
+        private static void CompressGraph(this MonitoringConnection connection,
+            Dictionary<string, IReadOnlyList<int>> dataToCompress)
         {
-            foreach (var (key, value) in dataToCompress.Where(itm => itm.Value.Count>0).ToList())
+            foreach (var (topicId, value) in dataToCompress.Where(itm => itm.Value.Count > 0).ToList())
             {
+                var sentLastTimeAsEmpty = connection.DidWeSendLastTimeAsEmptyTopicGraph(topicId);
+
                 if (value.All(itm => itm == 0))
-                    dataToCompress[key] = Array.Empty<int>();
+                {
+                    if (sentLastTimeAsEmpty)
+                        dataToCompress.Remove(topicId);
+                    else
+                    {
+                        dataToCompress[topicId] = Array.Empty<int>();
+                        connection.SetSentAsEmptyLastTime(topicId, true);
+                    }
+
+                    return;
+                }
+
+                connection.SetSentAsEmptyLastTime(topicId, false);
             }
         }
 
@@ -88,7 +103,7 @@ namespace MyServiceBus.Server.Hubs
                 .ToDictionary(topic => topic.TopicId, 
                     topic => ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
             
-            CompressGraph(contract);
+            connection.CompressGraph(contract);
 
             return connection.ClientProxy.SendAsync("topic-performance-graph", contract);
         }
