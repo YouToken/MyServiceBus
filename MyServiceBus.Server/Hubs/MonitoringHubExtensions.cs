@@ -78,20 +78,15 @@ namespace MyServiceBus.Server.Hubs
             {
                 var sentLastTimeAsEmpty = connection.DidWeSendLastTimeAsEmptyTopicGraph(topicId);
 
-                if (value.All(itm => itm == 0) || value.Count == 0)
+                if (value.Count == 0)
                 {
                     if (sentLastTimeAsEmpty)
                         dataToCompress.Remove(topicId);
                     else
-                    {
-                        dataToCompress[topicId] = Array.Empty<int>();
                         connection.SetSentAsEmptyLastTime(topicId, true);
-                    }
-
-                    return;
                 }
-
-                connection.SetSentAsEmptyLastTime(topicId, false);
+                else
+                    connection.SetSentAsEmptyLastTime(topicId, false);
             }
         }
 
@@ -101,14 +96,19 @@ namespace MyServiceBus.Server.Hubs
             
             var contract = ServiceLocator.TopicsList.Get()
                 .ToDictionary(topic => topic.TopicId, 
-                    topic => ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId));
+                    topic =>
+                    {
+                         var result = ServiceLocator.MessagesPerSecondByTopic.GetRecordsPerSecond(topic.TopicId);
+                         if (result.All(itm => itm == 0))
+                             return (IReadOnlyList<int>)Array.Empty<int>();
+                         return result;
+                    });
             
             connection.CompressGraph(contract);
 
-            if (contract.Count ==0)
-                return new ValueTask();
-            
-            return new ValueTask(connection.ClientProxy.SendAsync("topic-performance-graph", contract));
+            return contract.Count ==0 
+                ? new ValueTask() 
+                : new ValueTask(connection.ClientProxy.SendAsync("topic-performance-graph", contract));
         }
 
         public static ValueTask SendQueueGraphAsync(this MonitoringConnection connection)
