@@ -92,11 +92,13 @@ namespace MyServiceBus.Server.Hubs
                 foreach (var topicQueue in topic.GetQueues())
                 {
 
-                    var lastSentSnapshotId = connection.GetLastQueueGraphSendSnapshot(topicQueue.Topic.TopicId, topicQueue.QueueId);
+                    var lastSentSnapshotId = connection.GetLastQueueDurationGraphSentSnapshot(topicQueue.Topic.TopicId, topicQueue.QueueId);
                     var currentSnapshotId = topicQueue.GetExecutionDurationSnapshotId();
                     
                     if (currentSnapshotId == lastSentSnapshotId)
                         continue;
+                    
+                    connection.SetLastQueueDurationGraphSentSnapshot(topicQueue.Topic.TopicId, topicQueue.QueueId, currentSnapshotId);
                     
                     contract ??= new Dictionary<string, IReadOnlyList<int>>();
                     contract.Add(topic.TopicId+"-"+topicQueue.QueueId, topicQueue.GetExecutionDuration());

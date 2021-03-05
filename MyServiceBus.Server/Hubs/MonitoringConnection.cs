@@ -18,20 +18,20 @@ namespace MyServiceBus.Server.Hubs
         public readonly object LockObject = new ();
 
 
-        #region LastQueueGraphSentSnapshot
+        #region LastQueueDurationGraphSentSnapshot
 
-        private readonly Dictionary<string, Dictionary<string, long>> _lastQueueGraphSnapshot
-            = new Dictionary<string, Dictionary<string, long>>();
+        private readonly Dictionary<string, Dictionary<string, long>> _lastQueueDurationGraphSnapshot
+            = new ();
 
-        internal void SetLastQueueGraphSentSnapshot(string topicId, string queueId, long snapshotId)
+        internal void SetLastQueueDurationGraphSentSnapshot(string topicId, string queueId, long snapshotId)
         {
 
             lock (LockObject)
             {
-                if (!_lastQueueGraphSnapshot.ContainsKey(topicId))
-                    _lastQueueGraphSnapshot.Add(topicId, new Dictionary<string, long>());
+                if (!_lastQueueDurationGraphSnapshot.ContainsKey(topicId))
+                    _lastQueueDurationGraphSnapshot.Add(topicId, new Dictionary<string, long>());
 
-                var topicSnapshot = _lastQueueGraphSnapshot[topicId];
+                var topicSnapshot = _lastQueueDurationGraphSnapshot[topicId];
 
                 if (topicSnapshot.ContainsKey(queueId))
                     topicSnapshot[queueId] = snapshotId;
@@ -41,11 +41,11 @@ namespace MyServiceBus.Server.Hubs
             
         }
 
-        internal long GetLastQueueGraphSendSnapshot(string topicId, string queueId)
+        internal long GetLastQueueDurationGraphSentSnapshot(string topicId, string queueId)
         {
             lock (LockObject)
             {
-                if (_lastQueueGraphSnapshot.TryGetValue(topicId, out var topicSnapshot))
+                if (_lastQueueDurationGraphSnapshot.TryGetValue(topicId, out var topicSnapshot))
                     if (topicSnapshot.TryGetValue(queueId, out var result))
                         return result;
 
