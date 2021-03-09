@@ -149,6 +149,14 @@ namespace MyServiceBus.Domains.Queues
             }
         }
 
+        public void EnqueueMessage(MessageContentGrpcModel message)
+        {
+            lock (_topicLock)
+            {
+                _queue.Enqueue(message.MessageId);
+            }
+        }
+
 
         public void ConfirmDelivery(TheQueueSubscriber subscriber, TimeSpan executionDuration)
         {

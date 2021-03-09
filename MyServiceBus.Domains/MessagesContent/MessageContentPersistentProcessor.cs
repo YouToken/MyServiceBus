@@ -54,7 +54,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
                     try
                     {
-                        if (contentByTopic.HasCacheLoaded(pageId))
+                        if (contentByTopic.HasCacheLoaded(new MessagesPageId(pageId)))
                             continue;
 
                         var now = DateTime.UtcNow;

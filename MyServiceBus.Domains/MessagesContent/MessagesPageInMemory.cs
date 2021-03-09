@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Threading;
 using MyServiceBus.Persistence.Grpc;
 
 namespace MyServiceBus.Domains.MessagesContent
@@ -29,6 +29,11 @@ namespace MyServiceBus.Domains.MessagesContent
         {
             return Value.ToString();
         }
+
+        public static MessagesPageId CreateFromMessageId(long messageId)
+        {
+            return messageId.GetMessageContentPageId();
+        }
     }
     
     public class MessagesPageInMemory
@@ -37,6 +42,8 @@ namespace MyServiceBus.Domains.MessagesContent
         private readonly Dictionary<long, MessageContentGrpcModel> _messages;
 
         public MessagesPageId PageId { get;  }
+        
+        public DateTime Created { get; } = DateTime.UtcNow;
 
         public MessagesPageInMemory(MessagesPageId pageId)
         {

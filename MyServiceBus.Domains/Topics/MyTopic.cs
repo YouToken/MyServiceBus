@@ -182,6 +182,11 @@ namespace MyServiceBus.Domains.Topics
         {
             return _topicQueueList.GetQueue(queueId);
         }
+        
+        public TopicQueue TryGetQueue(string queueId)
+        {
+            return _topicQueueList.TryGetQueue(queueId);
+        }
 
         public void Init(IReadOnlyList<IQueueSnapshot> queueSnapshots)
         {

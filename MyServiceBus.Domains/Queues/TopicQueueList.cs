@@ -112,6 +112,11 @@ namespace MyServiceBus.Domains.Queues
 
             throw new Exception($"Queue with id {queueId} is not found");
         }
+        
+        public TopicQueue TryGetQueue(string queueId)
+        {
+            return _topicQueues.TryGetValue(queueId, out var result) ? result : null;
+        }
 
 
         public long GetQueueMessagesCount(string queueName)

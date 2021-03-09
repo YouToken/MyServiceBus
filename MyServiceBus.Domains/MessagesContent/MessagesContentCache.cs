@@ -57,12 +57,12 @@ namespace MyServiceBus.Domains.MessagesContent
     
         }
 
-        public bool HasCacheLoaded(in long pageId)
+        public bool HasCacheLoaded(in MessagesPageId pageId)
         {
             _lockSlim.EnterReadLock();
             try
             {
-                return _messages.ContainsKey(pageId);
+                return _messages.ContainsKey(pageId.Value);
             }
             finally
             {
@@ -85,6 +85,8 @@ namespace MyServiceBus.Domains.MessagesContent
             }
 
         }
+        
+        private readonly TimeSpan _minPageLifeTime = TimeSpan.FromSeconds(30);
 
         private IReadOnlyList<long> GetKeysToGarbageCollect(IDictionary<long, long> activePages)
         {
@@ -94,13 +96,16 @@ namespace MyServiceBus.Domains.MessagesContent
             try
             {
  
-                foreach (var pageId in _messages.Keys)
+                foreach (var (pageId, pageInMemory) in _messages)
                 {
-                    if (!activePages.ContainsKey(pageId))
-                    {
-                        result ??= new List<long>();
-                        result.Add(pageId);
-                    }
+                    if (activePages.ContainsKey(pageId)) 
+                        continue;
+                    
+                    if (DateTime.UtcNow - pageInMemory.Created < _minPageLifeTime)
+                        continue;
+                        
+                    result ??= new List<long>();
+                    result.Add(pageId);
                 }
             }
             finally
