@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions;
+using MyServiceBus.Abstractions.QueueIndex;
 using MyTcpSockets.Extensions;
 using NUnit.Framework;
 
@@ -413,17 +414,49 @@ namespace MyServiceBus.TcpContracts.Tests
             var dataReader = new TcpDataReader(2048);
             var rawData = serializer.Serialize(inContract);
             await dataReader.NewPackageAsync(rawData);         
-
-            var ct = new CancellationTokenSource();
             
             var res
-                = await serializer.DeserializeAsync(dataReader, ct.Token);
+                = await serializer.DeserializeAsync(dataReader, CancellationToken.None);
 
             var result = (RejectConnectionContract) res;
             Assert.AreEqual(inContract.Message, result.Message);
+        }
 
+        [Test]
+        public async Task TestConfirmMessagesByNotDeliveryContract()
+        {
 
-        }          
+            var serializer = new MyServiceBusTcpSerializer();
+
+            var queue = new QueueWithIntervals();
+            queue.Enqueue(15);
+            queue.Enqueue(16);
+            queue.Enqueue(50);
+            queue.Enqueue(51);
+            var inContract = ConfirmMessagesByNotDeliveryContract.Create("topic", "queue", 
+                15, queue.GetSnapshot());
+
+            var dataReader = new TcpDataReader(2048);
+            var rawData = serializer.Serialize(inContract);
+            
+            await dataReader.NewPackageAsync(rawData);  
+                        
+            var res
+                = await serializer.DeserializeAsync(dataReader, CancellationToken.None);
+            
+            var result = (ConfirmMessagesByNotDeliveryContract) res;
+            Assert.AreEqual(inContract.TopicId, result.TopicId);
+            Assert.AreEqual(inContract.QueueId, result.QueueId);
+            Assert.AreEqual(inContract.ConfirmationId, result.ConfirmationId);
+
+            var resultQueue = new QueueWithIntervals(result.ConfirmedMessages);
+            
+            Assert.AreEqual(4, resultQueue.Count);
+            Assert.AreEqual(15, resultQueue.Dequeue());
+            Assert.AreEqual(16, resultQueue.Dequeue());
+            Assert.AreEqual(50, resultQueue.Dequeue());
+            Assert.AreEqual(51, resultQueue.Dequeue());
+        }
         
     }
 }

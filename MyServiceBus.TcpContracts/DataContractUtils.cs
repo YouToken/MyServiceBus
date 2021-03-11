@@ -97,7 +97,7 @@ namespace MyServiceBus.TcpContracts
             
             var result = new List<IQueueIndexRange>(dataLen);
 
-            for (var i = 0; i > dataLen; i++)
+            for (var i = 0; i < dataLen; i++)
             {
                 var queueIndex = new QueueIndexRangeTcpContract();
                 await queueIndex.DeserializeAsync(dataReader, protocolVersion, packetVersion, ct);

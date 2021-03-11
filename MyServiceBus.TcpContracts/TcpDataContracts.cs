@@ -110,12 +110,6 @@ namespace MyServiceBus.TcpContracts
             RequestId = await dataReader.ReadLongAsync(protocolVersion, ct);
         }
     }
-
-
-    public enum TopicQueueTypeTcpContract
-    {
-        
-    }
     
     public class SubscribeContract : IServiceBusTcpContract
     {
@@ -275,7 +269,7 @@ namespace MyServiceBus.TcpContracts
         {
             return new QueueIndexRangeTcpContract
             {
-                FromId = queueIndexRange.ToId,
+                FromId = queueIndexRange.FromId,
                 ToId = queueIndexRange.ToId
             };
         }
@@ -303,7 +297,6 @@ namespace MyServiceBus.TcpContracts
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
             PacketVersion = await dataReader.ReadAndCommitByteAsync(ct);
-
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
             ConfirmationId = await dataReader.ReadLongAsync(ct);
@@ -469,12 +462,9 @@ namespace MyServiceBus.TcpContracts
     public class ConfirmMessagesByNotDeliveryContract : IServiceBusTcpContract
     {
         public byte PacketVersion { get; private set; }
-
-        
         public string TopicId { get; private set; }
         public string QueueId { get; private set; }
         public long ConfirmationId { get; private set; }
-        
         public IReadOnlyList<IQueueIndexRange> ConfirmedMessages { get; private set; }
         
         public void Serialize(Stream stream, int protocolVersion, int packetVersion)
