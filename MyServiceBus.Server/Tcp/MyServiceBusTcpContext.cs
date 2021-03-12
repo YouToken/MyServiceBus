@@ -20,55 +20,48 @@ namespace MyServiceBus.Server.Tcp
 
         public int ProtocolVersion { get; private set; }
         
-        private ValueTask ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
+        private async ValueTask<string> ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
         {
-
             var topic = ServiceLocator.TopicsList.TryGet(topicId);
 
             if (topic != null)
-                return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
-            
-            Console.WriteLine($"There is a confirmation {confirmationId} for a topic {topicId} which is not found");
-            Disconnect();
+                await ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
 
-            return new ValueTask();
+            return $"There is a confirmation {confirmationId} for a topic {topicId} which is not found";
         }
-        
-        
 
-        private ValueTask ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(ConfirmMessagesByNotDeliveryContract packet)
+
+
+        private async ValueTask<string> ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(
+            ConfirmMessagesByNotDeliveryContract packet)
         {
             var topic = ServiceLocator.TopicsList.TryGet(packet.TopicId);
 
-            if (topic != null)
-            {
-                var confirmedMessages = new QueueWithIntervals(packet.ConfirmedMessages);
-                return ServiceLocator.Subscriber.ConfirmMessagesByNotDeliveryAsync(topic, packet.QueueId, packet.ConfirmationId, confirmedMessages);
-            }
-            
-            Console.WriteLine($"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found");
-            Disconnect();
+            if (topic == null)
+                return
+                    $"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found";
 
-            return new ValueTask();
+            var confirmedMessages = new QueueWithIntervals(packet.ConfirmedMessages);
+            await ServiceLocator.Subscriber.ConfirmMessagesByNotDeliveryAsync(topic, packet.QueueId,
+                packet.ConfirmationId, confirmedMessages);
+            return null;
         }
 
-        private ValueTask ExecuteSomeMessagesAreOkSomeFail(ConfirmSomeMessagesOkSomeFail packet)
+        private static async ValueTask<string> ExecuteSomeMessagesAreOkSomeFail(ConfirmSomeMessagesOkSomeFail packet)
         {
             var topic = ServiceLocator.TopicsList.TryGet(packet.TopicId);
 
-            if (topic != null)
-            {
-                var okMessages = new QueueWithIntervals(packet.OkMessages);
-                return ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, packet.QueueId, packet.ConfirmationId, okMessages);
-            }
-            
-            Console.WriteLine($"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found");
-            Disconnect();
+            if (topic == null)
+                return
+                    $"There is a confirmation {packet.ConfirmationId} for a topic {packet.TopicId}/{packet.QueueId} which is not found";
 
-            return new ValueTask();
+            var okMessages = new QueueWithIntervals(packet.OkMessages);
+            await ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, packet.QueueId, packet.ConfirmationId,
+                okMessages);
+            return null;
         }
 
-        private async ValueTask PublishAsync(PublishContract contract)
+        private async ValueTask<string> PublishAsync(PublishContract contract)
         {
             SessionContext.PublisherInfo.PublishMetricPerSecond.EventHappened();
 
@@ -79,11 +72,7 @@ namespace MyServiceBus.Server.Tcp
                 .PublishAsync(SessionContext, contract.TopicId, contract.Data, now, contract.ImmediatePersist == 1);
 
             if (response != ExecutionResult.Ok)
-            {
-                Console.WriteLine("Can not publish the message. Reason: " + response);
-                Disconnect();
-                return;
-            }
+                return "Can not publish the message. Reason: " + response;
 
             var resp = new PublishResponseContract
             {
@@ -91,6 +80,8 @@ namespace MyServiceBus.Server.Tcp
             };
 
             SendDataToSocket(resp);
+
+            return null;
         }
 
         public readonly MyServiceBusSessionContext SessionContext =  new ();
@@ -115,35 +106,31 @@ namespace MyServiceBus.Server.Tcp
             return result.ToString();
         }
 
-        private ValueTask GreetingAsync(GreetingContract greetingContract)
+        private string Greeting(GreetingContract greetingContract)
         {
 
             if (!AcceptedProtocolVersions.ContainsKey(greetingContract.ProtocolVersion))
             {
-                Console.WriteLine(greetingContract.Name + $" is attempting to connect with invalid protocol version {greetingContract.ProtocolVersion}. Acceptable versions are {GetAcceptedProtocolVersions()}");
-                Disconnect();
+                return greetingContract.Name +
+                       $" is attempting to connect with invalid protocol version {greetingContract.ProtocolVersion}. Acceptable versions are {GetAcceptedProtocolVersions()}";
             }
 
             ProtocolVersion = greetingContract.ProtocolVersion;
 
             SetContextName(greetingContract.Name);
             ServiceLocator.TcpConnectionsSnapshotId++;
-            return new ValueTask();
-
+            return null;
         }
 
-        private void ExecuteSubscribe(SubscribeContract contract)
+        private string ExecuteSubscribe(SubscribeContract contract)
         {
             Console.WriteLine("Subscribed to topic: " + contract.TopicId + " with queue: " + contract.QueueId);
 
             var topic = ServiceLocator.TopicsList.TryGet(contract.TopicId);
 
             if (topic == null)
-            {
-                Console.WriteLine($"Client {ContextName} is trying to subscribe to the topic {contract.TopicId} which does not exists");
-                Disconnect();
-                return;
-            }
+                return
+                    $"Client {ContextName} is trying to subscribe to the topic {contract.TopicId} which does not exists";
 
             var queue = topic.CreateQueueIfNotExists(contract.QueueId, contract.QueueType, true);
             SessionContext.SubscribeToQueue(queue);
@@ -158,92 +145,115 @@ namespace MyServiceBus.Server.Tcp
                     subscriber.Session.Disconnect();
             }
 
+            return null;
+
         }
 
         protected override ValueTask OnConnectAsync()
         {
-
-            Console.WriteLine("Connected: " + TcpClient.Client.RemoteEndPoint);
+            Console.WriteLine($"{DateTime.UtcNow:O} Connected: " + TcpClient.Client.RemoteEndPoint);
             ServiceLocator.TcpConnectionsSnapshotId++;
             return new ValueTask();
         }
 
         protected override ValueTask OnDisconnectAsync()
         {
-            Console.WriteLine("Disconnected: " + ContextName);
+            Console.WriteLine($"{DateTime.UtcNow:O} Disconnected: " + ContextName);
             ServiceLocator.TcpConnectionsSnapshotId++;
             return ServiceLocator.Subscriber.DisconnectSubscriberAsync(this);
 
         }
 
-        protected override ValueTask HandleIncomingDataAsync(IServiceBusTcpContract data)
+
+        private async Task HandleGlobalException(string message)
+        {
+            SendDataToSocket(RejectConnectionContract.Create(message));
+
+            Console.WriteLine($"{DateTime.UtcNow:O}. Sent reject due to exception {message}, Waiting for 1 second and disconnect");
+            await Task.Delay(1000);
+            Disconnect();
+        }
+        
+
+        protected override async ValueTask HandleIncomingDataAsync(IServiceBusTcpContract data)
         {
 
+            string error = null;
+            
             try
             {
-
                 if (ServiceLocator.MyGlobalVariables.ShuttingDown)
                 {
                     Disconnect();
-                    return new ValueTask();
+                    return;
                 }
 
+   
                 switch (data)
                 {
                     case PingContract _:
                         SendDataToSocket(PongContract.Instance);
-                        return new ValueTask();
+                        return;
 
                     case SubscribeContract subscribeContract:
-                        ExecuteSubscribe(subscribeContract);
-                        return new ValueTask();
+                        error = ExecuteSubscribe(subscribeContract);
+                        return;
 
                     case PublishContract publishContract:
-                        return PublishAsync(publishContract);
+                        error = await PublishAsync(publishContract);
+                        return;
 
                     case GreetingContract greetingContract:
-                        return GreetingAsync(greetingContract);
+                        error = Greeting(greetingContract);
+                        return;
 
                     case NewMessageConfirmationContract confirmRequestContract:
-                        return ExecuteConfirmAsync(confirmRequestContract.TopicId, confirmRequestContract.QueueId, confirmRequestContract.ConfirmationId, true);
-                    
+                        error = await ExecuteConfirmAsync(confirmRequestContract.TopicId, confirmRequestContract.QueueId,
+                            confirmRequestContract.ConfirmationId, true);
+                        return;
+
                     case MessagesConfirmationAsFailContract fail:
-                        return ExecuteConfirmAsync(fail.TopicId, fail.QueueId, fail.ConfirmationId, false);
+                        error = await ExecuteConfirmAsync(fail.TopicId, fail.QueueId, fail.ConfirmationId, false);
+                        return;
 
                     case CreateTopicIfNotExistsContract createTopicIfNotExistsContract:
-                        return new ValueTask(CreateTopicIfNotExistsAsync(createTopicIfNotExistsContract));
-                    
-                    case ConfirmSomeMessagesOkSomeFail confirmSomeMessagesOkSomeFail:
-                        return ExecuteSomeMessagesAreOkSomeFail(confirmSomeMessagesOkSomeFail);
-                    
-                    case ConfirmMessagesByNotDeliveryContract confirmDeliveryOfSomeMessagesByNotCommit:
-                        return ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(
-                            confirmDeliveryOfSomeMessagesByNotCommit);
+                        CreateTopicIfNotExists(createTopicIfNotExistsContract);
+                        return;
 
-                    default:
-                        return new ValueTask();
+                    case ConfirmSomeMessagesOkSomeFail confirmSomeMessagesOkSomeFail:
+                        error = await ExecuteSomeMessagesAreOkSomeFail(confirmSomeMessagesOkSomeFail);
+                        return;
+
+                    case ConfirmMessagesByNotDeliveryContract confirmDeliveryOfSomeMessagesByNotCommit:
+                        error = await ExecuteConfirmDeliveryOfSomeMessagesByNotCommitContract(
+                            confirmDeliveryOfSomeMessagesByNotCommit);
+                        return;
                 }
+
+
             }
             catch (Exception e)
             {
+                error = null;
                 Console.WriteLine(e);
-                throw;
+                await HandleGlobalException(e.Message);
             }
-
+            finally
+            {
+                if (error != null)
+                    await HandleGlobalException(error); 
+            }
 
         }
 
 
-        private Task CreateTopicIfNotExistsAsync(CreateTopicIfNotExistsContract createTopicIfNotExistsContract)
+        private void CreateTopicIfNotExists(CreateTopicIfNotExistsContract createTopicIfNotExistsContract)
         {
-
-            Console.WriteLine($"Attempt to create topic {createTopicIfNotExistsContract.TopicId} with max cached amount {createTopicIfNotExistsContract.MaxMessagesInCache}");
+            Console.WriteLine($"Attempt to create topic {createTopicIfNotExistsContract.TopicId}");
 
             SessionContext.PublisherInfo.AddIfNotExists(createTopicIfNotExistsContract.TopicId);
 
-
             ServiceLocator.TopicsManagement.AddIfNotExistsAsync(createTopicIfNotExistsContract.TopicId);
-            return Task.CompletedTask;
         }
 
         public void SendMessagesAsync(TopicQueue topicQueue,
