@@ -1,13 +1,15 @@
 class HtmlTopicRenderer {
 
-  public static renderCachedPages(pages: string[]) {
+  public static renderCachedPages(pages: IPageModel[]) {
     let result = "";
 
-    for (let id of pages) {
+    for (let page of pages) {
       result +=
-          '<span class="badge badge-secondary" style="margin-right: 5px">' +
-          id +
-          "</span>";
+          '<div class="progress">' +
+          '<div class="progress-bar" role="progressbar" style="width: ' + page.percent + '%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">' +
+          page.label +
+          '</div>' +
+          "<div>";
     }
 
     return result;

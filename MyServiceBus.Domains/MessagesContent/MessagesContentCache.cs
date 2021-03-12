@@ -21,7 +21,7 @@ namespace MyServiceBus.Domains.MessagesContent
             _topicId = topicId;
         }
 
-        public IEnumerable<(long no, long size)> GetPages()
+        public IEnumerable<(long no, long size, int percent)> GetPages()
         {
             var pages = Pages;
 
@@ -32,7 +32,7 @@ namespace MyServiceBus.Domains.MessagesContent
                 if (page == null)
                     continue;
 
-                yield return (no, page.ContentSize);
+                yield return (no, page.ContentSize, page.Percent);
             }
 
         }

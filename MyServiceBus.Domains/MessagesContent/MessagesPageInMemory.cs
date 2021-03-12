@@ -53,6 +53,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
         public long ContentSize { get; private set; }
         public int Count => _messages.Count;
+        public int Percent { get; private set; }
 
 
         public bool Add(MessageContentGrpcModel message)
@@ -61,6 +62,7 @@ namespace MyServiceBus.Domains.MessagesContent
             {
                 _messages.Add(message.MessageId, message);
                 ContentSize += message.Data.Length;
+                Percent = (int)(_messages.Count * 0.0001);
                 return true;
             }
 

@@ -4,11 +4,13 @@ var HtmlTopicRenderer = /** @class */ (function () {
     HtmlTopicRenderer.renderCachedPages = function (pages) {
         var result = "";
         for (var _i = 0, pages_1 = pages; _i < pages_1.length; _i++) {
-            var id = pages_1[_i];
+            var page = pages_1[_i];
             result +=
-                '<span class="badge badge-secondary" style="margin-right: 5px">' +
-                    id +
-                    "</span>";
+                '<div class="progress">' +
+                    '<div class="progress-bar" role="progressbar" style="width: ' + page.percent + '%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">' +
+                    page.label +
+                    '</div>' +
+                    "<div>";
         }
         return result;
     };

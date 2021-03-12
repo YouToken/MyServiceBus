@@ -21,9 +21,9 @@ namespace MyServiceBus.Server.Hubs
     {
         public string Id { get; set; }
         
-        public IEnumerable<string> Pages { get; set; }
+        public IEnumerable<(string label, int percent)> Pages { get; set; }
 
-        public static TopicHubModel Create(string id, IEnumerable<string> pages)
+        public static TopicHubModel Create(string id, IEnumerable<(string label, int precent)> pages)
         {
             return new TopicHubModel
             {
@@ -131,7 +131,7 @@ namespace MyServiceBus.Server.Hubs
         public string Id { get; set; }
         public int MsgPerSec { get; set; }
         public int ReqPerSec { get; set; }
-        public IEnumerable<string> Pages { get; set; }
+        public IEnumerable<(string label, int percent)> Pages { get; set; }
         
         public IEnumerable<TopicQueueHubModel> Queues { get; set; }
 
@@ -140,7 +140,7 @@ namespace MyServiceBus.Server.Hubs
             return new ()
             {
                 Id = topic.TopicId,
-                Pages = topic.MessagesContentCache.GetPages().Select(itm => itm.no+":"+itm.size.ByteSizeToString()),
+                Pages = topic.MessagesContentCache.GetPages().Select(itm => (itm.no+":"+itm.size.ByteSizeToString(), itm.percent)),
                 MsgPerSec = topic.MessagesPerSecond,
                 ReqPerSec = topic.RequestsPerSecond,
                 Queues = topic.GetQueues().Select(TopicQueueHubModel.Create)

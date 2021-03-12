@@ -1,7 +1,7 @@
 
 interface ITopicSignalRContract{
   id: string,
-  pages: string[],
+  pages: IPageModel[],
 }
 
 
@@ -86,10 +86,15 @@ interface ITopicMetricsSignalRContract{
   id:string,
   msgPerSec:number,
   reqPerSec:number,
-  pages: string[],
+  pages: IPageModel[],
   queues: ITopicQueueSignalRContract[]
 }
 
+
+interface IPageModel{
+  label: string,
+  percent: number
+}
 
 interface ILogItem{
   date: string,
