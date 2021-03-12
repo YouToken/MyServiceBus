@@ -13,7 +13,7 @@ namespace MyServiceBus.Server.Hubs
         internal static TopicHubModel ToTopicHubModel(this MyTopic topic)
         {
             return TopicHubModel.Create(topic.TopicId,
-                topic.MessagesContentCache.GetPages().Select(itm => (itm.no+":"+itm.size.ByteSizeToString(), itm.percent)));
+                topic.MessagesContentCache.GetPages().Select(itm => TopicPageModel.Create(itm.no+":"+itm.size.ByteSizeToString(), itm.percent)));
 
         }
         
