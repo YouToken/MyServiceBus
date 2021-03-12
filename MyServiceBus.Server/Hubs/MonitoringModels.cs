@@ -131,7 +131,7 @@ namespace MyServiceBus.Server.Hubs
         public string Id { get; set; }
         public int MsgPerSec { get; set; }
         public int ReqPerSec { get; set; }
-        public IEnumerable<long> Pages { get; set; }
+        public IEnumerable<string> Pages { get; set; }
         
         public IEnumerable<TopicQueueHubModel> Queues { get; set; }
 
@@ -140,7 +140,7 @@ namespace MyServiceBus.Server.Hubs
             return new ()
             {
                 Id = topic.TopicId,
-                Pages = topic.MessagesContentCache.Pages,
+                Pages = topic.MessagesContentCache.GetPages().Select(itm => itm.no+":"+itm.size.ByteSizeToString()),
                 MsgPerSec = topic.MessagesPerSecond,
                 ReqPerSec = topic.RequestsPerSecond,
                 Queues = topic.GetQueues().Select(TopicQueueHubModel.Create)
