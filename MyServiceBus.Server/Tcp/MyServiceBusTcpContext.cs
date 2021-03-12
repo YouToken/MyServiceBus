@@ -19,15 +19,18 @@ namespace MyServiceBus.Server.Tcp
     {
 
         public int ProtocolVersion { get; private set; }
-        
-        private async ValueTask<string> ExecuteConfirmAsync(string topicId, string queueId, long confirmationId, bool ok)
+
+        private async ValueTask<string> ExecuteConfirmAsync(string topicId, string queueId, long confirmationId,
+            bool ok)
         {
             var topic = ServiceLocator.TopicsList.TryGet(topicId);
 
-            if (topic != null)
-                await ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
+            if (topic == null)
+                return $"There is a confirmation {confirmationId} for a topic {topicId} which is not found";
 
-            return $"There is a confirmation {confirmationId} for a topic {topicId} which is not found";
+            await ServiceLocator.Subscriber.ConfirmDeliveryAsync(topic, queueId, confirmationId, ok);
+
+            return null;
         }
 
 
