@@ -31,11 +31,6 @@ namespace MyServiceBus.Domains.MessagesContent
                 
                 if (!result.ContainsKey(pageId.Value))
                     result.Add(pageId.Value, pageId.Value);
-
-                pageId.Value--;
-                if (pageId.Value >= 0 && !result.ContainsKey(pageId.Value))
-                    result.Add(pageId.Value, pageId.Value);
-                
                 
                 pageId.Value += 2;
                 if (pageId.Value<=maxPageId.Value && !result.ContainsKey(pageId.Value))
