@@ -14,11 +14,23 @@ namespace MyServiceBus.Server.Hubs
         public string Version { get; set; }
     }
 
+
+
+    
     public class TopicHubModel
     {
         public string Id { get; set; }
         
-        public IEnumerable<long> Pages { get; set; }
+        public IEnumerable<string> Pages { get; set; }
+
+        public static TopicHubModel Create(string id, IEnumerable<string> pages)
+        {
+            return new TopicHubModel
+            {
+                Id = id,
+                Pages = pages
+            };
+        }
 
     }
     

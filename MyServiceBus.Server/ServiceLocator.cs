@@ -11,6 +11,7 @@ using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Hubs;
+using MyServiceBus.Server.Services;
 using MyServiceBus.Server.Services.Sessions;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.TcpContracts;
@@ -20,7 +21,6 @@ namespace MyServiceBus.Server
 {
     public static class ServiceLocator
     {
-
         public static int TcpConnectionsSnapshotId { get; set; }
         
         static ServiceLocator()
@@ -53,6 +53,9 @@ namespace MyServiceBus.Server
             Console.WriteLine($"Port (http2): 6124");
             Console.WriteLine();
         }
+
+
+        public static readonly ConnectionsLog ConnectionsLog = new ConnectionsLog();
 
         public static string AppName { get; }
         public static string AppVersion { get;}

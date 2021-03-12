@@ -51,6 +51,7 @@ namespace MyServiceBus.Domains.MessagesContent
             _messages = new Dictionary<long, MessageContentGrpcModel>();
         }
 
+        public long ContentSize { get; private set; }
         public int Count => _messages.Count;
 
 
@@ -59,6 +60,7 @@ namespace MyServiceBus.Domains.MessagesContent
             if (!_messages.ContainsKey(message.MessageId))
             {
                 _messages.Add(message.MessageId, message);
+                ContentSize += message.Data.Length;
                 return true;
             }
 

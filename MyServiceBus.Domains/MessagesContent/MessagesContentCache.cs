@@ -11,15 +11,44 @@ namespace MyServiceBus.Domains.MessagesContent
     public class MessagesContentCache
     {
         private readonly Dictionary<long, MessagesPageInMemory> _messages = new ();
-        public string TopicId { get; }
+        private readonly string _topicId;
 
         private readonly ReaderWriterLockSlim _lockSlim = new ();
-
         public IReadOnlyList<long> Pages { get; private set; } = Array.Empty<long>();
-        
+
         public MessagesContentCache(string topicId)
         {
-            TopicId = topicId;
+            _topicId = topicId;
+        }
+
+        public IEnumerable<(long no, long size)> GetPages()
+        {
+            var pages = Pages;
+
+            foreach (var no in pages)
+            {
+                var page = TryGetPage(no);
+                
+                if (page == null)
+                    continue;
+
+                yield return (no, page.ContentSize);
+            }
+
+        }
+
+        private MessagesPageInMemory TryGetPage(long no)
+        {
+            _lockSlim.EnterReadLock();
+            try
+            {
+                return _messages.TryGetOrDefault(no);
+
+            }
+            finally
+            {
+                _lockSlim.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -129,7 +158,7 @@ namespace MyServiceBus.Domains.MessagesContent
 
                 foreach (var pageToGc in pagesToGc)
                 {
-                    Console.WriteLine($"Garbage collecting page for Topic {TopicId} from MessagesCache with #" +
+                    Console.WriteLine($"Garbage collecting page for Topic {_topicId} from MessagesCache with #" +
                                       pageToGc);
                      _messages.Remove(pageToGc);
                 }

@@ -14,8 +14,8 @@ var HtmlCommonRenderer = /** @class */ (function () {
         for (var _i = 0, c_1 = c; _i < c_1.length; _i++) {
             var m = c_1[_i];
             var y = w - getValue(m) * coef;
-            var hightlight = highlight(m);
-            if (hightlight) {
+            var highLight = highlight(m);
+            if (highLight) {
                 result +=
                     '<line x1="' +
                         i +
@@ -25,7 +25,7 @@ var HtmlCommonRenderer = /** @class */ (function () {
                         i +
                         '" y2="0" style="stroke:#ed969e;stroke-width:2" />';
             }
-            var color = hightlight ? "red" : "lightblue";
+            var color = highLight ? "red" : "lightblue";
             result +=
                 '<line x1="' +
                     i +
@@ -81,6 +81,14 @@ var HtmlCommonRenderer = /** @class */ (function () {
         if (name.length == 1)
             return '<div>' + name + '</div>';
         return '<div><b>' + names[0] + '</b></div><div>' + names[1] + '</div>';
+    };
+    HtmlCommonRenderer.renderSocketLog = function (data) {
+        var result = '<div class="console">';
+        for (var _i = 0, data_1 = data; _i < data_1.length; _i++) {
+            var itm = data_1[_i];
+            result += '<div>' + itm.date + ": Connection:" + itm.name + '; Ip' + itm.ip + "; Msg:" + itm.msg;
+        }
+        return result + '</div>';
     };
     return HtmlCommonRenderer;
 }());

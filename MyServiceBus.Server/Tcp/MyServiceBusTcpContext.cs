@@ -113,10 +113,8 @@ namespace MyServiceBus.Server.Tcp
         {
 
             if (!AcceptedProtocolVersions.ContainsKey(greetingContract.ProtocolVersion))
-            {
                 return greetingContract.Name +
                        $" is attempting to connect with invalid protocol version {greetingContract.ProtocolVersion}. Acceptable versions are {GetAcceptedProtocolVersions()}";
-            }
 
             ProtocolVersion = greetingContract.ProtocolVersion;
 
@@ -127,7 +125,7 @@ namespace MyServiceBus.Server.Tcp
 
         private string ExecuteSubscribe(SubscribeContract contract)
         {
-            Console.WriteLine("Subscribed to topic: " + contract.TopicId + " with queue: " + contract.QueueId);
+            ServiceLocator.ConnectionsLog.AddLog(Id, ContextName, GetIp(), "Subscribed to topic: " + contract.TopicId + " with queue: " + contract.QueueId);
 
             var topic = ServiceLocator.TopicsList.TryGet(contract.TopicId);
 
@@ -154,14 +152,31 @@ namespace MyServiceBus.Server.Tcp
 
         protected override ValueTask OnConnectAsync()
         {
-            Console.WriteLine($"{DateTime.UtcNow:O} Connected: " + TcpClient.Client.RemoteEndPoint);
+            ServiceLocator.ConnectionsLog.AddLog(Id, ContextName, GetIp(), "Connected");
+
             ServiceLocator.TcpConnectionsSnapshotId++;
             return new ValueTask();
         }
 
+
+        private string _ip;
+        private string GetIp()
+        {
+            try
+            {
+                _ip ??= TcpClient.Client.RemoteEndPoint?.ToString(); 
+                return _ip ?? "unknown";
+            }
+            catch (Exception)
+            {
+                return "exception-unknown";
+            }
+
+        }
+
         protected override ValueTask OnDisconnectAsync()
         {
-            Console.WriteLine($"{DateTime.UtcNow:O} Disconnected: " + ContextName);
+            ServiceLocator.ConnectionsLog.AddLog(Id, ContextName, GetIp(), "Disconnected");
             ServiceLocator.TcpConnectionsSnapshotId++;
             return ServiceLocator.Subscriber.DisconnectSubscriberAsync(this);
 
@@ -172,7 +187,7 @@ namespace MyServiceBus.Server.Tcp
         {
             SendDataToSocket(RejectConnectionContract.Create(message));
 
-            Console.WriteLine($"{DateTime.UtcNow:O}. Sent reject due to exception {message}, Waiting for 1 second and disconnect");
+            ServiceLocator.ConnectionsLog.AddLog(Id, ContextName, GetIp(), $"Sent reject due to exception {message}, Waiting for 1 sec and disconnect");
             await Task.Delay(1000);
             Disconnect();
         }
@@ -252,7 +267,7 @@ namespace MyServiceBus.Server.Tcp
 
         private void CreateTopicIfNotExists(CreateTopicIfNotExistsContract createTopicIfNotExistsContract)
         {
-            Console.WriteLine($"Attempt to create topic {createTopicIfNotExistsContract.TopicId}");
+            ServiceLocator.ConnectionsLog.AddLog(Id, ContextName, GetIp(), $"Attempt to create topic {createTopicIfNotExistsContract.TopicId}");
 
             SessionContext.PublisherInfo.AddIfNotExists(createTopicIfNotExistsContract.TopicId);
 

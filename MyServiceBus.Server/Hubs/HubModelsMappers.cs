@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Server.Models;
@@ -13,11 +12,8 @@ namespace MyServiceBus.Server.Hubs
 
         internal static TopicHubModel ToTopicHubModel(this MyTopic topic)
         {
-            return new ()
-            {
-                Id = topic.TopicId,
-                Pages = topic.MessagesContentCache.Pages
-            };
+            return TopicHubModel.Create(topic.TopicId, topic.MessagesContentCache.GetPages().Select(itm => itm.no+":"+itm.size.ByteSizeToString()));
+
         }
         
         internal static TcpConnectionHubModel ToTcpConnectionHubModel(this MyServiceBusTcpContext tcpContext)

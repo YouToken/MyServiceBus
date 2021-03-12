@@ -1,6 +1,6 @@
 class HtmlTopicRenderer {
 
-  public static renderCachedPages(pages: number[]) {
+  public static renderCachedPages(pages: string[]) {
     let result = "";
 
     for (let id of pages) {

@@ -83,6 +83,12 @@ class Main{
               el.innerHTML = HtmlQueueToPersistRenderer.RenderQueueToPersistTable(data);
         });
         
+        this.signalRConnection.on('socket-log', (data:ILogItem[])=>{
+            let el = document.getElementById('socket-log');
+            if (el)
+                el.innerHTML = HtmlCommonRenderer.renderSocketLog(data); 
+        });
+        
         this.signalRConnection.on("topic-metrics", (data:ITopicMetricsSignalRContract[])=>{
             
             for (let metric of data){

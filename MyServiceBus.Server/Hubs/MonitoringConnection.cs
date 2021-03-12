@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.SignalR;
-using MyServiceBus.Domains.Topics;
 
 namespace MyServiceBus.Server.Hubs
 {
@@ -16,8 +15,6 @@ namespace MyServiceBus.Server.Hubs
         public readonly Dictionary<string, MonitoringConnectionTopicContext> TopicContexts = new();
 
         public readonly object LockObject = new ();
-
-
 
         private readonly Dictionary<string, bool> _sentLastTimeAsEmpty = new ();
         internal bool DidWeSendLastTimeAsEmptyTopicGraph(string topic)
@@ -73,9 +70,7 @@ namespace MyServiceBus.Server.Hubs
 
                 return -100;
             }
-
         }
-        
         
         #endregion
 

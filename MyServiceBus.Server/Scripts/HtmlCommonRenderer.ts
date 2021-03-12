@@ -16,8 +16,8 @@ class HtmlCommonRenderer{
         let i = 0;
         for (let m of c) {
             let y = w - getValue(m) * coef;
-            var hightlight = highlight(m);
-            if (hightlight){
+            let highLight = highlight(m);
+            if (highLight){
                 result +=
                     '<line x1="' +
                     i +
@@ -28,7 +28,7 @@ class HtmlCommonRenderer{
                     '" y2="0" style="stroke:#ed969e;stroke-width:2" />';  
             }
             
-            let color = hightlight ? "red" : "lightblue";
+            let color = highLight ? "red" : "lightblue";
 
             result +=
                 '<line x1="' +
@@ -88,7 +88,6 @@ class HtmlCommonRenderer{
         return '<span id="'+id+'" class="badge badge-'+badgeType+'">'+content+'</span>'
     }
 
-
     public static toDuration(v:number):string {
         return (v / 1000).toFixed(3) + "ms";
     }
@@ -100,6 +99,18 @@ class HtmlCommonRenderer{
             return '<div>'+name+'</div>';
         
         return '<div><b>'+names[0]+'</b></div><div>'+names[1]+'</div>'
+    }
+    
+    
+    public static renderSocketLog(data:ILogItem[]):string{
+        
+        let result = '<div class="console">';
+        
+        for (let itm of data){
+            result += '<div>'+itm.date+": Connection:"+itm.name+'; Ip'+itm.ip+"; Msg:"+itm.msg;
+        }
+        
+        return result+'</div>'
     }
     
 

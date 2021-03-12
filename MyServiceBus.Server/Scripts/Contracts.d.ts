@@ -1,7 +1,7 @@
 
 interface ITopicSignalRContract{
   id: string,
-  pages: number[],
+  pages: string[],
 }
 
 
@@ -86,7 +86,16 @@ interface ITopicMetricsSignalRContract{
   id:string,
   msgPerSec:number,
   reqPerSec:number,
-  pages: number[],
-  
+  pages: string[],
   queues: ITopicQueueSignalRContract[]
+}
+
+
+interface ILogItem{
+  date: string,
+  connection: number,
+  name: number
+  ip: number;
+  msg: number;
+  
 }
