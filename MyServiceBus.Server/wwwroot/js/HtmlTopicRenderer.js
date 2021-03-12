@@ -7,7 +7,7 @@ var HtmlTopicRenderer = /** @class */ (function () {
             var page = pages_1[_i];
             result +=
                 '<div class="progress">' +
-                    '<div class="progress-bar" role="progressbar" style="width: ' + page.percent + '%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">' +
+                    '<div class="progress-bar" role="progressbar" style="color:black; width: ' + page.percent + '%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">' +
                     page.label +
                     '</div>' +
                     "<div>";
