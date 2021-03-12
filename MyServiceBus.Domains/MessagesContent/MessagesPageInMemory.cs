@@ -62,7 +62,7 @@ namespace MyServiceBus.Domains.MessagesContent
             {
                 _messages.Add(message.MessageId, message);
                 ContentSize += message.Data.Length;
-                Percent = (int)(_messages.Count * 0.0001);
+                Percent = (int)(_messages.Count * 0.001);
                 return true;
             }
 
