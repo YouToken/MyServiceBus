@@ -166,6 +166,8 @@ namespace MyServiceBus.TcpClient
 
         public void SetPublished(long requestId)
         {
+            var taskToComplete = new List<TaskCompletionSource<int>>();
+
             lock (_readyToGo)
             {
                 foreach (var topicData in _readyToGo.Where(topicData => topicData.Value.Count > 0))
@@ -176,10 +178,15 @@ namespace MyServiceBus.TcpClient
                         continue;
 
                     topicData.Value.RemoveAt(0);
-                    packageToCommit.CommitTask.SetResult(0);
+
+                    taskToComplete.Add(packageToCommit.CommitTask);
                 }
             }
-            
+
+            foreach (var task in taskToComplete)
+            {
+                task.SetResult(0);
+            }
         }
 
         private long _lastDisconnectId = -1;
