@@ -1,43 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <Version>0.1.9</Version>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
         <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
         <PackageReference Include="DotNetCoreDecorators" Version="1.0.21" />
-        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.17.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.6" />
+        <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.18.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.9" />
         <PackageReference Include="MyServiceBus.Grpc" Version="1.0.12" />
-        <PackageReference Include="MySettingsReader" Version="1.2.0" />
+        <PackageReference Include="MySettingsReader" Version="1.2.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="NSwag.AspNetCore" Version="13.11.1" />
-        <PackageReference Include="NSwag.Core" Version="13.11.1" />
-        <PackageReference Include="prometheus-net.AspNetCore" Version="4.1.1" />
+        <PackageReference Include="NSwag.AspNetCore" Version="13.13.2" />
+        <PackageReference Include="NSwag.Core" Version="13.13.2" />
+        <PackageReference Include="prometheus-net.AspNetCore" Version="5.0.1" />
         <PackageReference Include="protobuf-net.Grpc" Version="1.0.152" />
         <PackageReference Include="protobuf-net.Grpc.AspNetCore" Version="1.0.152" />
-        <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />        
+        <PackageReference Include="Grpc.Net.Client" Version="2.39.0" />        
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\MyServiceBus.Domains\MyServiceBus.Domains.csproj" />
       <ProjectReference Include="..\MyServiceBus.TcpContracts\MyServiceBus.TcpContracts.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <TypeScriptCompile Include="Scripts\Contracts.d.ts" />
-      <TypeScriptCompile Include="Scripts\HtmlCommonRenderer.ts" />
-      <TypeScriptCompile Include="Scripts\HtmlConnectionsRenderer.ts" />
-      <TypeScriptCompile Include="Scripts\HtmlQueueToPersistRenderer.ts" />
-      <TypeScriptCompile Include="Scripts\HtmlTopicRenderer.ts" />
-      <TypeScriptCompile Include="Scripts\Main.ts" />
-      <TypeScriptCompile Include="Scripts\HtmlTopicQueueRenderer.ts" />
-      <TypeScriptCompile Include="Scripts\typings\signalr.d.ts" />
-      <TypeScriptCompile Include="Scripts\Utils.ts" />
     </ItemGroup>
 
     <ItemGroup>

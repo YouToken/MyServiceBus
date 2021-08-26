@@ -6,7 +6,7 @@
     "outDir": "wwwroot/js"
   },
   "include": [
-    "Scripts/**/*"
+    "Typescript/**/*"
   ],
   "compileOnSave": true,
   "exclude": [

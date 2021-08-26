@@ -1,14 +1,16 @@
 ﻿[
   {
-    "outputFileName": "wwwroot/js/sb.min.js",
+    "outputFileName": "wwwroot/js/app.min.js",
     "inputFiles": [
       "wwwroot/js/Utils.js",
-      "wwwroot/js/HtmlCommonRenderer.js",
-      "wwwroot/js/HtmlConnectionsRenderer.js",
-      "wwwroot/js/HtmlQueueToPersistRenderer.js",
-      "wwwroot/js/HtmlTopicQueueRenderer.js",
-      "wwwroot/js/HtmlTopicRenderer.js",
-      "wwwroot/js/Main.js"
+      "wwwroot/js/ServiceLocator.js",
+      "wwwroot/js/HtmlGraph.js",
+      "wwwroot/js/HtmlSessions.js",
+      "wwwroot/js/HtmlStatusBar.js",
+      "wwwroot/js/HtmlMain.js",
+      "wwwroot/js/HtmlTopics.js",
+      "wwwroot/js/HtmlQueue.js",
+      "wwwroot/js/main.js"
     ],
     "minify": {
       "enabled": true,

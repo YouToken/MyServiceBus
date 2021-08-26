@@ -40,5 +40,12 @@ namespace MyServiceBus.Domains.Tests.Utils
         }
 
         public int Count => _messagesToPersistQueue.Count;
+        public int GetAmount(string topicId)
+        {
+            lock (_messagesToPersist)
+            {
+                return _messagesToPersist.ContainsKey(topicId) ? _messagesToPersist[topicId].Count : 0;
+            }
+        }
     }
 }

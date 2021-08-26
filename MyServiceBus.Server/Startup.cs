@@ -8,7 +8,6 @@ using MyServiceBus.Server.Grpc;
 using MyServiceBus.Server.Tcp;
 using MyServiceBus.Domains;
 using MyServiceBus.Domains.Persistence;
-using MyServiceBus.Server.Hubs;
 using MyServiceBus.TcpContracts;
 using MyTcpSockets;
 using Prometheus;
@@ -87,7 +86,6 @@ namespace MyServiceBus.Server
                     endpoints.MapGrpcService<PublisherApi>();
                     endpoints.MapGrpcService<ManagementGrpcService>();
                     endpoints.MapMetrics();
-                    endpoints.MapHub<MonitoringHub>("/monitoringhub");
                 });
 
             var sp = _services.BuildServiceProvider();

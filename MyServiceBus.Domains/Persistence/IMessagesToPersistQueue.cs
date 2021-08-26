@@ -15,8 +15,10 @@ namespace MyServiceBus.Domains.Persistence
         IReadOnlyList<(string topic, int count)> GetMessagesToPersistCount();
         
         int Count { get; }
-        
-        
+
+        public int GetAmount(string topicId);
+
+
 
     } 
     
@@ -46,6 +48,14 @@ namespace MyServiceBus.Domains.Persistence
                 {
                     return _messagesToPersist.Values.Sum(itm => itm.Count);
                 }
+            }
+        }
+
+        public int GetAmount(string topicId)
+        {
+            lock (_messagesToPersist)
+            {
+                return _messagesToPersist.TryGetValue(topicId, out var list) ? list.Count : 0;
             }
         }
 

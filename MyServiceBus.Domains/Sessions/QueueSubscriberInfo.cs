@@ -19,7 +19,6 @@ namespace MyServiceBus.Domains.Sessions
                 }
             }
 
-
             lock (_subscribers)
             {
                 var resultByTopic = _subscribers.AddIfNotExistsByCreatingNewDictionary(topic, () => new Dictionary<string, DateTime>());
@@ -63,5 +62,9 @@ namespace MyServiceBus.Domains.Sessions
 
             return _defaultDateTime;
         }
+
+        private readonly IReadOnlyDictionary<string, DateTime> _empty = new Dictionary<string, DateTime>();
+
+     
     }
 }

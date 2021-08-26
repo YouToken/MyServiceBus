@@ -10,46 +10,80 @@ var Utils = /** @class */ (function () {
         }
         return result;
     };
-    Utils.findConnection = function (c, id) {
-        for (var _i = 0, c_2 = c; _i < c_2.length; _i++) {
-            var con = c_2[_i];
-            if (con.id === id)
-                return con;
+    Utils.formatNumber = function (n) {
+        return n.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    };
+    Utils.format_bytes = function (n) {
+        if (n < 1024) {
+            return n.toFixed(2) + "b";
+        }
+        n = n / 1024;
+        if (n < 1024) {
+            return n.toFixed(2) + "Kb";
+        }
+        n = n / 1024;
+        if (n < 1024) {
+            return n.toFixed(2) + "Mb";
+        }
+        n = n / 1024;
+        return n.toFixed(2) + "Gb";
+    };
+    Utils.iterateTopicQueues = function (status, callback) {
+        var topics = Object.keys(status.queues);
+        for (var _i = 0, topics_1 = topics; _i < topics_1.length; _i++) {
+            var topic = topics_1[_i];
+            callback(topic, status.queues[topic]);
         }
     };
-    Utils.renderName = function (name) {
-        var lines = name.split(";");
-        var result = "";
-        for (var _i = 0, lines_1 = lines; _i < lines_1.length; _i++) {
-            var i = lines_1[_i];
-            result += "<div>" + i + "</div>";
+    Utils.iterateSessionPublishers = function (session, data) {
+        var topics = Object.keys(session.publishers);
+        for (var _i = 0, topics_2 = topics; _i < topics_2.length; _i++) {
+            var topic = topics_2[_i];
+            data(topic, session.publishers[topic]);
+        }
+    };
+    Utils.getQueueSubscribers = function (status, topicId, queueId) {
+        var result = [];
+        for (var _i = 0, _a = status.sessions.items; _i < _a.length; _i++) {
+            var session = _a[_i];
+            for (var _b = 0, _c = session.subscribers; _b < _c.length; _b++) {
+                var subscriber = _c[_b];
+                if (subscriber.topicId == topicId && subscriber.queueId == queueId) {
+                    result.push({ session: session, subscriber: subscriber });
+                }
+            }
         }
         return result;
     };
-    Utils.renderBytes = function (b) {
-        if (b < 1024)
-            return b.toString();
-        if (b < this.mb)
-            return (b / 1024).toFixed(3) + "Kb";
-        if (b < this.gb)
-            return (b / this.mb).toFixed(3) + "Mb";
-        return (b / this.gb).toFixed(3) + "Gb";
+    Utils.format_duration = function (micros) {
+        if (micros == 0)
+            return "0";
+        if (micros < 1000) {
+            return micros + "µs";
+        }
+        if (micros < 1000000) {
+            return (micros / 1000).toFixed(3) + "ms";
+        }
+        return (micros / 1000000).toFixed(3) + "s";
     };
-    Utils.queueIsEmpty = function (slices) {
-        if (slices.length > 1)
-            return false;
-        return slices[0].from > slices[0].to;
-    };
-    Utils.getQueueSize = function (slices) {
-        var result = 0;
-        for (var _i = 0, slices_1 = slices; _i < slices_1.length; _i++) {
-            var slice = slices_1[_i];
-            result += slice.to - slice.from + 1;
+    Utils.iterateBySessionsWithTopic = function (status, topic) {
+        var result = [];
+        var _loop_1 = function (session) {
+            Utils.iterateSessionPublishers(session, function (topicFromSession, active) {
+                if (topicFromSession == topic) {
+                    result.push({
+                        session: session,
+                        active: active > 0
+                    });
+                }
+            });
+        };
+        for (var _i = 0, _a = status.sessions.items; _i < _a.length; _i++) {
+            var session = _a[_i];
+            _loop_1(session);
         }
         return result;
     };
-    Utils.mb = 1024 * 1024;
-    Utils.gb = 1024 * 1024 * 1024;
     return Utils;
 }());
 //# sourceMappingURL=Utils.js.map

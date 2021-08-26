@@ -1,16 +1,10 @@
 @using MyServiceBus.Server
-
 @{
-    ViewBag.Title = "title";
     Layout = null;
 }
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <partial name="PartialScripts"></partial>
-    <title>@(typeof(ServiceLocator).Assembly.GetName().Version) MyServiceBus</title>
-</head>
-<body>
-@RenderBody()
-</body>
-</html>
+<html lang="en"><head><title>@ServiceLocator.AppVersion MyNoSQLServer .net</title>
+    <link href="/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <link href="/css/site.css?ver=@ServiceLocator.Rnd" rel="stylesheet" type="text/css" />
+    <script src="/lib/jquery.js"></script><script src="/js/app.min.js?ver=@ServiceLocator.Rnd"></script>
+</head><body>@RenderBody()</body></html>

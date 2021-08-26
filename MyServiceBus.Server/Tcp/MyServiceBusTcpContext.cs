@@ -19,6 +19,11 @@ namespace MyServiceBus.Server.Tcp
     {
 
         public int ProtocolVersion { get; private set; }
+        
+        
+        public string ClientVersion { get; private set; }
+        
+        public string Name { get; private set; }
 
         private async ValueTask<string> ExecuteConfirmAsync(string topicId, string queueId, long confirmationId,
             bool ok)
@@ -119,6 +124,13 @@ namespace MyServiceBus.Server.Tcp
             ProtocolVersion = greetingContract.ProtocolVersion;
 
             SetContextName(greetingContract.Name);
+
+            var data = greetingContract.Name.Split(';');
+
+            Name = data[0];
+
+            ClientVersion = data.Length > 1 ? data[1] : "unknown";
+            
             ServiceLocator.TcpConnectionsSnapshotId++;
             return null;
         }

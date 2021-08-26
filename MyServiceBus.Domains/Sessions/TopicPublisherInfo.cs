@@ -24,10 +24,12 @@ namespace MyServiceBus.Domains.Sessions
 
             lock (_topicsPublishers)
             {
-                var result = _topicsPublishers.AddIfNotExistsByCreatingNewDictionary(topic, () => DateTime.UtcNow);
+                var (added, newDictionary, _) = _topicsPublishers.AddIfNotExistsByCreatingNewDictionary(topic, () => DateTime.UtcNow);
 
-                if (result.added)
-                    _topicsPublishers = result.newDictionary;
+                if (added)
+                    _topicsPublishers = newDictionary;
+                else
+                    _topicsPublishers[topic] = DateTime.UtcNow;
             }
 
         }
@@ -42,5 +44,7 @@ namespace MyServiceBus.Domains.Sessions
         {
             return _topicsPublishers;
         }
+        
+
     }
 }

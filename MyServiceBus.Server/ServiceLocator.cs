@@ -10,7 +10,6 @@ using MyServiceBus.Domains.Execution;
 using MyServiceBus.Domains.Metrics;
 using MyServiceBus.Domains.Persistence;
 using MyServiceBus.Domains.Topics;
-using MyServiceBus.Server.Hubs;
 using MyServiceBus.Server.Services;
 using MyServiceBus.Server.Services.Sessions;
 using MyServiceBus.Server.Tcp;
@@ -144,7 +143,7 @@ namespace MyServiceBus.Server
                 foreach (var myTopic in TopicsList.Get())
                     MessagesPerSecondByTopic.PutData(myTopic.TopicId, myTopic.MessagesPerSecond);
 
-                return new ValueTask(MonitoringHub.BroadCasMetricsAsync());
+                return new ValueTask();
             });
 
             TimerGarbageCollector.Start();
@@ -185,6 +184,8 @@ namespace MyServiceBus.Server
             while (MyGlobalVariables.PublishRequestsAmountAreBeingProcessed > 0)
                 Thread.Sleep(500);
         }
-        
+
+        public static readonly string Rnd = Guid.NewGuid().ToString("N");
+
     }
 }
