@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace MyServiceBus.Server
 {
+    //Creating GRPC-Interface
     public class Program
     {
         public static void Main(string[] args)
