@@ -36,8 +36,14 @@ namespace MyServiceBus.Domains
             
             foreach (var topic in topicsList.Get())
             {
-                var activePages = topic.GetActiveMessagePages();
-                var task = persistentProcessor.LoadActivePagesAsync(topic, activePages.Keys.ToList());
+                var pageId = topic.MessageId.Value.GetMessageContentPageId();
+
+                var pages = new List<long>()
+                {
+                    pageId.Value
+                };
+                
+                var task = persistentProcessor.LoadActivePagesAsync(topic, pages);
                 tasks.Add(task);
             }
 

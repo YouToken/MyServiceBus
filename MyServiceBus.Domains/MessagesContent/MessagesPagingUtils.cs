@@ -22,18 +22,15 @@ namespace MyServiceBus.Domains.MessagesContent
         public static Dictionary<long, long> GetActiveMessagePages(this MyTopic topic)
         {
             var result = new Dictionary<long, long>();
+            
+            var maxPageId = topic.MessageId.Value.GetMessageContentPageId();
+            result.Add(maxPageId.Value, maxPageId.Value);
+            
             foreach (var queue in topic.GetQueues())
             {
-                
                 var pageId = queue.GetMinId().GetMessageContentPageId();
 
-                var maxPageId = topic.MessageId.Value.GetMessageContentPageId();
-                
                 if (!result.ContainsKey(pageId.Value))
-                    result.Add(pageId.Value, pageId.Value);
-                
-                pageId.Value += 1;
-                if (pageId.Value<=maxPageId.Value && !result.ContainsKey(pageId.Value))
                     result.Add(pageId.Value, pageId.Value);
             }
 
