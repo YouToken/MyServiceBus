@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions;
 using MyServiceBus.TcpContracts;
@@ -14,9 +15,13 @@ namespace MyServiceBus.TcpClient
 
         private readonly MyClientTcpSocket<IServiceBusTcpContract> _clientTcpSocket;
 
-        private readonly List<(string topicName, int maxCachedSize)> _checkAndCreateTopics = new List<(string topicName, int maxCachedSize)>();
+        private readonly List<(string topicName, int maxCachedSize)> _checkAndCreateTopics = new ();
 
         public MyServiceBusLog<MyServiceBusTcpClient> Log { get;}
+
+        private object _lockObject = new object();
+
+        private long _requestId;
         
         public MyServiceBusTcpClient(Func<string> getHostPort, string name)
         {
@@ -28,16 +33,10 @@ namespace MyServiceBus.TcpClient
                 )
                 .RegisterTcpSerializerFactory(()=>new MyServiceBusTcpSerializer())
                 .RegisterTcpContextFactory(() => new MyServiceBusTcpContext(_subscribers, name, 
-                    _payLoadCollector, ()=>_checkAndCreateTopics));
+                    ()=>_checkAndCreateTopics));
         }
 
 
-        private bool _throwExceptionIfPublishNoConnection;
-        public MyServiceBusTcpClient ThrowExceptionOnPublishIfNoConnection(bool throwExceptionIfPublishNoConnection)
-        {
-            _throwExceptionIfPublishNoConnection = throwExceptionIfPublishNoConnection;
-            return this;
-        }
 
         public SocketLog<MyClientTcpSocket<IServiceBusTcpContract>> SocketLogs => _clientTcpSocket.Logs;
 
@@ -47,7 +46,7 @@ namespace MyServiceBus.TcpClient
             return this;
         }
 
-        private readonly Dictionary<string, SubscriberInfo> _subscribers = new Dictionary<string, SubscriberInfo>();
+        private readonly Dictionary<string, SubscriberInfo> _subscribers = new ();
 
 
         public void Subscribe(string topicId, string queueId, TopicQueueType topicQueueType,
@@ -73,43 +72,46 @@ namespace MyServiceBus.TcpClient
         {
             var connection = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
 
-            if (_throwExceptionIfPublishNoConnection)
+            if (connection == null)
+                throw new Exception("No active connection found");
+
+
+            lock (_lockObject)
             {
-                if (connection == null)
-                    throw new Exception("No active connection");
+                _requestId++;
+                
+                return connection.PublishAsync(new PublishContract
+                {
+                    RequestId = _requestId,
+                    Data = new []{valueToPublish},
+                    ImmediatePersist = immediatelyPersist ? (byte)1 : (byte)0,
+                    TopicId = topicId
+                }, _lockObject); 
             }
-
-            var result = _payLoadCollector.AddMessage(connection.Id, topicId, valueToPublish, immediatelyPersist);
-
-            var nextPayloadToPublish = _payLoadCollector.GetNextPayloadToPublish();
-            
-            if (nextPayloadToPublish != null)
-                connection.Publish(nextPayloadToPublish);
-            
-            return result;
         }
         
         public Task PublishAsync(string topicId, IEnumerable<byte[]> valueToPublish, bool immediatelyPersist)
         {
-            var connection = (MyServiceBusTcpContext)_clientTcpSocket.CurrentTcpContext;
-            
-            if (_throwExceptionIfPublishNoConnection)
+            var connection = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
+
+            if (connection == null)
+                throw new Exception("No active connection found");
+
+
+            lock (_lockObject)
             {
-                if (connection == null)
-                    throw new Exception("No active connection");
+                _requestId++;
+
+                return connection.PublishAsync(new PublishContract
+                {
+                    RequestId = _requestId,
+                    Data = valueToPublish.ToArray(),
+                    ImmediatePersist = immediatelyPersist ? (byte)1 : (byte)0,
+                    TopicId = topicId
+                }, _lockObject);
             }
-
-            var result = _payLoadCollector.AddMessage(connection.Id, topicId, valueToPublish, immediatelyPersist);
-
-            var nextPayloadToPublish = _payLoadCollector.GetNextPayloadToPublish();
-
-            if (nextPayloadToPublish != null)
-                connection.Publish(nextPayloadToPublish);
-
-            return result;
         }
 
-        private readonly PayLoadCollector _payLoadCollector = new PayLoadCollector(1024*1024*5);
         
         public void Start()
         {

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MyServiceBus.Abstractions;
 using MyServiceBus.Abstractions.QueueIndex;
@@ -8,6 +9,8 @@ using MyTcpSockets;
 
 namespace MyServiceBus.TcpClient
 {
+
+    
     public class MyServiceBusTcpContext : ClientTcpContext<IServiceBusTcpContract>
     {
 
@@ -16,13 +19,13 @@ namespace MyServiceBus.TcpClient
         private readonly Func<IReadOnlyList<(string topicName, int maxCachedSize)>> _checkAndCreateTopicOnConnect;
 
 
-        private readonly PayLoadCollector _payLoadCollector;
+        private object _lockObject;
+        private bool _disconnected;
+        private readonly Dictionary<long, TaskCompletionSource<int>> _publishTasks = new ();
 
         public MyServiceBusTcpContext(Dictionary<string, SubscriberInfo> subscribers, string name, 
-            PayLoadCollector payLoadCollector,
             Func<IReadOnlyList<(string topicName, int maxCachedSize)>> checkAndCreateTopicOnConnect)
         {
-            _payLoadCollector = payLoadCollector;
             _subscribers = subscribers;
             _name = name;
             _checkAndCreateTopicOnConnect = checkAndCreateTopicOnConnect;
@@ -48,22 +51,46 @@ namespace MyServiceBus.TcpClient
         }
 
 
+
+        private void HandleDisconnect()
+        {
+            while (_publishTasks.Count >0)
+            {
+                var first = _publishTasks.Keys.First();
+                    
+                if (_publishTasks.Remove(first, out var result))
+                    result.SetException(new Exception("Disconnected"));
+            }
+        }
         
         protected override ValueTask OnDisconnectAsync()
         {
-            _payLoadCollector.Disconnect(Id);
+            _disconnected = true;
+            
+            var lockObject = _lockObject;
+            if (lockObject != null)
+            {
+                lock (lockObject)
+                {
+                    HandleDisconnect();    
+                }
+            }
+            else
+            {
+                HandleDisconnect();
+            }
+            
             return new ValueTask();
         }
 
 
         private void HandlePublishResponse(PublishResponseContract pr)
         {
-            _payLoadCollector.SetPublished(pr.RequestId);
-
-            var nextPackageToPublish = _payLoadCollector.GetNextPayloadToPublish();
-
-            if (nextPackageToPublish != null)
-                Publish(nextPackageToPublish);
+            lock (_publishTasks)
+            {
+                if (_publishTasks.Remove(pr.RequestId, out var result))
+                    result.SetResult(0);
+            }
         }
 
         protected override ValueTask HandleIncomingDataAsync(IServiceBusTcpContract data)
@@ -168,7 +195,7 @@ namespace MyServiceBus.TcpClient
         private const int ProtocolVersion = 2; 
         
         
-        private static readonly Lazy<string> GetClientVersion = new Lazy<string>(() =>
+        private static readonly Lazy<string> GetClientVersion = new (() =>
         {
             try
             {
@@ -227,19 +254,19 @@ namespace MyServiceBus.TcpClient
         }
 
 
-        public void Publish(PayloadPackage payloadPackage)
+        public Task PublishAsync(PublishContract contract, object lockObject)
         {
+            _lockObject ??= lockObject;
 
-            var contract = new PublishContract
-            {
-                TopicId = payloadPackage.TopicId,
-                RequestId = payloadPackage.RequestId,
-                Data = payloadPackage.PayLoads,
-                ImmediatePersist = payloadPackage.ImmediatelyPersist ? (byte) 1 : (byte) 0
-            };
+            if (_disconnected)
+                throw new Exception("Disconnected");
+
+            var task = new TaskCompletionSource<int>();
+            _publishTasks.Add(contract.RequestId, task);
 
             SendDataToSocket(contract);
 
+            return task.Task;
         }
 
         public void ConfirmMessages(IConfirmationContext ctx, IEnumerable<long> messagesToConfirm)
