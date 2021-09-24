@@ -239,7 +239,9 @@ namespace MyServiceBus.Domains.Queues
                 if (minFromLeasedQueue<0)
                     return _queue.GetMinId();
 
-                return minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
+                var result = minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
+
+                return result < 0 ? 0 : result;
             }
         }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using MyServiceBus.Domains.Topics;
 using MyServiceBus.Persistence.Grpc;
@@ -28,10 +29,13 @@ namespace MyServiceBus.Domains.MessagesContent
             
             foreach (var queue in topic.GetQueues())
             {
-                var pageId = queue.GetMinId().GetMessageContentPageId();
+    
+                    var pageId = queue.GetMinId().GetMessageContentPageId();
 
-                if (!result.ContainsKey(pageId.Value))
-                    result.Add(pageId.Value, pageId.Value);
+                    if (!result.ContainsKey(pageId.Value))
+                        result.Add(pageId.Value, pageId.Value);
+      
+
             }
 
             return result;

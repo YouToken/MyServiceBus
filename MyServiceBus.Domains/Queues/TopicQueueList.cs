@@ -102,7 +102,15 @@ namespace MyServiceBus.Domains.Queues
                 return;
             }
 
-            MinMessageId = _topicQueues.Values.Min(itm => itm.GetMinId());
+            try
+            {
+                MinMessageId = _topicQueues.Values.Min(itm => itm.GetMinId());
+            }
+            catch (Exception)
+            {
+                MinMessageId = 0;
+            }
+           
         }
         
         public TopicQueue GetQueue(string queueId)

@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using MyServiceBus.Domains.QueueSubscribers;
@@ -9,6 +10,19 @@ namespace MyServiceBus.Server.Controllers
     
     public class QueuesController : Controller
     {
+        
+        [HttpGet("/Queues/")]
+        public IActionResult GetQueues([FromQuery][Required]string topicId)
+        {
+            var topic = ServiceLocator.TopicsList.TryGet(topicId);
+            
+            if(topic == null)
+                return Conflict($"Topic {topicId} is not found");
+
+            var result = topic.GetQueues().Select(itm => itm.QueueId);
+
+            return Json(result);
+        }
         [HttpDelete("/Queues/")]
         public IActionResult Delete([FromQuery][Required]string topicId, [FromQuery][Required]string queueId)
         {
