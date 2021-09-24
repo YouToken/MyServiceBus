@@ -54,6 +54,11 @@ namespace MyServiceBus.Abstractions.QueueIndex
         private QueueIndexRange GetInterval(long messageId)
         {
 
+            if (_ranges.Count == 0)
+            {
+                _ranges.Add(QueueIndexRange.Create(0, -1));
+            }
+
 
             if (_ranges.Count == 1)
             {
@@ -90,6 +95,11 @@ namespace MyServiceBus.Abstractions.QueueIndex
 
         public long Dequeue()
         {
+
+
+            if (_ranges.Count == 0)
+                return -1;
+
             var interval = _ranges[0];
             if (interval.IsEmpty())
                 return -1;
