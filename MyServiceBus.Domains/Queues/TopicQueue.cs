@@ -231,8 +231,6 @@ namespace MyServiceBus.Domains.Queues
 
         public long GetMinId()
         {
-            try
-            {
                 lock (_topicLock)
                 {
                     var minFromLeasedQueue = this.GetMinMessageId();
@@ -245,12 +243,6 @@ namespace MyServiceBus.Domains.Queues
 
                     return result < 0 ? 0 : result;
                 }
-            }
-            catch (Exception)
-            {
-                return 0;
-            }
-
         }
 
 
