@@ -231,18 +231,26 @@ namespace MyServiceBus.Domains.Queues
 
         public long GetMinId()
         {
-            lock (_topicLock)
+            try
             {
-                var minFromLeasedQueue = this.GetMinMessageId();
-                var minFromQueue = _queue.GetMinId();
+                lock (_topicLock)
+                {
+                    var minFromLeasedQueue = this.GetMinMessageId();
+                    var minFromQueue = _queue.GetMinId();
                 
-                if (minFromLeasedQueue<0)
-                    return _queue.GetMinId();
+                    if (minFromLeasedQueue<0)
+                        return _queue.GetMinId();
 
-                var result = minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
+                    var result = minFromQueue < minFromLeasedQueue ? minFromQueue : minFromLeasedQueue;
 
-                return result < 0 ? 0 : result;
+                    return result < 0 ? 0 : result;
+                }
             }
+            catch (Exception)
+            {
+                return 0;
+            }
+
         }
 
 
