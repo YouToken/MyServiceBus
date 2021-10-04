@@ -25,16 +25,7 @@ namespace MyServiceBus.TcpContracts.Tests
         {
             return src.AsReadOnlyListAsync().Result;
         }
-        
-        public static async Task NewPackageAsync(this TcpDataReader tcpDataReader, ReadOnlyMemory<byte> data)
-        {
-            var token = new CancellationTokenSource();
-            var buf = await tcpDataReader.AllocateBufferToWriteAsync(token.Token);
-            data.CopyTo(buf);
-            tcpDataReader.CommitWrittenData(data.Length);
 
-        }
-        
         
     }
 }

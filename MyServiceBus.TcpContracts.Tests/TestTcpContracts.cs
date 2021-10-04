@@ -35,9 +35,11 @@ namespace MyServiceBus.TcpContracts.Tests
             var pingContract = new PingContract();
 
             var rawData = serializer.Serialize(pingContract);
+
+            var incomingTraffic = new IncomingTcpTrafficMock();
             
-            var dataReader = new TcpDataReader(2048);
-            await dataReader.NewPackageAsync(rawData);
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
+            incomingTraffic.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
 
@@ -60,8 +62,10 @@ namespace MyServiceBus.TcpContracts.Tests
 
             var rawData = serializer.Serialize(inContract);
 
-            var dataReader = new TcpDataReader(2048);
-            await dataReader.NewPackageAsync(rawData);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
+            incomingTraffic.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -83,9 +87,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 Name = "MyName"
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -110,9 +116,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 ImmediatePersist = 1
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -148,9 +156,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 RequestId = 66
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
             
             var ct = new CancellationTokenSource();
             
@@ -177,9 +187,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 QueueType = TopicQueueType.PermanentWithSingleConnection
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -205,9 +217,11 @@ namespace MyServiceBus.TcpContracts.Tests
 
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -247,10 +261,12 @@ namespace MyServiceBus.TcpContracts.Tests
 
                 }
             };
-
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
+            
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);
+            incomingTraffic.NewPackageAsync(rawData);
 
             var ct = new CancellationTokenSource();
             
@@ -286,9 +302,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 ConfirmationId = 555
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);       
+            incomingTraffic.NewPackageAsync(rawData);    
 
             var ct = new CancellationTokenSource();
             
@@ -315,9 +333,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 MaxMessagesInCache = 243432
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);            
+            incomingTraffic.NewPackageAsync(rawData);          
 
             var ct = new CancellationTokenSource();
             
@@ -344,9 +364,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 NotOk = new []{new MessagesInterval{FromId = 10, ToId = 10}, new MessagesInterval{FromId = 15, ToId = 16} },
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);          
+            incomingTraffic.NewPackageAsync(rawData);         
             
             var ct = new CancellationTokenSource();
             
@@ -378,9 +400,11 @@ namespace MyServiceBus.TcpContracts.Tests
             inContract.SetPacketVersion(CommandType.Publish, 1);
             inContract.SetPacketVersion(CommandType.NewMessage, 2);
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);       
+            incomingTraffic.NewPackageAsync(rawData);     
 
             var ct = new CancellationTokenSource();
             
@@ -411,9 +435,11 @@ namespace MyServiceBus.TcpContracts.Tests
                 Message = "MyMessage"
             };
 
-            var dataReader = new TcpDataReader(2048);
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
             var rawData = serializer.Serialize(inContract);
-            await dataReader.NewPackageAsync(rawData);         
+            incomingTraffic.NewPackageAsync(rawData);       
             
             var res
                 = await serializer.DeserializeAsync(dataReader, CancellationToken.None);
@@ -435,11 +461,13 @@ namespace MyServiceBus.TcpContracts.Tests
             queue.Enqueue(51);
             var inContract = ConfirmMessagesByNotDeliveryContract.Create("topic", "queue", 
                 15, queue.GetSnapshot());
-
-            var dataReader = new TcpDataReader(2048);
+            
+            var incomingTraffic = new IncomingTcpTrafficMock();
+            var dataReader = new TcpDataReader(incomingTraffic, 2048);
+            
             var rawData = serializer.Serialize(inContract);
             
-            await dataReader.NewPackageAsync(rawData);  
+            incomingTraffic.NewPackageAsync(rawData);
                         
             var res
                 = await serializer.DeserializeAsync(dataReader, CancellationToken.None);

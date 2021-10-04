@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using MyTcpSockets;
@@ -53,7 +52,7 @@ namespace MyServiceBus.TcpContracts
         public async ValueTask<IServiceBusTcpContract> DeserializeAsync(ITcpDataReader reader, CancellationToken ct)
         {
 
-            var command = await reader.ReadAndCommitByteAsync(ct);
+            var command = await reader.ReadByteAsync(ct);
 
             var instance = DataContractsMapper.ResolveDataContact(command);
 

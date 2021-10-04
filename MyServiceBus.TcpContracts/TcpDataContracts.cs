@@ -90,7 +90,7 @@ namespace MyServiceBus.TcpContracts
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             RequestId = await dataReader.ReadLongAsync(protocolVersion, ct);
             Data = await dataReader.ReadListOfByteArrayAsync(ct);
-            ImmediatePersist = await dataReader.ReadAndCommitByteAsync(ct);
+            ImmediatePersist = await dataReader.ReadByteAsync(ct);
         }
     }    
     
@@ -128,7 +128,7 @@ namespace MyServiceBus.TcpContracts
         {
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
-            QueueType = (TopicQueueType)await dataReader.ReadAndCommitByteAsync(ct);
+            QueueType = (TopicQueueType)await dataReader.ReadByteAsync(ct);
         }
     }    
     
@@ -296,7 +296,7 @@ namespace MyServiceBus.TcpContracts
 
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
-            PacketVersion = await dataReader.ReadAndCommitByteAsync(ct);
+            PacketVersion = await dataReader.ReadByteAsync(ct);
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
             ConfirmationId = await dataReader.ReadLongAsync(ct);
@@ -419,11 +419,11 @@ namespace MyServiceBus.TcpContracts
 
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
-            var count = await dataReader.ReadAndCommitByteAsync(ct);
+            var count = await dataReader.ReadByteAsync(ct);
 
             for (byte i = 0; i < count; i++)
             {
-                var key = await dataReader.ReadAndCommitByteAsync(ct);
+                var key = await dataReader.ReadByteAsync(ct);
                 var value = await dataReader.ReadIntAsync(ct);
                 _versions.Add(key, value);
             }
@@ -478,7 +478,7 @@ namespace MyServiceBus.TcpContracts
 
         public async ValueTask DeserializeAsync(ITcpDataReader dataReader, int protocolVersion, int packetVersion, CancellationToken ct)
         {
-            PacketVersion = await dataReader.ReadAndCommitByteAsync(ct);
+            PacketVersion = await dataReader.ReadByteAsync(ct);
             TopicId = await dataReader.ReadPascalStringAsync(ct);
             QueueId = await dataReader.ReadPascalStringAsync(ct);
             ConfirmationId = await dataReader.ReadLongAsync(ct);
