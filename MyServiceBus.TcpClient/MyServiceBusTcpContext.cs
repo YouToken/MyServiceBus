@@ -59,7 +59,7 @@ namespace MyServiceBus.TcpClient
                 var first = _publishTasks.Keys.First();
                     
                 if (_publishTasks.Remove(first, out var result))
-                    result.SetException(new Exception("Disconnected"));
+                    result.SetException(new PublishFailException( PublishFailReason.Disconnected, "Disconnection occured during the publish flow"));
             }
         }
         

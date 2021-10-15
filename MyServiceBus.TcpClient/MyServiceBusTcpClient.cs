@@ -19,7 +19,7 @@ namespace MyServiceBus.TcpClient
 
         public MyServiceBusLog<MyServiceBusTcpClient> Log { get;}
 
-        private object _lockObject = new object();
+        private readonly object _lockObject = new object();
 
         private long _requestId;
         
@@ -95,7 +95,7 @@ namespace MyServiceBus.TcpClient
             var connection = (MyServiceBusTcpContext) _clientTcpSocket.CurrentTcpContext;
 
             if (connection == null)
-                throw new Exception("No active connection found");
+                throw new PublishFailException( PublishFailReason.NoActiveConnection, "No active connection found");
 
 
             lock (_lockObject)
@@ -112,7 +112,8 @@ namespace MyServiceBus.TcpClient
             }
         }
 
-        
+        public bool Connected => _clientTcpSocket.Connected;
+
         public void Start()
         {
             _clientTcpSocket.Start();
