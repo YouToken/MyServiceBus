@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace MyServiceBus.TcpClient
 
         private object _lockObject;
         private bool _disconnected;
-        private readonly Dictionary<long, TaskCompletionSource<int>> _publishTasks = new ();
+        private readonly ConcurrentDictionary<long, TaskCompletionSource<int>> _publishTasks = new();
 
         public MyServiceBusTcpContext(Dictionary<string, SubscriberInfo> subscribers, string name, 
             Func<IReadOnlyList<(string topicName, int maxCachedSize)>> checkAndCreateTopicOnConnect)
@@ -58,8 +59,8 @@ namespace MyServiceBus.TcpClient
             {
                 var first = _publishTasks.Keys.First();
                     
-                if (_publishTasks.Remove(first, out var result))
-                    result.SetException(new PublishFailException( PublishFailReason.Disconnected, "Disconnection occured during the publish flow"));
+                if (_publishTasks.TryRemove(first, out var result))
+                    result.SetException(new PublishFailException(PublishFailReason.Disconnected, "Disconnection occurred during the publish flow"));
             }
         }
         
@@ -86,10 +87,9 @@ namespace MyServiceBus.TcpClient
 
         private void HandlePublishResponse(PublishResponseContract pr)
         {
-            lock (_publishTasks)
+            if (_publishTasks.TryRemove(pr.RequestId, out var result))
             {
-                if (_publishTasks.Remove(pr.RequestId, out var result))
-                    result.SetResult(0);
+                result.SetResult(0);
             }
         }
 
@@ -262,7 +262,7 @@ namespace MyServiceBus.TcpClient
                 throw new Exception("Disconnected");
 
             var task = new TaskCompletionSource<int>();
-            _publishTasks.Add(contract.RequestId, task);
+            _publishTasks[contract.RequestId] = task;
 
             SendDataToSocket(contract);
 
