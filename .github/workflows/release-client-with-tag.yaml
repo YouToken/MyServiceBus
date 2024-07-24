@@ -1,0 +1,61 @@
+name: Release tcp client library
+
+on:
+  push:
+    tags:
+      - "client-*"
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Library Test
+        run: dotnet test --no-build --configuration Release
+
+      - name: Library Build
+        run: dotnet build --configuration Release /p:AssemblyVersion=${GITHUB_REF#refs/tags/client-}
+
+      - name: Library wrap
+        run: dotnet pack --configuration Release MyServiceBus.TcpClient /p:PackageVersion=${GITHUB_REF#refs/tags/client-}
+
+      - name: Upload package to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: package
+          path: MyServiceBus/bin/Release/*.nupkg
+
+  upload-to-github-nuget:
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 6.0.x
+          source-url: https://nuget.pkg.github.com/youtoken/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Download built library
+        uses: actions/download-artifact@v3
+        with:
+          name: package
+          path: Package
+
+      - name: ls
+        run: ls -la
+
+      - name: Publish the package to GitHub
+        uses: tanaka-takayoshi/nuget-publish-to-github-packages-action@v2.1
+        with:
+          nupkg-path: "./Package/*.nupkg"
+          repo-owner: 'YouToken'
+          gh-user: ${{ github.actor }}
+          token: ${{ secrets.NUGET_GITHUB_TOKEN }}
