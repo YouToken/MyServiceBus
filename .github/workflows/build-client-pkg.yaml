@@ -35,7 +35,6 @@ jobs:
         run: |
           echo "TOTAL_COMMITS=$(git rev-list HEAD --count)" >> $GITHUB_ENV
           echo "Total commits since start of the repo $TOTAL_COMMITS"
-
       - name: Determine Version
         id: gitversion
         uses: gittools/actions/gitversion/execute@v0.9.7
@@ -57,7 +56,6 @@ jobs:
           echo "File version: ${{ steps.gitversion.outputs.assemblySemFileVer }}"
           echo "Info version: ${{ steps.gitversion.outputs.informationalVersion }}"
           echo "NuGet package version: ${{ steps.pkg_calc.outputs.nugetPkgVersion }}"
-
   create_artifacts:
     runs-on: ubuntu-latest
     needs: calculate_version
@@ -72,10 +70,12 @@ jobs:
         with:
           dotnet-version: 6.0.x
 
+      - name: Update NuGet sources
+        run: dotnet nuget add source https://nuget.pkg.github.com/youtoken/index.json -n YouHodlerGitHub -u user -p ${{secrets.NUGET_GITHUB_TOKEN}} --store-password-in-clear-text
+
       - name: Build
         run: |
           dotnet build --configuration Release /p:AssemblyVersion=${{ needs.calculate_version.outputs.assemblyVersion }} /p:FileVersion=${{ needs.calculate_version.outputs.fileVersion }} /p:InformationalVersion=${{ needs.calculate_version.outputs.infoVersion }}
-
       - name: Test
         run: dotnet test --no-build --configuration Release
 
@@ -83,7 +83,6 @@ jobs:
         run: |
           echo "Create package ${{ env.CLIENT_PROJ }} with version ${{ needs.calculate_version.outputs.pkgVersion }}"
           dotnet pack --configuration Release ${{ env.CLIENT_PROJ }} /p:PackageVersion=${{ needs.calculate_version.outputs.pkgVersion }}
-
       - name: Upload package to artifacts
         uses: actions/upload-artifact@v3
         with:
