@@ -18,6 +18,7 @@ branches:
     
   bugfix:
     regex: ^bugfix[/_-]
+    source-branches: ['master']
     increment: Patch
 
   test:
